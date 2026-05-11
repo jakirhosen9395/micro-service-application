@@ -1,0 +1,30 @@
+services:
+  redis:
+    image: redis:8.0
+    container_name: redis8.0
+    hostname: redis
+    command: >
+      redis-server
+      --requirepass "rlCeHk6SR2xbSCpthWX0MmC4ieBsKCoX"
+      --appendonly yes
+      --dir /data
+    ports:
+      - "6379:6379"
+    volumes:
+      - /opt/volumes/redis/data:/data
+    networks:
+      - utilities_network
+    restart: unless-stopped
+
+    healthcheck:
+      test: ["CMD-SHELL", 'redis-cli -h 127.0.0.1 -p 6379 -a "2MgcRWSKolBQ6PWOTsB3SyYjvnnBpNse" --no-auth-warning ping | grep -q PONG']
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+networks:
+  utilities_network:
+    driver: bridge
+  
+

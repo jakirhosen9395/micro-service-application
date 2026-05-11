@@ -1,0 +1,29 @@
+Vagrant.configure("2") do |config|
+  vm_ip    = "192.168.56.200"
+  net_name = "vagrant-static-net"
+
+  config.vm.box      = "bento/ubuntu-24.04"
+  config.vm.hostname = "components"
+
+  # Private network with STATIC IP; DHCP disabled via network XML (no <dhcp/> section)
+  config.vm.network "private_network",
+    ip: vm_ip,
+    libvirt__network_name: net_name,
+    libvirt__network_xml: <<-XML
+      <network>
+        <name>#{net_name}</name>
+        <forward mode='nat'/>
+        <ip address='192.168.56.1' netmask='255.255.255.0'>
+          <!-- DHCP intentionally disabled: no <dhcp> block -->
+        </ip>
+      </network>
+    XML
+
+  config.vm.provider :libvirt do |libvirt|
+    libvirt.driver = "kvm"
+    libvirt.nested = true
+    libvirt.cpus   = 4
+    libvirt.memory = 4096
+    libvirt.storage :file, size: "50G"
+  end
+end
