@@ -1,0 +1,33 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: postgres
+    hostname: postgres
+    restart: unless-stopped
+
+    environment:
+      POSTGRES_USER: "user_micro_services"
+      POSTGRES_PASSWORD: "0a3d69suZYuvUKWMSbfb4tl9mnZj7XTB"
+      POSTGRES_DB: "db_micro_services"
+
+    ports:
+      - "5432:5432"
+
+    volumes:
+      - /opt/volumes/postgres/data:/var/lib/postgresql/data
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user_micro_services -d db_micro_services -h 127.0.0.1 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
+    networks:
+      - postgres_network
+
+networks:
+  postgres_network:
+    driver: bridge
+
+

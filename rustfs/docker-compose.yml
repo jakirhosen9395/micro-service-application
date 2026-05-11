@@ -1,0 +1,40 @@
+services:
+  rustfs:
+    image: rustfs/rustfs:latest
+    container_name: rustfs
+    hostname: rustfs
+    ports:
+      - "9000:9000"   # API
+      - "9001:9001"   # Console/UI (if enabled by the image)
+    environment:
+      RUSTFS_CORS_ALLOWED_ORIGINS: "*"
+      RUSTFS_CONSOLE_CORS_ALLOWED_ORIGINS: "*"
+      RUSTFS_ACCESS_KEY: "admin"
+      RUSTFS_SECRET_KEY: "pzf4weqRSe1lDv3syaoh4Sb0dAZO0AMV"
+      RUSTFS_OBS_LOGGER_LEVEL: "debug"
+      RUSTFS_OBS_LOG_DIRECTORY: "/logs"
+    volumes:
+      - rustfs_data:/data
+      - rustfs_logs:/logs
+    networks:
+      - rustfs_net
+    restart: unless-stopped
+    healthcheck:
+      # If this endpoint differs for your image, change it to the correct one.
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:9000/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
+volumes:
+  rustfs_data:
+    driver: local
+  rustfs_logs:
+    driver: local
+
+networks:
+  rustfs_net:
+    driver: bridge
+
+

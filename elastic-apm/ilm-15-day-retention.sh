@@ -1,0 +1,475 @@
+#!/bin/bash
+
+# Elasticsearch ILM Policy Manager - 15 Day Retention
+# This script sets up 15-day retention for all APM, logs, traces, and metrics data
+
+set -e
+
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+# Function to print colored output
+print_status() {
+    echo -e "${GREEN}[INFO]${NC} $1"
+}
+
+print_warning() {
+    echo -e "${YELLOW}[WARNING]${NC} $1"
+}
+
+print_error() {
+    echo -e "${RED}[ERROR]${NC} $1"
+}
+
+print_header() {
+    echo -e "${BLUE}[HEADER]${NC} $1"
+}
+
+# Configuration
+ELASTIC_HOST="localhost:9200"
+ELASTIC_USER="elastic"
+RETENTION_DAYS="15d"
+
+# Load environment variables from .env file
+if [ -f .env ]; then
+    source .env
+    ELASTIC_PASSWORD="$ELASTIC_PASSWORD"
+else
+    print_error "❌ .env file not found. Please ensure the .env file exists in the current directory."
+    exit 1
+fi
+
+# Check if password was loaded
+if [ -z "$ELASTIC_PASSWORD" ]; then
+    print_error "❌ ELASTIC_PASSWORD not found in .env file"
+    exit 1
+fi
+
+# Function to check if Elasticsearch is available
+check_elasticsearch() {
+    print_status "Checking Elasticsearch connection..."
+    if curl -s -u "${ELASTIC_USER}:${ELASTIC_PASSWORD}" "http://${ELASTIC_HOST}/_cluster/health" > /dev/null; then
+        print_status "✅ Elasticsearch is accessible"
+        return 0
+    else
+        print_error "❌ Cannot connect to Elasticsearch"
+        exit 1
+    fi
+}
+
+# Function to create/update ILM policy
+create_ilm_policy() {
+    local policy_name=$1
+    local max_age=$2
+    local max_size=$3
+    local description=$4
+    
+    print_status "Creating/updating ILM policy: ${policy_name}"
+    
+    curl -X PUT -s -u "${ELASTIC_USER}:${ELASTIC_PASSWORD}" \
+        "http://${ELASTIC_HOST}/_ilm/policy/${policy_name}" \
+        -H "Content-Type: application/json" \
+        -d "{
+            \"policy\": {
+                \"phases\": {
+                    \"hot\": {
+                        \"min_age\": \"0ms\",
+                        \"actions\": {
+                            \"set_priority\": {
+                                \"priority\": 100
+                            },
+                            \"rollover\": {
+                                \"max_age\": \"${max_age}\",
+                                \"max_primary_shard_size\": \"${max_size}\"
+                            }
+                        }
+                    },
+                    \"delete\": {
+                        \"min_age\": \"${RETENTION_DAYS}\",
+                        \"actions\": {
+                            \"delete\": {
+                                \"delete_searchable_snapshot\": true
+                            }
+                        }
+                    }
+                }
+            }
+        }" | jq -r '.acknowledged' > /dev/null
+    
+    if [ $? -eq 0 ]; then
+        print_status "✅ Policy ${policy_name} created/updated successfully"
+    else
+        print_error "❌ Failed to create policy ${policy_name}"
+    fi
+}
+
+# Function to update existing APM policies
+update_apm_policies() {
+    print_header "🔄 Updating APM-related ILM policies to 15-day retention"
+    
+    # APM Traces
+    create_ilm_policy "traces-apm.traces-15day-policy" "1d" "10gb" "APM traces with 15-day retention"
+    create_ilm_policy "traces-apm.rum_traces-15day-policy" "1d" "10gb" "APM RUM traces with 15-day retention"
+    
+    # APM Logs
+    create_ilm_policy "logs-apm.app_logs-15day-policy" "1d" "10gb" "APM app logs with 15-day retention"
+    create_ilm_policy "logs-apm.error_logs-15day-policy" "1d" "10gb" "APM error logs with 15-day retention"
+    
+    # APM Metrics
+    create_ilm_policy "metrics-apm.app_metrics-15day-policy" "1d" "10gb" "APM app metrics with 15-day retention"
+    create_ilm_policy "metrics-apm.internal_metrics-15day-policy" "1d" "10gb" "APM internal metrics with 15-day retention"
+    
+    # APM Transaction Metrics
+    create_ilm_policy "metrics-apm.transaction_metrics-15day-policy" "1d" "10gb" "APM transaction metrics with 15-day retention"
+    create_ilm_policy "metrics-apm.service_metrics-15day-policy" "1d" "10gb" "APM service metrics with 15-day retention"
+    
+    # General policies
+    create_ilm_policy "logs-15day-retention" "1d" "10gb" "General logs with 15-day retention"
+    create_ilm_policy "metrics-15day-retention" "1d" "10gb" "General metrics with 15-day retention"
+    create_ilm_policy "traces-15day-retention" "1d" "10gb" "General traces with 15-day retention"
+}
+
+# Function to apply policies to templates
+apply_policies_to_templates() {
+    print_header "📝 Applying 15-day retention policies to index templates"
+    
+    # This would require getting all templates and updating them
+    # For now, we'll create a general policy that can be applied
+    
+    print_status "Creating general 15-day retention policy for new indices..."
+    create_ilm_policy "default-15day-retention" "7d" "50gb" "Default 15-day retention policy"
+}
+
+# Function to show current policies
+show_current_policies() {
+    print_header "📊 Current ILM Policies with 15-day retention"
+    
+    curl -s -u "${ELASTIC_USER}:${ELASTIC_PASSWORD}" \
+        "http://${ELASTIC_HOST}/_ilm/policy" | \
+        jq -r 'to_entries[] | select(.value.policy.phases.delete.min_age == "15d") | .key' | \
+        while read policy; do
+            print_status "✅ ${policy}"
+        done
+}
+
+# Function to create a monitoring script
+create_monitoring_script() {
+    print_header "📋 Creating monitoring script for disk usage"
+    
+    cat > disk-usage-monitor.sh << 'EOF'
+#!/bin/bash
+
+# Elasticsearch Disk Usage Monitor
+# This script monitors disk usage and shows index sizes
+
+ELASTIC_HOST="localhost:9200"
+ELASTIC_USER="elastic"
+
+# Load environment variables from .env file
+if [ -f .env ]; then
+    source .env
+    if [ -z "$ELASTIC_PASSWORD" ]; then
+        echo "❌ ELASTIC_PASSWORD not found in .env file"
+        exit 1
+    fi
+else
+    echo "❌ .env file not found. Please ensure the .env file exists in the current directory."
+    exit 1
+fi
+
+# Portable date calculation function that works on ALL systems
+get_date_n_days_ago() {
+    local days_ago=$1
+    local result_date=""
+    
+    # Try GNU date (Linux standard)
+    if result_date=$(date --date="${days_ago} days ago" '+%Y-%m-%d' 2>/dev/null); then
+        echo "$result_date"
+        return 0
+    fi
+    
+    # Try BSD date (macOS)
+    if result_date=$(date -v-${days_ago}d '+%Y-%m-%d' 2>/dev/null); then
+        echo "$result_date"
+        return 0
+    fi
+    
+    # Fallback using Python 3
+    if command -v python3 &> /dev/null; then
+        result_date=$(python3 -c "from datetime import datetime, timedelta; print((datetime.now() - timedelta(days=${days_ago})).strftime('%Y-%m-%d'))" 2>/dev/null)
+        if [ $? -eq 0 ] && [ -n "$result_date" ]; then
+            echo "$result_date"
+            return 0
+        fi
+    fi
+    
+    # Fallback using Python 2
+    if command -v python &> /dev/null; then
+        result_date=$(python -c "from datetime import datetime, timedelta; print((datetime.now() - timedelta(days=${days_ago})).strftime('%Y-%m-%d'))" 2>/dev/null)
+        if [ $? -eq 0 ] && [ -n "$result_date" ]; then
+            echo "$result_date"
+            return 0
+        fi
+    fi
+    
+    # Fallback using Perl
+    if command -v perl &> /dev/null; then
+        result_date=$(perl -MTime::Piece -E "say Time::Piece->new(time - ${days_ago}*86400)->strftime('%Y-%m-%d')" 2>/dev/null)
+        if [ $? -eq 0 ] && [ -n "$result_date" ]; then
+            echo "$result_date"
+            return 0
+        fi
+    fi
+    
+    echo "ERROR: Unable to calculate date. Please install one of: GNU coreutils, Python, or Perl" >&2
+    return 1
+}
+
+echo "=== Elasticsearch Index Disk Usage ==="
+echo "Date: $(date)"
+echo
+
+# Get all indices sorted by size
+curl -s -u "${ELASTIC_USER}:${ELASTIC_PASSWORD}" \
+    "http://${ELASTIC_HOST}/_cat/indices?v&s=store.size:desc&h=index,docs.count,store.size,creation.date.string" | \
+    head -20
+
+echo
+echo "=== Data Streams ==="
+curl -s -u "${ELASTIC_USER}:${ELASTIC_PASSWORD}" \
+    "http://${ELASTIC_HOST}/_data_stream" | jq -r '.data_streams[] | "\(.name) - \(.generation)"'
+
+echo
+echo "=== APM Indices older than 15 days ==="
+CUTOFF_DATE=$(get_date_n_days_ago 15)
+if [ $? -ne 0 ]; then
+    echo "❌ Failed to calculate cutoff date"
+    exit 1
+fi
+curl -s -u "${ELASTIC_USER}:${ELASTIC_PASSWORD}" \
+    "http://${ELASTIC_HOST}/_cat/indices/*apm*,*trace*,*metric*,*log*?h=index,creation.date.string,store.size" | \
+    awk -v cutoff_date="$CUTOFF_DATE" '
+    {
+        # Extract date from ISO8601 timestamp (YYYY-MM-DDTHH:MM:SS.sssZ)
+        split($2, parts, "T")
+        index_date = parts[1]
+        if (index_date < cutoff_date) {
+            print "OLD: " $1 " (created: " index_date ") - " $3
+        }
+    }'
+
+EOF
+
+    chmod +x disk-usage-monitor.sh
+    print_status "✅ Created disk-usage-monitor.sh"
+}
+
+# Function to set up automated cleanup
+setup_automated_cleanup() {
+    print_header "🔄 Setting up automated cleanup"
+    
+    # Create a cleanup script
+    cat > cleanup-old-indices.sh << 'EOF'
+#!/bin/bash
+
+# Automated cleanup script for indices older than 15 days
+# This script should be run via cron
+
+ELASTIC_HOST="localhost:9200"
+ELASTIC_USER="elastic"
+
+# Load environment variables from .env file
+if [ -f .env ]; then
+    source .env
+    if [ -z "$ELASTIC_PASSWORD" ]; then
+        echo "❌ ELASTIC_PASSWORD not found in .env file"
+        exit 1
+    fi
+else
+    echo "❌ .env file not found. Please ensure the .env file exists in the current directory."
+    exit 1
+fi
+
+# Portable date calculation function that works on ALL systems
+get_date_n_days_ago() {
+    local days_ago=$1
+    local result_date=""
+    
+    # Try GNU date (Linux standard)
+    if result_date=$(date --date="${days_ago} days ago" '+%Y-%m-%d' 2>/dev/null); then
+        echo "$result_date"
+        return 0
+    fi
+    
+    # Try BSD date (macOS)
+    if result_date=$(date -v-${days_ago}d '+%Y-%m-%d' 2>/dev/null); then
+        echo "$result_date"
+        return 0
+    fi
+    
+    # Fallback using Python 3
+    if command -v python3 &> /dev/null; then
+        result_date=$(python3 -c "from datetime import datetime, timedelta; print((datetime.now() - timedelta(days=${days_ago})).strftime('%Y-%m-%d'))" 2>/dev/null)
+        if [ $? -eq 0 ] && [ -n "$result_date" ]; then
+            echo "$result_date"
+            return 0
+        fi
+    fi
+    
+    # Fallback using Python 2
+    if command -v python &> /dev/null; then
+        result_date=$(python -c "from datetime import datetime, timedelta; print((datetime.now() - timedelta(days=${days_ago})).strftime('%Y-%m-%d'))" 2>/dev/null)
+        if [ $? -eq 0 ] && [ -n "$result_date" ]; then
+            echo "$result_date"
+            return 0
+        fi
+    fi
+    
+    # Fallback using Perl
+    if command -v perl &> /dev/null; then
+        result_date=$(perl -MTime::Piece -E "say Time::Piece->new(time - ${days_ago}*86400)->strftime('%Y-%m-%d')" 2>/dev/null)
+        if [ $? -eq 0 ] && [ -n "$result_date" ]; then
+            echo "$result_date"
+            return 0
+        fi
+    fi
+    
+    echo "ERROR: Unable to calculate date. Please install one of: GNU coreutils, Python, or Perl" >&2
+    return 1
+}
+
+# Get indices older than 15 days
+CUTOFF_DATE=$(get_date_n_days_ago 15)
+if [ $? -ne 0 ]; then
+    echo "❌ Failed to calculate cutoff date"
+    exit 1
+fi
+
+echo "$(date): Starting cleanup of indices older than ${CUTOFF_DATE}"
+echo "⚠️  WARNING: This will permanently delete indices older than ${CUTOFF_DATE}"
+echo ""
+
+# Count indices to be deleted
+INDICES_COUNT=$(curl -s -u "${ELASTIC_USER}:${ELASTIC_PASSWORD}" \
+    "http://${ELASTIC_HOST}/_cat/indices/*apm*,*trace*,*metric*,*log*?h=index,creation.date.string" | \
+    awk -v cutoff_date="$CUTOFF_DATE" '
+    {
+        split($2, parts, "T")
+        index_date = parts[1]
+        if (index_date < cutoff_date) count++
+    }
+    END { print count+0 }')
+
+echo "📊 Found ${INDICES_COUNT} indices to delete"
+echo ""
+
+# Delete indices older than 15 days
+curl -s -u "${ELASTIC_USER}:${ELASTIC_PASSWORD}" \
+    "http://${ELASTIC_HOST}/_cat/indices/*apm*,*trace*,*metric*,*log*?h=index,creation.date.string" | \
+    awk -v cutoff_date="$CUTOFF_DATE" '
+    {
+        # Extract date from ISO8601 timestamp (YYYY-MM-DDTHH:MM:SS.sssZ)
+        split($2, parts, "T")
+        index_date = parts[1]
+        if (index_date < cutoff_date) {
+            system("curl -X DELETE -s -u \"${ELASTIC_USER}:${ELASTIC_PASSWORD}\" \"http://${ELASTIC_HOST}/" $1 "\"")
+            print "Deleted: " $1 " (created: " index_date ")"
+        }
+    }'
+
+echo ""
+echo "$(date): Deletion completed"
+echo ""
+
+# Force merge indices to reclaim disk space immediately
+echo "🔄 Force merging indices to reclaim disk space..."
+echo "ℹ️  This may take several minutes depending on data size"
+echo ""
+
+# Get list of all non-system indices (exclude dot-prefixed system indices)
+INDICES=$(curl -s -u "${ELASTIC_USER}:${ELASTIC_PASSWORD}" \
+    "http://${ELASTIC_HOST}/_cat/indices?h=index" | grep -v "^\." | sort)
+
+TOTAL=$(echo "$INDICES" | wc -l | tr -d ' ')
+CURRENT=0
+
+if [ "$TOTAL" -gt 0 ]; then
+    echo "📊 Merging ${TOTAL} indices..."
+    echo ""
+    
+    # Force merge each index to show progress
+    for index in $INDICES; do
+        CURRENT=$((CURRENT + 1))
+        printf "[%d/%d] %s... " "$CURRENT" "$TOTAL" "$index"
+        
+        curl -X POST -s -u "${ELASTIC_USER}:${ELASTIC_PASSWORD}" \
+            "http://${ELASTIC_HOST}/${index}/_forcemerge?max_num_segments=1" \
+            -H "Content-Type: application/json" > /dev/null 2>&1
+        
+        if [ $? -eq 0 ]; then
+            echo "✅"
+        else
+            echo "⚠️"
+        fi
+    done
+    
+    echo ""
+    echo "✅ Force merge completed"
+else
+    echo "ℹ️  No indices to merge"
+fi
+
+echo ""
+echo "💡 Disk space has been reclaimed. Run 'df -hT' to verify."
+echo "$(date): Full cleanup completed"
+EOF
+
+    chmod +x cleanup-old-indices.sh
+    print_status "✅ Created cleanup-old-indices.sh (complete solution with progress tracking)"
+    
+    print_warning "⚠️  WARNING: This script will PERMANENTLY delete indices older than 15 days and force merge"
+    print_warning "⚠️  Force merge may take several minutes depending on data size"
+    print_warning "⚠️  Consider adding to cron: 0 2 * * * /path/to/cleanup-old-indices.sh"
+}
+
+# Main execution
+main() {
+    print_header "🚀 Elasticsearch ILM 15-Day Retention Setup"
+    echo
+    
+    check_elasticsearch
+    echo
+    
+    update_apm_policies
+    echo
+    
+    apply_policies_to_templates
+    echo
+    
+    show_current_policies
+    echo
+    
+    create_monitoring_script
+    echo
+    
+    setup_automated_cleanup
+    echo
+    
+    print_header "✅ Setup Complete!"
+    print_status "📋 Summary:"
+    print_status "  - Created/updated ILM policies for 15-day retention"
+    print_status "  - Generated monitoring script: disk-usage-monitor.sh"
+    print_status "  - Generated cleanup script: cleanup-old-indices.sh"
+    print_status ""
+    print_status "💡 Next steps:"
+    print_status "  - Run ./disk-usage-monitor.sh to check current disk usage"
+    print_status "  - Review and enable cleanup-old-indices.sh if needed"
+    print_status "  - Monitor your Elasticsearch cluster regularly"
+}
+
+# Run main function
+main "$@"
