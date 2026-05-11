@@ -1,0 +1,177 @@
+server:
+  address: ${CALC_HOST:0.0.0.0}
+  port: ${CALC_PORT:8080}
+  shutdown: graceful
+  forward-headers-strategy: framework
+
+spring:
+  application:
+    name: ${CALC_SERVICE_NAME:calculator_service}
+  main:
+    banner-mode: off
+  mvc:
+    throw-exception-if-no-handler-found: true
+  web:
+    resources:
+      add-mappings: false
+  jackson:
+    property-naming-strategy: SNAKE_CASE
+    serialization:
+      indent-output: true
+  datasource:
+    url: jdbc:postgresql://${CALC_POSTGRES_HOST:192.168.56.100}:${CALC_POSTGRES_PORT:5432}/${CALC_POSTGRES_DB:micro_services_db}?currentSchema=${CALC_POSTGRES_SCHEMA:calculator}
+    username: ${CALC_POSTGRES_USER:micro_services_user}
+    password: ${CALC_POSTGRES_PASSWORD:}
+    hikari:
+      maximum-pool-size: ${CALC_POSTGRES_POOL_SIZE:10}
+      minimum-idle: 1
+      connection-timeout: 5000
+      validation-timeout: 3000
+      initialization-fail-timeout: 30000
+      max-lifetime: 1800000
+      pool-name: calculator-service-hikari
+  flyway:
+    enabled: true
+    schemas: ${CALC_POSTGRES_SCHEMA:calculator}
+    default-schema: ${CALC_POSTGRES_SCHEMA:calculator}
+    locations: classpath:db/migration
+    table: ${CALC_FLYWAY_SCHEMA_HISTORY_TABLE:calculator_service_flyway_schema_history}
+    baseline-on-migrate: true
+    baseline-version: 0
+    validate-on-migrate: true
+    clean-disabled: true
+    placeholders:
+      schema: ${CALC_POSTGRES_SCHEMA:calculator}
+  data:
+    redis:
+      repositories:
+        enabled: false
+      host: ${CALC_REDIS_HOST:192.168.56.100}
+      port: ${CALC_REDIS_PORT:6379}
+      password: ${CALC_REDIS_PASSWORD:}
+      database: ${CALC_REDIS_DB:0}
+      timeout: 3s
+  kafka:
+    bootstrap-servers: ${CALC_KAFKA_BOOTSTRAP_SERVERS:192.168.56.100:9092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      acks: all
+      retries: 5
+      properties:
+        enable.idempotence: true
+        max.in.flight.requests.per.connection: 5
+        linger.ms: 10
+        delivery.timeout.ms: 30000
+        request.timeout.ms: 10000
+        max.block.ms: 5000
+    consumer:
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      enable-auto-commit: false
+      auto-offset-reset: earliest
+    listener:
+      ack-mode: manual_immediate
+      missing-topics-fatal: false
+
+management:
+  endpoints:
+    enabled-by-default: false
+
+logging:
+  config: classpath:logback-spring.xml
+  level:
+    root: ${CALC_LOG_LEVEL:info}
+    com.microapp.calculator: ${CALC_LOG_LEVEL:info}
+    org.springframework: warn
+    org.springframework.security: warn
+    org.apache.kafka: warn
+    org.mongodb.driver: warn
+    org.flywaydb: info
+    com.zaxxer.hikari: info
+    software.amazon.awssdk: warn
+
+calc:
+  service-name: ${CALC_SERVICE_NAME:calculator_service}
+  environment: ${CALC_ENV:development}
+  node-env: ${CALC_NODE_ENV:development}
+  version: ${CALC_VERSION:v1.0.0}
+  tenant: ${CALC_TENANT:dev}
+  host: ${CALC_HOST:0.0.0.0}
+  port: ${CALC_PORT:8080}
+  log-level: ${CALC_LOG_LEVEL:info}
+  log-format: ${CALC_LOG_FORMAT:pretty-json}
+  logstash-enabled: ${CALC_LOGSTASH_ENABLED:false}
+  logstash-host: ${CALC_LOGSTASH_HOST:192.168.56.100}
+  logstash-port: ${CALC_LOGSTASH_PORT:5000}
+  max-expression-length: ${CALC_MAX_EXPRESSION_LENGTH:512}
+  history-default-limit: ${CALC_HISTORY_DEFAULT_LIMIT:50}
+  history-max-limit: ${CALC_HISTORY_MAX_LIMIT:100}
+  redis-cache-ttl-seconds: ${CALC_REDIS_CACHE_TTL_SECONDS:300}
+  security-require-tenant-match: ${CALC_SECURITY_REQUIRE_TENANT_MATCH:true}
+  jwt:
+    secret: ${CALC_JWT_SECRET:}
+    issuer: ${CALC_JWT_ISSUER:auth}
+    audience: ${CALC_JWT_AUDIENCE:micro-app}
+    algorithm: ${CALC_JWT_ALGORITHM:HS256}
+    leeway-seconds: ${CALC_JWT_LEEWAY_SECONDS:5}
+  postgres:
+    host: ${CALC_POSTGRES_HOST:192.168.56.100}
+    port: ${CALC_POSTGRES_PORT:5432}
+    user: ${CALC_POSTGRES_USER:micro_services_user}
+    database: ${CALC_POSTGRES_DB:micro_services_db}
+    schema: ${CALC_POSTGRES_SCHEMA:calculator}
+    migration-mode: ${CALC_POSTGRES_MIGRATION_MODE:auto}
+  redis:
+    host: ${CALC_REDIS_HOST:192.168.56.100}
+    port: ${CALC_REDIS_PORT:6379}
+    database: ${CALC_REDIS_DB:0}
+  kafka:
+    bootstrap-servers: ${CALC_KAFKA_BOOTSTRAP_SERVERS:192.168.56.100:9092}
+    events-topic: ${CALC_KAFKA_EVENTS_TOPIC:calculator.events}
+    dead-letter-topic: ${CALC_KAFKA_DEAD_LETTER_TOPIC:calculator.dead-letter}
+    consumer-group: ${CALC_KAFKA_CONSUMER_GROUP:calculator_service-development}
+    consume-topics: ${CALC_KAFKA_CONSUME_TOPICS:auth.events,auth.admin.requests,auth.admin.decisions,admin.events,user.events,calculator.events,todo.events,report.events,access.events}
+    auto-create-topics: ${CALC_KAFKA_AUTO_CREATE_TOPICS:true}
+  s3:
+    endpoint: ${CALC_S3_ENDPOINT:http://192.168.56.100:9000}
+    access-key: ${CALC_S3_ACCESS_KEY:}
+    secret-key: ${CALC_S3_SECRET_KEY:}
+    region: ${CALC_S3_REGION:us-east-1}
+    force-path-style: ${CALC_S3_FORCE_PATH_STYLE:true}
+    bucket: ${CALC_S3_BUCKET:microservice}
+    audit-prefix: ${CALC_S3_AUDIT_PREFIX:calculator_service/development}
+    report-prefix: ${CALC_S3_REPORT_PREFIX:report_service/development}
+  mongo:
+    host: ${CALC_MONGO_HOST:192.168.56.100}
+    port: ${CALC_MONGO_PORT:27017}
+    username: ${CALC_MONGO_USERNAME:micro_services_user}
+    password: ${CALC_MONGO_PASSWORD:}
+    database: ${CALC_MONGO_DATABASE:micro_services_logs}
+    auth-source: ${CALC_MONGO_AUTH_SOURCE:admin}
+    log-collection: ${CALC_MONGO_LOG_COLLECTION:calculator_service_development_logs}
+  apm:
+    server-url: ${CALC_APM_SERVER_URL:http://192.168.56.100:8200}
+    secret-token: ${CALC_APM_SECRET_TOKEN:}
+    transaction-sample-rate: ${CALC_APM_TRANSACTION_SAMPLE_RATE:1.0}
+    capture-body: ${CALC_APM_CAPTURE_BODY:errors}
+  elasticsearch:
+    url: ${CALC_ELASTICSEARCH_URL:http://192.168.56.100:9200}
+    username: ${CALC_ELASTICSEARCH_USERNAME:elastic}
+    password: ${CALC_ELASTICSEARCH_PASSWORD:}
+  kibana:
+    url: ${CALC_KIBANA_URL:http://192.168.56.100:5601}
+    username: ${CALC_KIBANA_USERNAME:elastic}
+    password: ${CALC_KIBANA_PASSWORD:}
+  cors:
+    allowed-origins: ${CALC_CORS_ALLOWED_ORIGINS:http://localhost:3000,http://localhost:5173}
+    allowed-methods: ${CALC_CORS_ALLOWED_METHODS:GET,POST,PUT,PATCH,DELETE,OPTIONS}
+    allowed-headers: ${CALC_CORS_ALLOWED_HEADERS:Authorization,Content-Type,X-Request-ID,X-Trace-ID,X-Correlation-ID}
+    allow-credentials: ${CALC_CORS_ALLOW_CREDENTIALS:true}
+    max-age-seconds: ${CALC_CORS_MAX_AGE_SECONDS:3600}
+
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false

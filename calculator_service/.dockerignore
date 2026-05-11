@@ -1,0 +1,13 @@
+target/
+.git/
+.idea/
+.vscode/
+*.iml
+*.class
+*.jar
+*.log
+__MACOSX/
+.DS_Store
+.pytest_cache/
+node_modules/
+.cache/

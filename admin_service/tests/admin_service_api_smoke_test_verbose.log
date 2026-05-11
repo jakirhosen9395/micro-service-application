@@ -1,0 +1,900 @@
+Admin Service API Smoke Test
+Admin Base URL: http://192.168.56.100:1012
+Auth Base URL:  http://192.168.56.100:6060
+Auth Login:     /v1/signin
+Timeout:        20s
+Run ID:         1778479154-1318
+Safe mutations: enabled
+
+--- auth hello response (200) ---
+{
+  "status": "ok",
+  "message": "auth_service is running",
+  "service": {
+    "name": "auth_service",
+    "env": "development",
+    "version": "v1.0.0"
+  }
+}
+-------------------------------
+[PASS] auth hello (GET /hello -> HTTP 200)
+--- auth health response (200) ---
+{
+  "status": "ok",
+  "service": {
+    "name": "auth_service",
+    "environment": "development",
+    "version": "v1.0.0"
+  },
+  "version": "v1.0.0",
+  "environment": "development",
+  "timestamp": "2026-05-11T05:59:14.660Z",
+  "checks": {
+    "jwt": "<redacted>",
+    "postgres": "ok",
+    "redis": "ok",
+    "kafka": "ok",
+    "s3": "ok",
+    "mongodb": "ok",
+    "apm": "ok",
+    "elasticsearch": "ok"
+  },
+  "dependencies": {
+    "jwt": "<redacted>",
+    "postgres": {
+      "status": "ok",
+      "latency_ms": 1.941
+    },
+    "redis": {
+      "status": "ok",
+      "latency_ms": 1.442
+    },
+    "kafka": {
+      "status": "ok",
+      "latency_ms": 3.748
+    },
+    "s3": {
+      "status": "ok",
+      "latency_ms": 17.154
+    },
+    "mongodb": {
+      "status": "ok",
+      "latency_ms": 1.195
+    },
+    "apm": {
+      "status": "ok",
+      "latency_ms": 1.74
+    },
+    "elasticsearch": {
+      "status": "ok",
+      "latency_ms": 2.385
+    }
+  }
+}
+-------------------------------
+[PASS] auth health (GET /health -> HTTP 200)
+--- auth admin signin response (200) ---
+{
+  "status": "ok",
+  "message": "signin succeeded",
+  "data": {
+    "user": {
+      "id": "60dd5040-bb88-4e68-8782-5f367601d64a",
+      "username": "admin",
+      "email": "admin@gmail.com",
+      "full_name": "Default Administrator",
+      "birthdate": null,
+      "gender": "prefer_not_to_say",
+      "role": "admin",
+      "admin_status": "approved",
+      "tenant": "dev",
+      "status": "active",
+      "email_verified": true,
+      "created_at": "2026-05-11T05:55:09.877225+00:00",
+      "updated_at": "2026-05-11T05:59:14.856739+00:00",
+      "last_login_at": "2026-05-11T05:59:14.856739+00:00",
+      "admin_requested_at": "2026-05-11T05:55:09.820354+00:00",
+      "admin_reviewed_at": null,
+      "admin_reviewed_by": null,
+      "admin_request_reason": "Default bootstrap administrator",
+      "admin_decision_reason": null
+    },
+    "tokens": "<redacted>"
+  },
+  "request_id": "req-a8d6916a09d1406fafd847055159bd8d",
+  "trace_id": "req-a8d6916a09d1406fafd847055159bd8d",
+  "timestamp": "2026-05-11T05:59:14.856Z"
+}
+-------------------------------
+[PASS] auth admin signin (POST /v1/signin -> HTTP 200)
+[PASS] auth admin token extracted
+[PASS] auth token belongs to approved admin
+--- auth signup normal user response (200) ---
+{
+  "status": "ok",
+  "message": "signup succeeded",
+  "data": {
+    "user": {
+      "id": "0ea5326f-13cf-42b7-acd6-5b5ddd5bb5bf",
+      "username": "admin_service_normal_1778479154-1318",
+      "email": "admin_service_normal_1778479154-1318@example.com",
+      "full_name": "Admin Service Smoke Normal User",
+      "birthdate": "1998-05-20",
+      "gender": "male",
+      "role": "user",
+      "admin_status": "not_requested",
+      "tenant": "dev",
+      "status": "active",
+      "email_verified": false,
+      "created_at": null,
+      "updated_at": null,
+      "last_login_at": null,
+      "admin_requested_at": null,
+      "admin_reviewed_at": null,
+      "admin_reviewed_by": null,
+      "admin_request_reason": null,
+      "admin_decision_reason": null
+    },
+    "tokens": "<redacted>"
+  },
+  "request_id": "req-8aa57f42cedc45b3b30e52213b7f07e0",
+  "trace_id": "req-8aa57f42cedc45b3b30e52213b7f07e0",
+  "timestamp": "2026-05-11T05:59:15.097Z"
+}
+-------------------------------
+[PASS] auth signup normal user (POST /v1/signup -> HTTP 200)
+--- auth normal user signin response (200) ---
+{
+  "status": "ok",
+  "message": "signin succeeded",
+  "data": {
+    "user": {
+      "id": "0ea5326f-13cf-42b7-acd6-5b5ddd5bb5bf",
+      "username": "admin_service_normal_1778479154-1318",
+      "email": "admin_service_normal_1778479154-1318@example.com",
+      "full_name": "Admin Service Smoke Normal User",
+      "birthdate": "1998-05-20",
+      "gender": "male",
+      "role": "user",
+      "admin_status": "not_requested",
+      "tenant": "dev",
+      "status": "active",
+      "email_verified": false,
+      "created_at": "2026-05-11T05:59:15.130861+00:00",
+      "updated_at": "2026-05-11T05:59:15.252328+00:00",
+      "last_login_at": "2026-05-11T05:59:15.252328+00:00",
+      "admin_requested_at": null,
+      "admin_reviewed_at": null,
+      "admin_reviewed_by": null,
+      "admin_request_reason": null,
+      "admin_decision_reason": null
+    },
+    "tokens": "<redacted>"
+  },
+  "request_id": "req-b8dc3417e61542b689940a8aa2a50a52",
+  "trace_id": "req-b8dc3417e61542b689940a8aa2a50a52",
+  "timestamp": "2026-05-11T05:59:15.212Z"
+}
+-------------------------------
+[PASS] auth normal user signin (POST /v1/signin -> HTTP 200)
+[PASS] normal user token extracted
+--- admin hello response (200) ---
+{
+  "status": "ok",
+  "message": "admin_service is running",
+  "service": {
+    "name": "admin_service",
+    "env": "production",
+    "version": "v1.0.0"
+  }
+}
+-------------------------------
+[PASS] admin hello (GET /hello -> HTTP 200)
+[PASS] admin hello envelope status is ok
+--- admin health response (200) ---
+{
+  "status": "ok",
+  "service": "admin_service",
+  "version": "v1.0.0",
+  "environment": "production",
+  "timestamp": "2026-05-11T05:59:15.5397717+00:00",
+  "dependencies": {
+    "jwt": "<redacted>",
+    "postgres": {
+      "status": "ok",
+      "latency_ms": 1.745
+    },
+    "redis": {
+      "status": "ok",
+      "latency_ms": 1.814
+    },
+    "kafka": {
+      "status": "ok",
+      "latency_ms": 201.652
+    },
+    "s3": {
+      "status": "ok",
+      "latency_ms": 16.467
+    },
+    "mongodb": {
+      "status": "ok",
+      "latency_ms": 1.007
+    },
+    "apm": {
+      "status": "ok",
+      "latency_ms": 1.55
+    },
+    "elasticsearch": {
+      "status": "ok",
+      "latency_ms": 2.966
+    }
+  }
+}
+-------------------------------
+[PASS] admin health (GET /health -> HTTP 200)
+[PASS] admin health envelope status is ok
+--- admin docs response (200) ---
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>admin_service API Docs</title>
+  <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@5/swagger-ui.css" />
+  <style>
+    body{margin:0;background:#f7f8fb;color:#172033;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.topbar{display:none}.guide{max-width:1480px;margin:24px auto 0;padding:18px 22px;background:#fff;border:1px solid #d7dce6;border-radius:14px;box-shadow:0 8px 24px rgba(15,23,42,.06)}.guide h1{margin:0 0 8px;font-size:24px}.guide p{margin:6px 0;line-height:1.45}.guide-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px;margin-top:12px}.guide-card{border:1px solid #e3e7ef;border-radius:12px;padding:12px;background:#fbfcff}.token-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.token-row input{flex:1;min-width:360px;border:1px solid #b9c2d0;border-radius:8px;padding:10px;font-family:monospace}.token-row button{border:0;border-radius:8px;padding:10px 14px;background:#2563eb;color:#fff;font-weight:700;cursor:pointer}.token-row button.secondary{background:#64748b}.token-status{font-size:13px;color:#475569;margin-top:8px}.swagger-ui .scheme-container{box-shadow:none;border-bottom:1px solid #e3e7ef}.swagger-ui{max-width:1480px;margin:0 auto}
+  </style>
+</head>
+<body>
+  <section class="guide">
+    <h1>admin_service API console</h1>
+    <p>All <strong>/v1/admin</strong> APIs require an Auth service JWT. The token must be valid, signed with the shared secret, have <code>role=admin</code>, <code>admin_status=approved</code>, and a tenant matching <code>prod</code>.</p>
+    <div class="token-row">
+      <input id="admin-token" type="passwor
+-------------------------------
+[PASS] admin docs (GET /docs -> HTTP 200)
+--- admin root rejected response (404) ---
+
+-------------------------------
+[PASS] admin root rejected (GET / -> HTTP 404)
+--- admin live rejected response (404) ---
+
+-------------------------------
+[PASS] admin live rejected (GET /live -> HTTP 404)
+--- admin ready rejected response (404) ---
+
+-------------------------------
+[PASS] admin ready rejected (GET /ready -> HTTP 404)
+--- admin healthy rejected response (404) ---
+
+-------------------------------
+[PASS] admin healthy rejected (GET /healthy -> HTTP 404)
+--- admin openapi rejected response (404) ---
+
+-------------------------------
+[PASS] admin openapi rejected (GET /openapi.json -> HTTP 404)
+--- admin swagger rejected response (404) ---
+
+-------------------------------
+[PASS] admin swagger rejected (GET /swagger -> HTTP 404)
+--- admin redoc rejected response (404) ---
+
+-------------------------------
+[PASS] admin redoc rejected (GET /redoc -> HTTP 404)
+--- admin swagger index rejected response (404) ---
+
+-------------------------------
+[PASS] admin swagger index rejected (GET /swagger/index.html -> HTTP 404)
+--- admin swagger json rejected response (404) ---
+
+-------------------------------
+[PASS] admin swagger json rejected (GET /swagger/v1/swagger.json -> HTTP 404)
+--- admin dashboard without token response (401) ---
+{
+  "status": "error",
+  "message": "Authentication required",
+  "error_code": "UNAUTHORIZED",
+  "details": {},
+  "path": "/v1/admin/dashboard",
+  "request_id": "req-3748c8d28bac465fb26707d33f61024f",
+  "trace_id": "req-3748c8d28bac465fb26707d33f61024f",
+  "timestamp": "2026-05-11T05:59:16.0059716+00:00"
+}
+-------------------------------
+[PASS] admin dashboard without token (GET /v1/admin/dashboard -> HTTP 401)
+--- admin dashboard invalid token response (401) ---
+{
+  "status": "error",
+  "message": "Authentication required",
+  "error_code": "UNAUTHORIZED",
+  "details": {},
+  "path": "/v1/admin/dashboard",
+  "request_id": "req-f23e34077cc44a989fa658fb453efdfa",
+  "trace_id": "req-f23e34077cc44a989fa658fb453efdfa",
+  "timestamp": "2026-05-11T05:59:16.0416305+00:00"
+}
+-------------------------------
+[PASS] admin dashboard invalid token (GET /v1/admin/dashboard -> HTTP 401)
+--- admin dashboard normal user forbidden response (403) ---
+{
+  "status": "error",
+  "message": "Approved admin access required",
+  "error_code": "FORBIDDEN",
+  "details": {},
+  "path": "/v1/admin/dashboard",
+  "request_id": "req-e2194899466c436e870c6dfc6ce3322c",
+  "trace_id": "req-e2194899466c436e870c6dfc6ce3322c",
+  "timestamp": "2026-05-11T05:59:16.0768749+00:00"
+}
+-------------------------------
+[PASS] admin dashboard normal user forbidden (GET /v1/admin/dashboard -> HTTP 403)
+--- admin dashboard response (403) ---
+{
+  "status": "error",
+  "message": "Approved admin access required",
+  "error_code": "FORBIDDEN",
+  "details": {},
+  "path": "/v1/admin/dashboard",
+  "request_id": "req-730f679c139249be93c863ba0cf9e679",
+  "trace_id": "req-730f679c139249be93c863ba0cf9e679",
+  "timestamp": "2026-05-11T05:59:16.1110827+00:00"
+}
+-------------------------------
+[FAIL] admin dashboard (GET /v1/admin/dashboard expected HTTP 200 but got 403)
+       response: {   "status": "error",   "message": "Approved admin access required",   "error_code": "FORBIDDEN",   "details": {},   "path": "/v1/admin/dashboard",   "request_id": "req-730f679c139249be93c863ba0cf9e679",   "trace_id": "req-730f679c139249be93c863ba0cf9e679",   "timestamp": "2026-05-11T05:59:16.1110827+00:00" } 
+--- admin summary response (403) ---
+{
+  "status": "error",
+  "message": "Approved admin access required",
+  "error_code": "FORBIDDEN",
+  "details": {},
+  "path": "/v1/admin/summary",
+  "request_id": "req-7826cf5d42f64b868fb4a242e43c591d",
+  "trace_id": "req-7826cf5d42f64b868fb4a242e43c591d",
+  "timestamp": "2026-05-11T05:59:16.159743+00:00"
+}
+-------------------------------
+[FAIL] admin summary (GET /v1/admin/summary expected HTTP 200 but got 403)
+       response: {   "status": "error",   "message": "Approved admin access required",   "error_code": "FORBIDDEN",   "details": {},   "path": "/v1/admin/summary",   "request_id": "req-7826cf5d42f64b868fb4a242e43c591d",   "trace_id": "req-7826cf5d42f64b868fb4a242e43c591d",   "timestamp": "2026-05-11T05:59:16.159743+00:00" } 
+--- admin list registrations response (403) ---
+{
+  "status": "error",
+  "message": "Approved admin access required",
+  "error_code": "FORBIDDEN",
+  "details": {},
+  "path": "/v1/admin/registrations",
+  "request_id": "req-de9fa94c411744dfbc0de702411e0972",
+  "trace_id": "req-de9fa94c411744dfbc0de702411e0972",
+  "timestamp": "2026-05-11T05:59:16.2070215+00:00"
+}
+-------------------------------
+[FAIL] admin list registrations (GET /v1/admin/registrations expected HTTP 200 but got 403)
+       response: {   "status": "error",   "message": "Approved admin access required",   "error_code": "FORBIDDEN",   "details": {},   "path": "/v1/admin/registrations",   "request_id": "req-de9fa94c411744dfbc0de702411e0972",   "trace_id": "req-de9fa94c411744dfbc0de702411e0972",   "timestamp": "2026-05-11T05:59:16.2070215+00:00" } 
+--- admin list access requests response (403) ---
+{
+  "status": "error",
+  "message": "Approved admin access required",
+  "error_code": "FORBIDDEN",
+  "details": {},
+  "path": "/v1/admin/access-requests",
+  "request_id": "req-b84e5951b2174d47a05ab482f689ec61",
+  "trace_id": "req-b84e5951b2174d47a05ab482f689ec61",
+  "timestamp": "2026-05-11T05:59:16.2559607+00:00"
+}
+-------------------------------
+[FAIL] admin list access requests (GET /v1/admin/access-requests expected HTTP 200 but got 403)
+       response: {   "status": "error",   "message": "Approved admin access required",   "error_code": "FORBIDDEN",   "details": {},   "path": "/v1/admin/access-requests",   "request_id": "req-b84e5951b2174d47a05ab482f689ec61",   "trace_id": "req-b84e5951b2174d47a05ab482f689ec61",   "timestamp": "2026-05-11T05:59:16.2559607+00:00" } 
+--- admin list access grants response (403) ---
+{
+  "status": "error",
+  "message": "Approved admin access required",
+  "error_code": "FORBIDDEN",
+  "details": {},
+  "path": "/v1/admin/access-grants",
+  "request_id": "req-b26c3dcc438648f4b942c2fc3b381c15",
+  "trace_id": "req-b26c3dcc438648f4b942c2fc3b381c15",
+  "timestamp": "2026-05-11T05:59:16.3043751+00:00"
+}
+-------------------------------
+[FAIL] admin list access grants (GET /v1/admin/access-grants expected HTTP 200 but got 403)
+       response: {   "status": "error",   "message": "Approved admin access required",   "error_code": "FORBIDDEN",   "details": {},   "path": "/v1/admin/access-grants",   "request_id": "req-b26c3dcc438648f4b942c2fc3b381c15",   "trace_id": "req-b26c3dcc438648f4b942c2fc3b381c15",   "timestamp": "2026-05-11T05:59:16.3043751+00:00" } 
+--- admin list users response (403) ---
+{
+  "status": "error",
+  "message": "Approved admin access required",
+  "error_code": "FORBIDDEN",
+  "details": {},
+  "path": "/v1/admin/users",
+  "request_id": "req-b60e6c599d4c452c9e34aa51ab2537df",
+  "trace_id": "req-b60e6c599d4c452c9e34aa51ab2537df",
+  "timestamp": "2026-05-11T05:59:16.3547102+00:00"
+}
+-------------------------------
+[FAIL] admin list users (GET /v1/admin/users expected HTTP 200 but got 403)
+       response: {   "status": "error",   "message": "Approved admin access required",   "error_code": "FORBIDDEN",   "details": {},   "path": "/v1/admin/users",   "request_id": "req-b60e6c599d4c452c9e34aa51ab2537df",   "trace_id": "req-b60e6c599d4c452c9e34aa51ab2537df",   "timestamp": "2026-05-11T05:59:16.3547102+00:00" } 
+--- admin list calculations response (403) ---
+{
+  "status": "error",
+  "message": "Approved admin access required",
+  "error_code": "FORBIDDEN",
+  "details": {},
+  "path": "/v1/admin/calculations",
+  "request_id": "req-66cf21bc9a774627a5c192f2f70f3b19",
+  "trace_id": "req-66cf21bc9a774627a5c192f2f70f3b19",
+  "timestamp": "2026-05-11T05:59:16.4041453+00:00"
+}
+-------------------------------
+[FAIL] admin list calculations (GET /v1/admin/calculations expected HTTP 200 but got 403)
+       response: {   "status": "error",   "message": "Approved admin access required",   "error_code": "FORBIDDEN",   "details": {},   "path": "/v1/admin/calculations",   "request_id": "req-66cf21bc9a774627a5c192f2f70f3b19",   "trace_id": "req-66cf21bc9a774627a5c192f2f70f3b19",   "timestamp": "2026-05-11T05:59:16.4041453+00:00" } 
+--- admin calculations summary response (403) ---
+{
+  "status": "error",
+  "message": "Approved admin access required",
+  "error_code": "FORBIDDEN",
+  "details": {},
+  "path": "/v1/admin/calculations/summary",
+  "request_id": "req-63028fcf0753445abd8b933b4cb86807",
+  "trace_id": "req-63028fcf0753445abd8b933b4cb86807",
+  "timestamp": "2026-05-11T05:59:16.4543686+00:00"
+}
+-------------------------------
+[FAIL] admin calculations summary (GET /v1/admin/calculations/summary expected HTTP 200 but got 403)
+       response: {   "status": "error",   "message": "Approved admin access required",   "error_code": "FORBIDDEN",   "details": {},   "path": "/v1/admin/calculations/summary",   "request_id": "req-63028fcf0753445abd8b933b4cb86807",   "trace_id": "req-63028fcf0753445abd8b933b4cb86807",   "timestamp": "2026-05-11T05:59:16.4543686+00:00" } 
+--- admin list todos response (403) ---
+{
+  "status": "error",
+  "message": "Approved admin access required",
+  "error_code": "FORBIDDEN",
+  "details": {},
+  "path": "/v1/admin/todos",
+  "request_id": "req-8a9923762dbd497bb63068c839eab925",
+  "trace_id": "req-8a9923762dbd497bb63068c839eab925",
+  "timestamp": "2026-05-11T05:59:16.5035358+00:00"
+}
+-------------------------------
+[FAIL] admin list todos (GET /v1/admin/todos expected HTTP 200 but got 403)
+       response: {   "status": "error",   "message": "Approved admin access required",   "error_code": "FORBIDDEN",   "details": {},   "path": "/v1/admin/todos",   "request_id": "req-8a9923762dbd497bb63068c839eab925",   "trace_id": "req-8a9923762dbd497bb63068c839eab925",   "timestamp": "2026-05-11T05:59:16.5035358+00:00" } 
+--- admin todos summary response (403) ---
+{
+  "status": "error",
+  "message": "Approved admin access required",
+  "error_code": "FORBIDDEN",
+  "details": {},
+  "path": "/v1/admin/todos/summary",
+  "request_id": "req-8f3e48dcb8204b0094eddebc3c4745f3",
+  "trace_id": "req-8f3e48dcb8204b0094eddebc3c4745f3",
+  "timestamp": "2026-05-11T05:59:16.5501857+00:00"
+}
+-------------------------------
+[FAIL] admin todos summary (GET /v1/admin/todos/summary expected HTTP 200 but got 403)
+       response: {   "status": "error",   "message": "Approved admin access required",   "error_code": "FORBIDDEN",   "details": {},   "path": "/v1/admin/todos/summary",   "request_id": "req-8f3e48dcb8204b0094eddebc3c4745f3",   "trace_id": "req-8f3e48dcb8204b0094eddebc3c4745f3",   "timestamp": "2026-05-11T05:59:16.5501857+00:00" } 
+--- admin list reports response (403) ---
+{
+  "status": "error",
+  "message": "Approved admin access required",
+  "error_code": "FORBIDDEN",
+  "details": {},
+  "path": "/v1/admin/reports",
+  "request_id": "req-be7f78cb2e39438ebeda73dc0c13db4b",
+  "trace_id": "req-be7f78cb2e39438ebeda73dc0c13db4b",
+  "timestamp": "2026-05-11T05:59:16.598828+00:00"
+}
+-------------------------------
+[FAIL] admin list reports (GET /v1/admin/reports expected HTTP 200 but got 403)
+       response: {   "status": "error",   "message": "Approved admin access required",   "error_code": "FORBIDDEN",   "details": {},   "path": "/v1/admin/reports",   "request_id": "req-be7f78cb2e39438ebeda73dc0c13db4b",   "trace_id": "req-be7f78cb2e39438ebeda73dc0c13db4b",   "timestamp": "2026-05-11T05:59:16.598828+00:00" } 
+--- admin reports summary response (403) ---
+{
+  "status": "error",
+  "message": "Approved admin access required",
+  "error_code": "FORBIDDEN",
+  "details": {},
+  "path": "/v1/admin/reports/summary",
+  "request_id": "req-75acea0945024fae8dcfc12a54ea29ab",
+  "trace_id": "req-75acea0945024fae8dcfc12a54ea29ab",
+  "timestamp": "2026-05-11T05:59:16.6483909+00:00"
+}
+-------------------------------
+[FAIL] admin reports summary (GET /v1/admin/reports/summary expected HTTP 200 but got 403)
+       response: {   "status": "error",   "message": "Approved admin access required",   "error_code": "FORBIDDEN",   "details": {},   "path": "/v1/admin/reports/summary",   "request_id": "req-75acea0945024fae8dcfc12a54ea29ab",   "trace_id": "req-75acea0945024fae8dcfc12a54ea29ab",   "timestamp": "2026-05-11T05:59:16.6483909+00:00" } 
+--- admin list audit response (403) ---
+{
+  "status": "error",
+  "message": "Approved admin access required",
+  "error_code": "FORBIDDEN",
+  "details": {},
+  "path": "/v1/admin/audit",
+  "request_id": "req-fdb92e3f51d2433bb13f932492556b0e",
+  "trace_id": "req-fdb92e3f51d2433bb13f932492556b0e",
+  "timestamp": "2026-05-11T05:59:16.6967559+00:00"
+}
+-------------------------------
+[FAIL] admin list audit (GET /v1/admin/audit expected HTTP 200 but got 403)
+       response: {   "status": "error",   "message": "Approved admin access required",   "error_code": "FORBIDDEN",   "details": {},   "path": "/v1/admin/audit",   "request_id": "req-fdb92e3f51d2433bb13f932492556b0e",   "trace_id": "req-fdb92e3f51d2433bb13f932492556b0e",   "timestamp": "2026-05-11T05:59:16.6967559+00:00" } 
+--- admin get registration response (403) ---
+{
+  "status": "error",
+  "message": "Approved admin access required",
+  "error_code": "FORBIDDEN",
+  "details": {},
+  "path": "/v1/admin/registrations/missing-registration-6c17b614-ef59-485e-8615-347c1a1a2e3c",
+  "request_id": "req-c89b5737e87045bf95b733da17620772",
+  "trace_id": "req-c89b5737e87045bf95b733da17620772",
+  "timestamp": "2026-05-11T05:59:17.2567524+00:00"
+}
+-------------------------------
+[FAIL] admin get registration (GET /v1/admin/registrations/missing-registration-6c17b614-ef59-485e-8615-347c1a1a2e3c expected HTTP 404 but got 403)
+       response: {   "status": "error",   "message": "Approved admin access required",   "error_code": "FORBIDDEN",   "details": {},   "path": "/v1/admin/registrations/missing-registration-6c17b614-ef59-485e-8615-347c1a1a2e3c",   "request_id": "req-c89b5737e87045bf95b733da17620772",   "trace_id": "req-c89b5737e87045bf95b733da17620772",   "timestamp": "2026-05-11T05:59:17.2567524+00:00" } 
+--- admin get access request response (403) ---
+{
+  "status": "error",
+  "message": "Approved admin access required",
+  "error_code": "FORBIDDEN",
+  "details": {},
+  "path": "/v1/admin/access-requests/missing-access-request-2a22fb1f-52b9-4db8-944d-4908e234cf97",
+  "request_id": "req-23935baa69054bd6bc8a6d642d707f77",
+  "trace_id": "req-23935baa69054bd6bc8a6d642d707f77",
+  "timestamp": "2026-05-11T05:59:17.3101953+00:00"
+}
+-------------------------------
+[FAIL] admin get access request (GET /v1/admin/access-requests/missing-access-request-2a22fb1f-52b9-4db8-944d-4908e234cf97 expected HTTP 404 but got 403)
+       response: {   "status": "error",   "message": "Approved admin access required",   "error_code": "FORBIDDEN",   "details": {},   "path": "/v1/admin/access-requests/missing-access-request-2a22fb1f-52b9-4db8-944d-4908e234cf97",   "request_id": "req-23935baa69054bd6bc8a6d642d707f77",   "trace_id": "req-23935baa69054bd6bc8a6d642d707f77",   "timestamp": "2026-05-11T05:59:17.3101953+00:00" } 
+--- admin get access grant response (403) ---
+{
+  "status": "error",
+  "message": "Approved admin access required",
+  "error_code": "FORBIDDEN",
+  "details": {},
+  "path": "/v1/admin/access-grants/missing-access-grant-4ca0c802-b78b-4a4f-9f15-7763d76e0a60",
+  "request_id": "req-9b0d94fddbfc416e8bed82f7002e1859",
+  "trace_id": "req-9b0d94fddbfc416e8bed82f7002e1859",
+  "timestamp": "2026-05-11T05:59:17.3576787+00:00"
+}
+-------------------------------
+[FAIL] admin get access grant (GET /v1/admin/access-grants/missing-access-grant-4ca0c802-b78b-4a4f-9f15-7763d76e0a60 expected HTTP 404 but got 403)
+       response: {   "status": "error",   "message": "Approved admin access required",   "error_code": "FORBIDDEN",   "details": {},   "path": "/v1/admin/access-grants/missing-access-grant-4ca0c802-b78b-4a4f-9f15-7763d76e0a60",   "request_id": "req-9b0d94fddbfc416e8bed82f7002e1859",   "trace_id": "req-9b0d94fddbfc416e8bed82f7002e1859",   "timestamp": "2026-05-11T05:59:17.3576787+00:00" } 
+--- admin get user response (403) ---
+{
+  "status": "error",
+  "message": "Approved admin access required",
+  "error_code": "FORBIDDEN",
+  "details": {},
+  "path": "/v1/admin/users/missing-user-39fab5de-3cbc-45ac-91e9-8174a35a3283",
+  "request_id": "req-d311eb95d29a4039ba4b834638ebc5af",
+  "trace_id": "req-d311eb95d29a4039ba4b834638ebc5af",
+  "timestamp": "2026-05-11T05:59:17.4052304+00:00"
+}
+-------------------------------
+[FAIL] admin get user (GET /v1/admin/users/missing-user-39fab5de-3cbc-45ac-91e9-8174a35a3283 expected HTTP 404 but got 403)
+       response: {   "status": "error",   "message": "Approved admin access required",   "error_code": "FORBIDDEN",   "details": {},   "path": "/v1/admin/users/missing-user-39fab5de-3cbc-45ac-91e9-8174a35a3283",   "request_id": "req-d311eb95d29a4039ba4b834638ebc5af",   "trace_id": "req-d311eb95d29a4039ba4b834638ebc5af",   "timestamp": "2026-05-11T05:59:17.4052304+00:00" } 
+--- admin user activity response (403) ---
+{
+  "status": "error",
+  "message": "Approved admin access required",
+  "error_code": "FORBIDDEN",
+  "details": {},
+  "path": "/v1/admin/users/missing-user-39fab5de-3cbc-45ac-91e9-8174a35a3283/activity",
+  "request_id": "req-62227e88987440acb028f43f68b8c32a",
+  "trace_id": "req-62227e88987440acb028f43f68b8c32a",
+  "timestamp": "2026-05-11T05:59:17.4539787+00:00"
+}
+-------------------------------
+[FAIL] admin user activity (GET /v1/admin/users/missing-user-39fab5de-3cbc-45ac-91e9-8174a35a3283/activity expected HTTP 200|404 but got 403)
+       response: {   "status": "error",   "message": "Approved admin access required",   "error_code": "FORBIDDEN",   "details": {},   "path": "/v1/admin/users/missing-user-39fab5de-3cbc-45ac-91e9-8174a35a3283/activity",   "request_id": "req-62227e88987440acb028f43f68b8c32a",   "trace_id": "req-62227e88987440acb028f43f68b8c32a",   "timestamp": "2026-05-11T05:59:17.4539787+00:00" } 
+--- admin user access grants response (403) ---
+{
+  "status": "error",
+  "message": "Approved admin access required",
+  "error_code": "FORBIDDEN",
+  "details": {},
+  "path": "/v1/admin/users/missing-user-39fab5de-3cbc-45ac-91e9-8174a35a3283/access-grants",
+  "request_id": "req-df2c23ae1c704624b7941434be1edd7c",
+  "trace_id": "req-df2c23ae1c704624b7941434be1edd7c",
+  "timestamp": "2026-05-11T05:59:17.5028765+00:00"
+}
+-------------------------------
+[FAIL] admin user access grants (GET /v1/admin/users/missing-user-39fab5de-3cbc-45ac-91e9-8174a35a3283/access-grants expected HTTP 200|404 but got 403)
+       response: {   "status": "error",   "message": "Approved admin access required",   "error_code": "FORBIDDEN",   "details": {},   "path": "/v1/admin/users/missing-user-39fab5de-3cbc-45ac-91e9-8174a35a3283/access-grants",   "request_id": "req-df2c23ae1c704624b7941434be1edd7c",   "trace_id": "req-df2c23ae1c704624b7941434be1edd7c",   "timestamp": "2026-05-11T05:59:17.5028765+00:00" } 
+--- admin user reports response (403) ---
+{
+  "status": "error",
+  "message": "Approved admin access required",
+  "error_code": "FORBIDDEN",
+  "details": {},
+  "path": "/v1/admin/users/missing-user-39fab5de-3cbc-45ac-91e9-8174a35a3283/reports",
+  "request_id": "req-444842b7f03c4f42974cefcdb7c94bde",
+  "trace_id": "req-444842b7f03c4f42974cefcdb7c94bde",
+  "timestamp": "2026-05-11T05:59:17.5504058+00:00"
+}
+-------------------------------
+[FAIL] admin user reports (GET /v1/admin/users/missing-user-39fab5de-3cbc-45ac-91e9-8174a35a3283/reports expected HTTP 200|404 but got 403)
+       response: {   "status": "error",   "message": "Approved admin access required",   "error_code": "FORBIDDEN",   "details": {},   "path": "/v1/admin/users/missing-user-39fab5de-3cbc-45ac-91e9-8174a35a3283/reports",   "request_id": "req-444842b7f03c4f42974cefcdb7c94bde",   "trace_id": "req-444842b7f03c4f42974cefcdb7c94bde",   "timestamp": "2026-05-11T05:59:17.5504058+00:00" } 
+--- admin get calculation response (403) ---
+{
+  "status": "error",
+  "message": "Approved admin access required",
+  "error_code": "FORBIDDEN",
+  "details": {},
+  "path": "/v1/admin/calculations/missing-calculation-b4b98715-ec71-44ca-a490-23d92853541d",
+  "request_id": "req-4a6cf2fcb4c5458cac3fdccd55e144bb",
+  "trace_id": "req-4a6cf2fcb4c5458cac3fdccd55e144bb",
+  "timestamp": "2026-05-11T05:59:17.5980994+00:00"
+}
+-------------------------------
+[FAIL] admin get calculation (GET /v1/admin/calculations/missing-calculation-b4b98715-ec71-44ca-a490-23d92853541d expected HTTP 404 but got 403)
+       response: {   "status": "error",   "message": "Approved admin access required",   "error_code": "FORBIDDEN",   "details": {},   "path": "/v1/admin/calculations/missing-calculation-b4b98715-ec71-44ca-a490-23d92853541d",   "request_id": "req-4a6cf2fcb4c5458cac3fdccd55e144bb",   "trace_id": "req-4a6cf2fcb4c5458cac3fdccd55e144bb",   "timestamp": "2026-05-11T05:59:17.5980994+00:00" } 
+--- admin user calculations response (403) ---
+{
+  "status": "error",
+  "message": "Approved admin access required",
+  "error_code": "FORBIDDEN",
+  "details": {},
+  "path": "/v1/admin/calculations/users/missing-user-39fab5de-3cbc-45ac-91e9-8174a35a3283",
+  "request_id": "req-3463a08d8563437ba87c1c651282fc3c",
+  "trace_id": "req-3463a08d8563437ba87c1c651282fc3c",
+  "timestamp": "2026-05-11T05:59:17.6485657+00:00"
+}
+-------------------------------
+[FAIL] admin user calculations (GET /v1/admin/calculations/users/missing-user-39fab5de-3cbc-45ac-91e9-8174a35a3283 expected HTTP 200|404 but got 403)
+       response: {   "status": "error",   "message": "Approved admin access required",   "error_code": "FORBIDDEN",   "details": {},   "path": "/v1/admin/calculations/users/missing-user-39fab5de-3cbc-45ac-91e9-8174a35a3283",   "request_id": "req-3463a08d8563437ba87c1c651282fc3c",   "trace_id": "req-3463a08d8563437ba87c1c651282fc3c",   "timestamp": "2026-05-11T05:59:17.6485657+00:00" } 
+--- admin get todo response (403) ---
+{
+  "status": "error",
+  "message": "Approved admin access required",
+  "error_code": "FORBIDDEN",
+  "details": {},
+  "path": "/v1/admin/todos/missing-todo-b991e172-700a-4548-9715-b94f6659a495",
+  "request_id": "req-8d15b0859c9d48088ff59153beaa7f9a",
+  "trace_id": "req-8d15b0859c9d48088ff59153beaa7f9a",
+  "timestamp": "2026-05-11T05:59:17.7018203+00:00"
+}
+-------------------------------
+[FAIL] admin get todo (GET /v1/admin/todos/missing-todo-b991e172-700a-4548-9715-b94f6659a495 expected HTTP 404 but got 403)
+       response: {   "status": "error",   "message": "Approved admin access required",   "error_code": "FORBIDDEN",   "details": {},   "path": "/v1/admin/todos/missing-todo-b991e172-700a-4548-9715-b94f6659a495",   "request_id": "req-8d15b0859c9d48088ff59153beaa7f9a",   "trace_id": "req-8d15b0859c9d48088ff59153beaa7f9a",   "timestamp": "2026-05-11T05:59:17.7018203+00:00" } 
+--- admin user todos response (403) ---
+{
+  "status": "error",
+  "message": "Approved admin access required",
+  "error_code": "FORBIDDEN",
+  "details": {},
+  "path": "/v1/admin/todos/users/missing-user-39fab5de-3cbc-45ac-91e9-8174a35a3283",
+  "request_id": "req-397db1f3f2eb47a9b298c4deaa79bbff",
+  "trace_id": "req-397db1f3f2eb47a9b298c4deaa79bbff",
+  "timestamp": "2026-05-11T05:59:17.7506157+00:00"
+}
+-------------------------------
+[FAIL] admin user todos (GET /v1/admin/todos/users/missing-user-39fab5de-3cbc-45ac-91e9-8174a35a3283 expected HTTP 200|404 but got 403)
+       response: {   "status": "error",   "message": "Approved admin access required",   "error_code": "FORBIDDEN",   "details": {},   "path": "/v1/admin/todos/users/missing-user-39fab5de-3cbc-45ac-91e9-8174a35a3283",   "request_id": "req-397db1f3f2eb47a9b298c4deaa79bbff",   "trace_id": "req-397db1f3f2eb47a9b298c4deaa79bbff",   "timestamp": "2026-05-11T05:59:17.7506157+00:00" } 
+--- admin get report response (403) ---
+{
+  "status": "error",
+  "message": "Approved admin access required",
+  "error_code": "FORBIDDEN",
+  "details": {},
+  "path": "/v1/admin/reports/missing-report-5d34dc9c-2da6-44b6-aa43-4fca4fd2707a",
+  "request_id": "req-d71b52ae0dbb4aed8e14655db9f24d15",
+  "trace_id": "req-d71b52ae0dbb4aed8e14655db9f24d15",
+  "timestamp": "2026-05-11T05:59:17.7988028+00:00"
+}
+-------------------------------
+[FAIL] admin get report (GET /v1/admin/reports/missing-report-5d34dc9c-2da6-44b6-aa43-4fca4fd2707a expected HTTP 404 but got 403)
+       response: {   "status": "error",   "message": "Approved admin access required",   "error_code": "FORBIDDEN",   "details": {},   "path": "/v1/admin/reports/missing-report-5d34dc9c-2da6-44b6-aa43-4fca4fd2707a",   "request_id": "req-d71b52ae0dbb4aed8e14655db9f24d15",   "trace_id": "req-d71b52ae0dbb4aed8e14655db9f24d15",   "timestamp": "2026-05-11T05:59:17.7988028+00:00" } 
+--- admin user reports projection response (403) ---
+{
+  "status": "error",
+  "message": "Approved admin access required",
+  "error_code": "FORBIDDEN",
+  "details": {},
+  "path": "/v1/admin/reports/users/missing-user-39fab5de-3cbc-45ac-91e9-8174a35a3283",
+  "request_id": "req-570374aaa8b34c41a1c550b477a609fe",
+  "trace_id": "req-570374aaa8b34c41a1c550b477a609fe",
+  "timestamp": "2026-05-11T05:59:17.8478924+00:00"
+}
+-------------------------------
+[FAIL] admin user reports projection (GET /v1/admin/reports/users/missing-user-39fab5de-3cbc-45ac-91e9-8174a35a3283 expected HTTP 200|404 but got 403)
+       response: {   "status": "error",   "message": "Approved admin access required",   "error_code": "FORBIDDEN",   "details": {},   "path": "/v1/admin/reports/users/missing-user-39fab5de-3cbc-45ac-91e9-8174a35a3283",   "request_id": "req-570374aaa8b34c41a1c550b477a609fe",   "trace_id": "req-570374aaa8b34c41a1c550b477a609fe",   "timestamp": "2026-05-11T05:59:17.8478924+00:00" } 
+--- admin get audit response (403) ---
+{
+  "status": "error",
+  "message": "Approved admin access required",
+  "error_code": "FORBIDDEN",
+  "details": {},
+  "path": "/v1/admin/audit/missing-audit-afbc7537-6d11-4b84-85e7-3620baa94c74",
+  "request_id": "req-330e0264043e45d9831b8d148aa1667d",
+  "trace_id": "req-330e0264043e45d9831b8d148aa1667d",
+  "timestamp": "2026-05-11T05:59:17.8967791+00:00"
+}
+-------------------------------
+[FAIL] admin get audit (GET /v1/admin/audit/missing-audit-afbc7537-6d11-4b84-85e7-3620baa94c74 expected HTTP 404 but got 403)
+       response: {   "status": "error",   "message": "Approved admin access required",   "error_code": "FORBIDDEN",   "details": {},   "path": "/v1/admin/audit/missing-audit-afbc7537-6d11-4b84-85e7-3620baa94c74",   "request_id": "req-330e0264043e45d9831b8d148aa1667d",   "trace_id": "req-330e0264043e45d9831b8d148aa1667d",   "timestamp": "2026-05-11T05:59:17.8967791+00:00" } 
+--- admin approve registration response (403) ---
+{
+  "status": "error",
+  "message": "Approved admin access required",
+  "error_code": "FORBIDDEN",
+  "details": {},
+  "path": "/v1/admin/registrations/missing-registration-c1aa7df2-ad31-4392-80ce-3293d48887e0/approve",
+  "request_id": "req-95011211fb23435c9a3d795945e18a75",
+  "trace_id": "req-95011211fb23435c9a3d795945e18a75",
+  "timestamp": "2026-05-11T05:59:18.0218042+00:00"
+}
+-------------------------------
+[FAIL] admin approve registration (POST /v1/admin/registrations/missing-registration-c1aa7df2-ad31-4392-80ce-3293d48887e0/approve expected HTTP 404|400|409|422 but got 403)
+       response: {   "status": "error",   "message": "Approved admin access required",   "error_code": "FORBIDDEN",   "details": {},   "path": "/v1/admin/registrations/missing-registration-c1aa7df2-ad31-4392-80ce-3293d48887e0/approve",   "request_id": "req-95011211fb23435c9a3d795945e18a75",   "trace_id": "req-95011211fb23435c9a3d795945e18a75",   "timestamp": "2026-05-11T05:59:18.0218042+00:00" } 
+--- admin reject registration response (403) ---
+{
+  "status": "error",
+  "message": "Approved admin access required",
+  "error_code": "FORBIDDEN",
+  "details": {},
+  "path": "/v1/admin/registrations/missing-registration-c1aa7df2-ad31-4392-80ce-3293d48887e0/reject",
+  "request_id": "req-913468cf070643b7aac2c79e09213c2b",
+  "trace_id": "req-913468cf070643b7aac2c79e09213c2b",
+  "timestamp": "2026-05-11T05:59:18.0707178+00:00"
+}
+-------------------------------
+[FAIL] admin reject registration (POST /v1/admin/registrations/missing-registration-c1aa7df2-ad31-4392-80ce-3293d48887e0/reject expected HTTP 404|400|409|422 but got 403)
+       response: {   "status": "error",   "message": "Approved admin access required",   "error_code": "FORBIDDEN",   "details": {},   "path": "/v1/admin/registrations/missing-registration-c1aa7df2-ad31-4392-80ce-3293d48887e0/reject",   "request_id": "req-913468cf070643b7aac2c79e09213c2b",   "trace_id": "req-913468cf070643b7aac2c79e09213c2b",   "timestamp": "2026-05-11T05:59:18.0707178+00:00" } 
+--- admin approve access request response (403) ---
+{
+  "status": "error",
+  "message": "Approved admin access required",
+  "error_code": "FORBIDDEN",
+  "details": {},
+  "path": "/v1/admin/access-requests/missing-access-request-a6103d3e-266a-4980-906e-534321fbc99e/approve",
+  "request_id": "req-cadc48a17cf445759ddc646743a134f0",
+  "trace_id": "req-cadc48a17cf445759ddc646743a134f0",
+  "timestamp": "2026-05-11T05:59:18.1203766+00:00"
+}
+-------------------------------
+[FAIL] admin approve access request (POST /v1/admin/access-requests/missing-access-request-a6103d3e-266a-4980-906e-534321fbc99e/approve expected HTTP 404|400|409|422 but got 403)
+       response: {   "status": "error",   "message": "Approved admin access required",   "error_code": "FORBIDDEN",   "details": {},   "path": "/v1/admin/access-requests/missing-access-request-a6103d3e-266a-4980-906e-534321fbc99e/approve",   "request_id": "req-cadc48a17cf445759ddc646743a134f0",   "trace_id": "req-cadc48a17cf445759ddc646743a134f0",   "timestamp": "2026-05-11T05:59:18.1203766+00:00" } 
+--- admin reject access request response (403) ---
+{
+  "status": "error",
+  "message": "Approved admin access required",
+  "error_code": "FORBIDDEN",
+  "details": {},
+  "path": "/v1/admin/access-requests/missing-access-request-a6103d3e-266a-4980-906e-534321fbc99e/reject",
+  "request_id": "req-2439503f739e4dea8730c4a747f1f3bd",
+  "trace_id": "req-2439503f739e4dea8730c4a747f1f3bd",
+  "timestamp": "2026-05-11T05:59:18.1696546+00:00"
+}
+-------------------------------
+[FAIL] admin reject access request (POST /v1/admin/access-requests/missing-access-request-a6103d3e-266a-4980-906e-534321fbc99e/reject expected HTTP 404|400|409|422 but got 403)
+       response: {   "status": "error",   "message": "Approved admin access required",   "error_code": "FORBIDDEN",   "details": {},   "path": "/v1/admin/access-requests/missing-access-request-a6103d3e-266a-4980-906e-534321fbc99e/reject",   "request_id": "req-2439503f739e4dea8730c4a747f1f3bd",   "trace_id": "req-2439503f739e4dea8730c4a747f1f3bd",   "timestamp": "2026-05-11T05:59:18.1696546+00:00" } 
+--- admin revoke access grant response (403) ---
+{
+  "status": "error",
+  "message": "Approved admin access required",
+  "error_code": "FORBIDDEN",
+  "details": {},
+  "path": "/v1/admin/access-grants/missing-access-grant-134006d4-7155-4353-bac2-2c6f5ee1d528/revoke",
+  "request_id": "req-615116dc405e47f09b4f9ef7385e3013",
+  "trace_id": "req-615116dc405e47f09b4f9ef7385e3013",
+  "timestamp": "2026-05-11T05:59:18.2244402+00:00"
+}
+-------------------------------
+[FAIL] admin revoke access grant (POST /v1/admin/access-grants/missing-access-grant-134006d4-7155-4353-bac2-2c6f5ee1d528/revoke expected HTTP 404|400|409|422 but got 403)
+       response: {   "status": "error",   "message": "Approved admin access required",   "error_code": "FORBIDDEN",   "details": {},   "path": "/v1/admin/access-grants/missing-access-grant-134006d4-7155-4353-bac2-2c6f5ee1d528/revoke",   "request_id": "req-615116dc405e47f09b4f9ef7385e3013",   "trace_id": "req-615116dc405e47f09b4f9ef7385e3013",   "timestamp": "2026-05-11T05:59:18.2244402+00:00" } 
+--- admin suspend user response (403) ---
+{
+  "status": "error",
+  "message": "Approved admin access required",
+  "error_code": "FORBIDDEN",
+  "details": {},
+  "path": "/v1/admin/users/missing-user-e5e69f84-462f-435e-8eee-515321395205/suspend",
+  "request_id": "req-73d4736a966944e49af26ee0d35fa353",
+  "trace_id": "req-73d4736a966944e49af26ee0d35fa353",
+  "timestamp": "2026-05-11T05:59:18.2724134+00:00"
+}
+-------------------------------
+[FAIL] admin suspend user (POST /v1/admin/users/missing-user-e5e69f84-462f-435e-8eee-515321395205/suspend expected HTTP 404|400|409|422 but got 403)
+       response: {   "status": "error",   "message": "Approved admin access required",   "error_code": "FORBIDDEN",   "details": {},   "path": "/v1/admin/users/missing-user-e5e69f84-462f-435e-8eee-515321395205/suspend",   "request_id": "req-73d4736a966944e49af26ee0d35fa353",   "trace_id": "req-73d4736a966944e49af26ee0d35fa353",   "timestamp": "2026-05-11T05:59:18.2724134+00:00" } 
+--- admin activate user response (403) ---
+{
+  "status": "error",
+  "message": "Approved admin access required",
+  "error_code": "FORBIDDEN",
+  "details": {},
+  "path": "/v1/admin/users/missing-user-e5e69f84-462f-435e-8eee-515321395205/activate",
+  "request_id": "req-d41ce1a3f09c4888be5b40ef0549032f",
+  "trace_id": "req-d41ce1a3f09c4888be5b40ef0549032f",
+  "timestamp": "2026-05-11T05:59:18.3224992+00:00"
+}
+-------------------------------
+[FAIL] admin activate user (POST /v1/admin/users/missing-user-e5e69f84-462f-435e-8eee-515321395205/activate expected HTTP 404|400|409|422 but got 403)
+       response: {   "status": "error",   "message": "Approved admin access required",   "error_code": "FORBIDDEN",   "details": {},   "path": "/v1/admin/users/missing-user-e5e69f84-462f-435e-8eee-515321395205/activate",   "request_id": "req-d41ce1a3f09c4888be5b40ef0549032f",   "trace_id": "req-d41ce1a3f09c4888be5b40ef0549032f",   "timestamp": "2026-05-11T05:59:18.3224992+00:00" } 
+--- admin force password reset response (403) ---
+{
+  "status": "error",
+  "message": "Approved admin access required",
+  "error_code": "FORBIDDEN",
+  "details": {},
+  "path": "/v1/admin/users/missing-user-e5e69f84-462f-435e-8eee-515321395205/force-password-reset",
+  "request_id": "req-e3f658a17046409d85ac694bac8d54c7",
+  "trace_id": "req-e3f658a17046409d85ac694bac8d54c7",
+  "timestamp": "2026-05-11T05:59:18.3704804+00:00"
+}
+-------------------------------
+[FAIL] admin force password reset (POST /v1/admin/users/missing-user-e5e69f84-462f-435e-8eee-515321395205/force-password-reset expected HTTP 404|400|409|422 but got 403)
+       response: {   "status": "error",   "message": "Approved admin access required",   "error_code": "FORBIDDEN",   "details": {},   "path": "/v1/admin/users/missing-user-e5e69f84-462f-435e-8eee-515321395205/force-password-reset",   "request_id": "req-e3f658a17046409d85ac694bac8d54c7",   "trace_id": "req-e3f658a17046409d85ac694bac8d54c7",   "timestamp": "2026-05-11T05:59:18.3704804+00:00" } 
+--- admin create report safe invalid body response (403) ---
+{
+  "status": "error",
+  "message": "Approved admin access required",
+  "error_code": "FORBIDDEN",
+  "details": {},
+  "path": "/v1/admin/reports",
+  "request_id": "req-7a79449487394e52b9d50a2eb0b3d63f",
+  "trace_id": "req-7a79449487394e52b9d50a2eb0b3d63f",
+  "timestamp": "2026-05-11T05:59:18.4206345+00:00"
+}
+-------------------------------
+[FAIL] admin create report safe invalid body (POST /v1/admin/reports expected HTTP 400|415|422 but got 403)
+       response: {   "status": "error",   "message": "Approved admin access required",   "error_code": "FORBIDDEN",   "details": {},   "path": "/v1/admin/reports",   "request_id": "req-7a79449487394e52b9d50a2eb0b3d63f",   "trace_id": "req-7a79449487394e52b9d50a2eb0b3d63f",   "timestamp": "2026-05-11T05:59:18.4206345+00:00" } 
+--- admin cancel report response (403) ---
+{
+  "status": "error",
+  "message": "Approved admin access required",
+  "error_code": "FORBIDDEN",
+  "details": {},
+  "path": "/v1/admin/reports/missing-report-52ffb194-4956-4235-ac6d-1491bd48519b/cancel",
+  "request_id": "req-1100f9c0a17d437bb6297b4efaa41b92",
+  "trace_id": "req-1100f9c0a17d437bb6297b4efaa41b92",
+  "timestamp": "2026-05-11T05:59:18.4712375+00:00"
+}
+-------------------------------
+[FAIL] admin cancel report (POST /v1/admin/reports/missing-report-52ffb194-4956-4235-ac6d-1491bd48519b/cancel expected HTTP 404|400|409|422 but got 403)
+       response: {   "status": "error",   "message": "Approved admin access required",   "error_code": "FORBIDDEN",   "details": {},   "path": "/v1/admin/reports/missing-report-52ffb194-4956-4235-ac6d-1491bd48519b/cancel",   "request_id": "req-1100f9c0a17d437bb6297b4efaa41b92",   "trace_id": "req-1100f9c0a17d437bb6297b4efaa41b92",   "timestamp": "2026-05-11T05:59:18.4712375+00:00" } 
+--- admin health after api checks response (200) ---
+{
+  "status": "ok",
+  "service": "admin_service",
+  "version": "v1.0.0",
+  "environment": "production",
+  "timestamp": "2026-05-11T05:59:18.7370255+00:00",
+  "dependencies": {
+    "jwt": "<redacted>",
+    "postgres": {
+      "status": "ok",
+      "latency_ms": 1.698
+    },
+    "redis": {
+      "status": "ok",
+      "latency_ms": 1.764
+    },
+    "kafka": {
+      "status": "ok",
+      "latency_ms": 201.087
+    },
+    "s3": {
+      "status": "ok",
+      "latency_ms": 7.518
+    },
+    "mongodb": {
+      "status": "ok",
+      "latency_ms": 0.611
+    },
+    "apm": {
+      "status": "ok",
+      "latency_ms": 0.62
+    },
+    "elasticsearch": {
+      "status": "ok",
+      "latency_ms": 1.453
+    }
+  }
+}
+-------------------------------
+[PASS] admin health after api checks (GET /health -> HTTP 200)
+
+Summary: 63 total, 26 passed, 37 failed, 0 skipped
+Admin Base URL:       http://192.168.56.100:1012
+Auth Base URL:        http://192.168.56.100:6060
+Mutation mode:        0
+Discovered user id:   missing-user-39fab5de-3cbc-45ac-91e9-8174a35a3283
+Discovered reg id:    missing-registration-6c17b614-ef59-485e-8615-347c1a1a2e3c
+Discovered grant id:  missing-access-grant-4ca0c802-b78b-4a4f-9f15-7763d76e0a60
+Discovered report id: missing-report-5d34dc9c-2da6-44b6-aa43-4fca4fd2707a
+
+One or more admin service checks failed. Review the failure messages above.
