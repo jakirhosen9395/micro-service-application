@@ -1,0 +1,2064 @@
+Calculator Service API Smoke Test
+Calculator Base URL: http://192.168.56.100:2022
+Auth Base URL:       http://192.168.56.100:6062
+Auth Login:          /v1/signin
+Timeout:             20s
+Run ID:              1778502597-22688
+Create test user:    1
+Delete history:      1
+
+[PASS] auth hello (GET /hello -> HTTP 200)
+[PASS] auth health (GET /health -> HTTP 200)
+[PASS] auth signup calcuser_1778502597-22688 (POST /v1/signup -> HTTP 200)
+[PASS] auth primary user signin (POST /v1/signin -> HTTP 200)
+[PASS] primary user access token extracted
+[PASS] primary user id extracted: 5e189120-eb4e-4cb5-932a-fd916a61447a
+[PASS] primary user role is user
+[PASS] auth admin signin (POST /v1/signin -> HTTP 200)
+[PASS] admin token extracted
+[PASS] admin token is approved admin
+[PASS] auth signup calcother_1778502597-22688 (POST /v1/signup -> HTTP 200)
+[PASS] auth second user signin (POST /v1/signin -> HTTP 200)
+[PASS] second user token extracted
+[PASS] second user id extracted: c720b844-9f98-48bf-b060-9c049f9f3bca
+[PASS] calculator hello (GET /hello -> HTTP 200)
+[PASS] calculator hello envelope status is ok
+[PASS] calculator health (GET /health -> HTTP 200)
+[PASS] calculator health envelope status is ok
+[PASS] calculator docs (GET /docs -> HTTP 200)
+[PASS] calculator root rejected (GET / -> HTTP 404)
+[PASS] calculator live rejected (GET /live -> HTTP 404)
+[PASS] calculator ready rejected (GET /ready -> HTTP 404)
+[PASS] calculator healthy rejected (GET /healthy -> HTTP 404)
+[PASS] calculator openapi json rejected (GET /openapi.json -> HTTP 404)
+[PASS] calculator v3 api docs rejected (GET /v3/api-docs -> HTTP 404)
+[PASS] calculator swagger ui rejected (GET /swagger-ui/index.html -> HTTP 404)
+[PASS] calculator swagger html rejected (GET /swagger-ui.html -> HTTP 404)
+[PASS] operations without token (GET /v1/calculator/operations -> HTTP 401)
+[PASS] operations without token error envelope is UNAUTHORIZED
+[PASS] operations invalid token (GET /v1/calculator/operations -> HTTP 401)
+[PASS] operations invalid token error envelope is UNAUTHORIZED
+[PASS] operations with token (GET /v1/calculator/operations -> HTTP 200)
+[PASS] operations with token envelope status is ok
+OK
+[PASS] operations list contains all supported operations
+[PASS] calculate ADD [10,20,5] (POST /v1/calculator/calculate -> HTTP 200)
+[PASS] calculate ADD [10,20,5] envelope status is ok
+OK
+[PASS] calculate ADD [10,20,5] result matches expected 35
+[PASS] calculate SUBTRACT [100,30,20] (POST /v1/calculator/calculate -> HTTP 200)
+[PASS] calculate SUBTRACT [100,30,20] envelope status is ok
+OK
+[PASS] calculate SUBTRACT [100,30,20] result matches expected 50
+[PASS] calculate MULTIPLY [2,3,4] (POST /v1/calculator/calculate -> HTTP 200)
+[PASS] calculate MULTIPLY [2,3,4] envelope status is ok
+OK
+[PASS] calculate MULTIPLY [2,3,4] result matches expected 24
+[PASS] calculate DIVIDE [100,4] (POST /v1/calculator/calculate -> HTTP 200)
+[PASS] calculate DIVIDE [100,4] envelope status is ok
+OK
+[PASS] calculate DIVIDE [100,4] result matches expected 25
+[PASS] calculate MODULO [10,3] (POST /v1/calculator/calculate -> HTTP 200)
+[PASS] calculate MODULO [10,3] envelope status is ok
+OK
+[PASS] calculate MODULO [10,3] result matches expected 1
+[PASS] calculate POWER [2,8] (POST /v1/calculator/calculate -> HTTP 200)
+[PASS] calculate POWER [2,8] envelope status is ok
+OK
+[PASS] calculate POWER [2,8] result matches expected 256
+[PASS] calculate SQRT [81] (POST /v1/calculator/calculate -> HTTP 200)
+[PASS] calculate SQRT [81] envelope status is ok
+OK
+[PASS] calculate SQRT [81] result matches expected 9
+[PASS] calculate PERCENTAGE [10,200] (POST /v1/calculator/calculate -> HTTP 200)
+[PASS] calculate PERCENTAGE [10,200] envelope status is ok
+OK
+[PASS] calculate PERCENTAGE [10,200] result matches expected 20
+[PASS] calculate SIN [30] (POST /v1/calculator/calculate -> HTTP 200)
+[PASS] calculate SIN [30] envelope status is ok
+OK
+[PASS] calculate SIN [30] result matches expected 0.5
+[PASS] calculate COS [60] (POST /v1/calculator/calculate -> HTTP 200)
+[PASS] calculate COS [60] envelope status is ok
+OK
+[PASS] calculate COS [60] result matches expected 0.5
+[PASS] calculate TAN [45] (POST /v1/calculator/calculate -> HTTP 200)
+[PASS] calculate TAN [45] envelope status is ok
+OK
+[PASS] calculate TAN [45] result matches expected 1
+[PASS] calculate LOG [1000] (POST /v1/calculator/calculate -> HTTP 200)
+[PASS] calculate LOG [1000] envelope status is ok
+OK
+[PASS] calculate LOG [1000] result matches expected 3
+[PASS] calculate LN [1] (POST /v1/calculator/calculate -> HTTP 200)
+[PASS] calculate LN [1] envelope status is ok
+OK
+[PASS] calculate LN [1] result matches expected 0
+[PASS] calculate ABS [-123.45] (POST /v1/calculator/calculate -> HTTP 200)
+[PASS] calculate ABS [-123.45] envelope status is ok
+OK
+[PASS] calculate ABS [-123.45] result matches expected 123.45
+[PASS] calculate ROUND [12.6] (POST /v1/calculator/calculate -> HTTP 200)
+[PASS] calculate ROUND [12.6] envelope status is ok
+OK
+[PASS] calculate ROUND [12.6] result matches expected 13
+[PASS] calculate FLOOR [12.9] (POST /v1/calculator/calculate -> HTTP 200)
+[PASS] calculate FLOOR [12.9] envelope status is ok
+OK
+[PASS] calculate FLOOR [12.9] result matches expected 12
+[PASS] calculate CEIL [12.1] (POST /v1/calculator/calculate -> HTTP 200)
+[PASS] calculate CEIL [12.1] envelope status is ok
+OK
+[PASS] calculate CEIL [12.1] result matches expected 13
+[PASS] calculate FACTORIAL [5] (POST /v1/calculator/calculate -> HTTP 200)
+[PASS] calculate FACTORIAL [5] envelope status is ok
+OK
+[PASS] calculate FACTORIAL [5] result matches expected 120
+[PASS] calculate expression sqrt(16)+(10+5)*3 (POST /v1/calculator/calculate -> HTTP 200)
+[PASS] calculate expression sqrt(16)+(10+5)*3 envelope status is ok
+OK
+[PASS] calculate expression sqrt(16)+(10+5)*3 result matches expected 49
+[PASS] calculate expression 2^8 (POST /v1/calculator/calculate -> HTTP 200)
+[PASS] calculate expression 2^8 envelope status is ok
+OK
+[PASS] calculate expression 2^8 result matches expected 256
+[PASS] calculate expression abs(-15)+floor(3.9)+ceil(4.1) (POST /v1/calculator/calculate -> HTTP 200)
+[PASS] calculate expression abs(-15)+floor(3.9)+ceil(4.1) envelope status is ok
+OK
+[PASS] calculate expression abs(-15)+floor(3.9)+ceil(4.1) result matches expected 23
+[PASS] calculate expression log(1000)+ln(1)+round(2.6) (POST /v1/calculator/calculate -> HTTP 200)
+[PASS] calculate expression log(1000)+ln(1)+round(2.6) envelope status is ok
+OK
+[PASS] calculate expression log(1000)+ln(1)+round(2.6) result matches expected 6
+[PASS] calculate both operation and expression rejected (POST /v1/calculator/calculate -> HTTP 400)
+[PASS] calculate both operation and expression rejected error envelope is CALC_MODE_INVALID
+[PASS] calculate missing mode rejected (POST /v1/calculator/calculate -> HTTP 400)
+[PASS] calculate missing mode rejected error envelope is CALC_MODE_INVALID
+[PASS] calculate divide by zero rejected (POST /v1/calculator/calculate -> HTTP 400)
+[PASS] calculate divide by zero rejected error envelope is CALC_DIVIDE_BY_ZERO
+[PASS] calculate modulo by zero rejected (POST /v1/calculator/calculate -> HTTP 400)
+[PASS] calculate modulo by zero rejected error envelope is CALC_DIVIDE_BY_ZERO
+[PASS] calculate negative sqrt rejected (POST /v1/calculator/calculate -> HTTP 400)
+[PASS] calculate negative sqrt rejected error envelope is CALC_NEGATIVE_SQUARE_ROOT
+[PASS] calculate log nonpositive rejected (POST /v1/calculator/calculate -> HTTP 400)
+[PASS] calculate log nonpositive rejected error envelope is CALC_INVALID_LOGARITHM
+[PASS] calculate factorial negative rejected (POST /v1/calculator/calculate -> HTTP 400)
+[PASS] calculate factorial negative rejected error envelope is CALC_INVALID_FACTORIAL
+[PASS] calculate invalid expression rejected (POST /v1/calculator/calculate -> HTTP 400)
+[PASS] calculate invalid expression rejected error envelope is CALC_INVALID_EXPRESSION
+[PASS] calculate invalid operation rejected (POST /v1/calculator/calculate -> HTTP 400)
+[PASS] calculate invalid operation rejected error envelope is CALC_INVALID_OPERATION
+[PASS] history current user (GET /v1/calculator/history?limit=50 -> HTTP 200)
+[PASS] history current user envelope status is ok
+[PASS] history current user low limit (GET /v1/calculator/history?limit=1 -> HTTP 200)
+[PASS] history current user low limit envelope status is ok
+[PASS] history own user path (GET /v1/calculator/history/5e189120-eb4e-4cb5-932a-fd916a61447a?limit=50 -> HTTP 200)
+[PASS] history own user path envelope status is ok
+[PASS] get created calculation record (GET /v1/calculator/records/calc-f64b1848-71b6-4702-934f-90073ab9dc44 -> HTTP 200)
+[PASS] get created calculation record envelope status is ok
+[PASS] get missing calculation record (GET /v1/calculator/records/missing-calc-d5e316b7-f73a-4afb-bf58-b9f9bd40cae7 -> HTTP 404)
+[PASS] get missing calculation record error envelope is CALC_RECORD_NOT_FOUND
+[PASS] second user forbidden reading primary history (GET /v1/calculator/history/5e189120-eb4e-4cb5-932a-fd916a61447a?limit=10 -> HTTP 403)
+[PASS] second user forbidden reading primary history error envelope is FORBIDDEN
+[PASS] approved admin can read primary history (GET /v1/calculator/history/5e189120-eb4e-4cb5-932a-fd916a61447a?limit=10 -> HTTP 200)
+[PASS] approved admin can read primary history envelope status is ok
+[PASS] delete current user history (DELETE /v1/calculator/history -> HTTP 200)
+[PASS] delete current user history envelope status is ok
+[PASS] history after delete current user (GET /v1/calculator/history?limit=50 -> HTTP 200)
+[PASS] history after delete current user envelope status is ok
+[PASS] calculator health after api checks (GET /health -> HTTP 200)
+[PASS] calculator health after api checks envelope status is ok
+
+Summary: 138 total, 138 passed, 0 failed, 0 skipped
+Calculator Base URL: http://192.168.56.100:2022
+Auth Base URL:       http://192.168.56.100:6062
+Test username:       calcuser_1778502597-22688
+Primary user id:     5e189120-eb4e-4cb5-932a-fd916a61447a
+Second user id:      c720b844-9f98-48bf-b060-9c049f9f3bca
+Last calculation id: calc-f64b1848-71b6-4702-934f-90073ab9dc44
+Delete history:      1
+
+All required calculator service checks passed.
+Calculator Service API Smoke Test
+Calculator Base URL: http://192.168.56.100:2022
+Auth Base URL:       http://192.168.56.100:6062
+Auth Login:          /v1/signin
+Timeout:             20s
+Run ID:              1778502704-19880
+Create test user:    1
+Delete history:      1
+
+[PASS] auth hello (GET /hello -> HTTP 200)
+[PASS] auth health (GET /health -> HTTP 200)
+[PASS] auth signup calcuser_1778502704-19880 (POST /v1/signup -> HTTP 200)
+[PASS] auth primary user signin (POST /v1/signin -> HTTP 200)
+[PASS] primary user access token extracted
+[PASS] primary user id extracted: 2b115fe4-9b35-4113-8294-bdf89dc7896d
+[PASS] primary user role is user
+[PASS] auth admin signin (POST /v1/signin -> HTTP 200)
+[PASS] admin token extracted
+[PASS] admin token is approved admin
+[PASS] auth signup calcother_1778502704-19880 (POST /v1/signup -> HTTP 200)
+[PASS] auth second user signin (POST /v1/signin -> HTTP 200)
+[PASS] second user token extracted
+[PASS] second user id extracted: 86198d21-5476-4674-add7-3b783db1e605
+[PASS] calculator hello (GET /hello -> HTTP 200)
+[PASS] calculator hello envelope status is ok
+[PASS] calculator health (GET /health -> HTTP 200)
+[PASS] calculator health envelope status is ok
+[PASS] calculator docs (GET /docs -> HTTP 200)
+[PASS] calculator root rejected (GET / -> HTTP 404)
+[PASS] calculator live rejected (GET /live -> HTTP 404)
+[PASS] calculator ready rejected (GET /ready -> HTTP 404)
+[PASS] calculator healthy rejected (GET /healthy -> HTTP 404)
+[PASS] calculator openapi json rejected (GET /openapi.json -> HTTP 404)
+[PASS] calculator v3 api docs rejected (GET /v3/api-docs -> HTTP 404)
+[PASS] calculator swagger ui rejected (GET /swagger-ui/index.html -> HTTP 404)
+[PASS] calculator swagger html rejected (GET /swagger-ui.html -> HTTP 404)
+[PASS] operations without token (GET /v1/calculator/operations -> HTTP 401)
+[PASS] operations without token error envelope is UNAUTHORIZED
+[PASS] operations invalid token (GET /v1/calculator/operations -> HTTP 401)
+[PASS] operations invalid token error envelope is UNAUTHORIZED
+[PASS] operations with token (GET /v1/calculator/operations -> HTTP 200)
+[PASS] operations with token envelope status is ok
+OK
+[PASS] operations list contains all supported operations
+[PASS] calculate ADD [10,20,5] (POST /v1/calculator/calculate -> HTTP 200)
+[PASS] calculate ADD [10,20,5] envelope status is ok
+OK
+[PASS] calculate ADD [10,20,5] result matches expected 35
+[PASS] calculate SUBTRACT [100,30,20] (POST /v1/calculator/calculate -> HTTP 200)
+[PASS] calculate SUBTRACT [100,30,20] envelope status is ok
+OK
+[PASS] calculate SUBTRACT [100,30,20] result matches expected 50
+[PASS] calculate MULTIPLY [2,3,4] (POST /v1/calculator/calculate -> HTTP 200)
+[PASS] calculate MULTIPLY [2,3,4] envelope status is ok
+OK
+[PASS] calculate MULTIPLY [2,3,4] result matches expected 24
+[PASS] calculate DIVIDE [100,4] (POST /v1/calculator/calculate -> HTTP 200)
+[PASS] calculate DIVIDE [100,4] envelope status is ok
+OK
+[PASS] calculate DIVIDE [100,4] result matches expected 25
+[PASS] calculate MODULO [10,3] (POST /v1/calculator/calculate -> HTTP 200)
+[PASS] calculate MODULO [10,3] envelope status is ok
+OK
+[PASS] calculate MODULO [10,3] result matches expected 1
+[PASS] calculate POWER [2,8] (POST /v1/calculator/calculate -> HTTP 200)
+[PASS] calculate POWER [2,8] envelope status is ok
+OK
+[PASS] calculate POWER [2,8] result matches expected 256
+[PASS] calculate SQRT [81] (POST /v1/calculator/calculate -> HTTP 200)
+[PASS] calculate SQRT [81] envelope status is ok
+OK
+[PASS] calculate SQRT [81] result matches expected 9
+[PASS] calculate PERCENTAGE [10,200] (POST /v1/calculator/calculate -> HTTP 200)
+[PASS] calculate PERCENTAGE [10,200] envelope status is ok
+OK
+[PASS] calculate PERCENTAGE [10,200] result matches expected 20
+[PASS] calculate SIN [30] (POST /v1/calculator/calculate -> HTTP 200)
+[PASS] calculate SIN [30] envelope status is ok
+OK
+[PASS] calculate SIN [30] result matches expected 0.5
+[PASS] calculate COS [60] (POST /v1/calculator/calculate -> HTTP 200)
+[PASS] calculate COS [60] envelope status is ok
+OK
+[PASS] calculate COS [60] result matches expected 0.5
+[PASS] calculate TAN [45] (POST /v1/calculator/calculate -> HTTP 200)
+[PASS] calculate TAN [45] envelope status is ok
+OK
+[PASS] calculate TAN [45] result matches expected 1
+[PASS] calculate LOG [1000] (POST /v1/calculator/calculate -> HTTP 200)
+[PASS] calculate LOG [1000] envelope status is ok
+OK
+[PASS] calculate LOG [1000] result matches expected 3
+[PASS] calculate LN [1] (POST /v1/calculator/calculate -> HTTP 200)
+[PASS] calculate LN [1] envelope status is ok
+OK
+[PASS] calculate LN [1] result matches expected 0
+[PASS] calculate ABS [-123.45] (POST /v1/calculator/calculate -> HTTP 200)
+[PASS] calculate ABS [-123.45] envelope status is ok
+OK
+[PASS] calculate ABS [-123.45] result matches expected 123.45
+[PASS] calculate ROUND [12.6] (POST /v1/calculator/calculate -> HTTP 200)
+[PASS] calculate ROUND [12.6] envelope status is ok
+OK
+[PASS] calculate ROUND [12.6] result matches expected 13
+[PASS] calculate FLOOR [12.9] (POST /v1/calculator/calculate -> HTTP 200)
+[PASS] calculate FLOOR [12.9] envelope status is ok
+OK
+[PASS] calculate FLOOR [12.9] result matches expected 12
+[PASS] calculate CEIL [12.1] (POST /v1/calculator/calculate -> HTTP 200)
+[PASS] calculate CEIL [12.1] envelope status is ok
+OK
+[PASS] calculate CEIL [12.1] result matches expected 13
+[PASS] calculate FACTORIAL [5] (POST /v1/calculator/calculate -> HTTP 200)
+[PASS] calculate FACTORIAL [5] envelope status is ok
+OK
+[PASS] calculate FACTORIAL [5] result matches expected 120
+[PASS] calculate expression sqrt(16)+(10+5)*3 (POST /v1/calculator/calculate -> HTTP 200)
+[PASS] calculate expression sqrt(16)+(10+5)*3 envelope status is ok
+OK
+[PASS] calculate expression sqrt(16)+(10+5)*3 result matches expected 49
+[PASS] calculate expression 2^8 (POST /v1/calculator/calculate -> HTTP 200)
+[PASS] calculate expression 2^8 envelope status is ok
+OK
+[PASS] calculate expression 2^8 result matches expected 256
+[PASS] calculate expression abs(-15)+floor(3.9)+ceil(4.1) (POST /v1/calculator/calculate -> HTTP 200)
+[PASS] calculate expression abs(-15)+floor(3.9)+ceil(4.1) envelope status is ok
+OK
+[PASS] calculate expression abs(-15)+floor(3.9)+ceil(4.1) result matches expected 23
+[PASS] calculate expression log(1000)+ln(1)+round(2.6) (POST /v1/calculator/calculate -> HTTP 200)
+[PASS] calculate expression log(1000)+ln(1)+round(2.6) envelope status is ok
+OK
+[PASS] calculate expression log(1000)+ln(1)+round(2.6) result matches expected 6
+[PASS] calculate both operation and expression rejected (POST /v1/calculator/calculate -> HTTP 400)
+[PASS] calculate both operation and expression rejected error envelope is CALC_MODE_INVALID
+[PASS] calculate missing mode rejected (POST /v1/calculator/calculate -> HTTP 400)
+[PASS] calculate missing mode rejected error envelope is CALC_MODE_INVALID
+[PASS] calculate divide by zero rejected (POST /v1/calculator/calculate -> HTTP 400)
+[PASS] calculate divide by zero rejected error envelope is CALC_DIVIDE_BY_ZERO
+[PASS] calculate modulo by zero rejected (POST /v1/calculator/calculate -> HTTP 400)
+[PASS] calculate modulo by zero rejected error envelope is CALC_DIVIDE_BY_ZERO
+[PASS] calculate negative sqrt rejected (POST /v1/calculator/calculate -> HTTP 400)
+[PASS] calculate negative sqrt rejected error envelope is CALC_NEGATIVE_SQUARE_ROOT
+[PASS] calculate log nonpositive rejected (POST /v1/calculator/calculate -> HTTP 400)
+[PASS] calculate log nonpositive rejected error envelope is CALC_INVALID_LOGARITHM
+[PASS] calculate factorial negative rejected (POST /v1/calculator/calculate -> HTTP 400)
+[PASS] calculate factorial negative rejected error envelope is CALC_INVALID_FACTORIAL
+[PASS] calculate invalid expression rejected (POST /v1/calculator/calculate -> HTTP 400)
+[PASS] calculate invalid expression rejected error envelope is CALC_INVALID_EXPRESSION
+[PASS] calculate invalid operation rejected (POST /v1/calculator/calculate -> HTTP 400)
+[PASS] calculate invalid operation rejected error envelope is CALC_INVALID_OPERATION
+[PASS] history current user (GET /v1/calculator/history?limit=50 -> HTTP 200)
+[PASS] history current user envelope status is ok
+[PASS] history current user low limit (GET /v1/calculator/history?limit=1 -> HTTP 200)
+[PASS] history current user low limit envelope status is ok
+[PASS] history own user path (GET /v1/calculator/history/2b115fe4-9b35-4113-8294-bdf89dc7896d?limit=50 -> HTTP 200)
+[PASS] history own user path envelope status is ok
+[PASS] get created calculation record (GET /v1/calculator/records/calc-8bbab7b0-3e01-4b0f-a847-d4f90bc69617 -> HTTP 200)
+[PASS] get created calculation record envelope status is ok
+[PASS] get missing calculation record (GET /v1/calculator/records/missing-calc-59ef6b72-cfe9-4197-9d38-8d01931cc759 -> HTTP 404)
+[PASS] get missing calculation record error envelope is CALC_RECORD_NOT_FOUND
+[PASS] second user forbidden reading primary history (GET /v1/calculator/history/2b115fe4-9b35-4113-8294-bdf89dc7896d?limit=10 -> HTTP 403)
+[PASS] second user forbidden reading primary history error envelope is FORBIDDEN
+[PASS] approved admin can read primary history (GET /v1/calculator/history/2b115fe4-9b35-4113-8294-bdf89dc7896d?limit=10 -> HTTP 200)
+[PASS] approved admin can read primary history envelope status is ok
+[PASS] delete current user history (DELETE /v1/calculator/history -> HTTP 200)
+[PASS] delete current user history envelope status is ok
+[PASS] history after delete current user (GET /v1/calculator/history?limit=50 -> HTTP 200)
+[PASS] history after delete current user envelope status is ok
+[PASS] calculator health after api checks (GET /health -> HTTP 200)
+[PASS] calculator health after api checks envelope status is ok
+
+Summary: 138 total, 138 passed, 0 failed, 0 skipped
+Calculator Base URL: http://192.168.56.100:2022
+Auth Base URL:       http://192.168.56.100:6062
+Test username:       calcuser_1778502704-19880
+Primary user id:     2b115fe4-9b35-4113-8294-bdf89dc7896d
+Second user id:      86198d21-5476-4674-add7-3b783db1e605
+Last calculation id: calc-8bbab7b0-3e01-4b0f-a847-d4f90bc69617
+Delete history:      1
+
+All required calculator service checks passed.
+Response files will be kept at: /tmp/tmp.6NVWDg7Olj
+Calculator Service API Smoke Test
+Calculator Base URL: http://192.168.56.100:2022
+Auth Base URL:       http://192.168.56.100:6062
+Auth Login:          /v1/signin
+Timeout:             20s
+Run ID:              1778502792-1262
+Create test user:    1
+Delete history:      1
+
+--- auth hello response (200) ---
+{
+  "status": "ok",
+  "message": "auth_service is running",
+  "service": {
+    "name": "auth_service",
+    "env": "production",
+    "version": "v1.0.0"
+  }
+}
+-------------------------------
+[PASS] auth hello (GET /hello -> HTTP 200)
+--- auth health response (200) ---
+{
+  "status": "ok",
+  "service": {
+    "name": "auth_service",
+    "environment": "production",
+    "version": "v1.0.0"
+  },
+  "version": "v1.0.0",
+  "environment": "production",
+  "timestamp": "2026-05-11T12:33:13.048Z",
+  "checks": {
+    "jwt": "<redacted>",
+    "postgres": "ok",
+    "redis": "ok",
+    "kafka": "ok",
+    "s3": "ok",
+    "mongodb": "ok",
+    "apm": "ok",
+    "elasticsearch": "ok"
+  },
+  "dependencies": {
+    "jwt": "<redacted>",
+    "postgres": {
+      "status": "ok",
+      "latency_ms": 5.931
+    },
+    "redis": {
+      "status": "ok",
+      "latency_ms": 2.222
+    },
+    "kafka": {
+      "status": "ok",
+      "latency_ms": 14.998
+    },
+    "s3": {
+      "status": "ok",
+      "latency_ms": 34.893
+    },
+    "mongodb": {
+      "status": "ok",
+      "latency_ms": 6.209
+    },
+    "apm": {
+      "status": "ok",
+      "latency_ms": 9.086
+    },
+    "elasticsearch": {
+      "status": "ok",
+      "latency_ms": 12.429
+    }
+  }
+}
+-------------------------------
+[PASS] auth health (GET /health -> HTTP 200)
+--- auth signup calcuser_1778502792-1262 response (200) ---
+{
+  "status": "ok",
+  "message": "signup succeeded",
+  "data": {
+    "user": {
+      "id": "457271e4-e5dc-43e7-a2cf-8c7c366a9e1f",
+      "username": "calcuser_1778502792-1262",
+      "email": "calcuser_1778502792-1262@example.com",
+      "full_name": "Calculator Smoke Test User",
+      "birthdate": "1998-05-20",
+      "gender": "male",
+      "role": "user",
+      "admin_status": "not_requested",
+      "tenant": "prod",
+      "status": "active",
+      "email_verified": false,
+      "created_at": null,
+      "updated_at": null,
+      "last_login_at": null,
+      "admin_requested_at": null,
+      "admin_reviewed_at": null,
+      "admin_reviewed_by": null,
+      "admin_request_reason": null,
+      "admin_decision_reason": null
+    },
+    "tokens": "<redacted>"
+  },
+  "request_id": "req-79f01d56fa9547f4afd6ec98b8197062",
+  "trace_id": "trace-7bf1f35b01f94d6199ed742dc47f5dc8",
+  "timestamp": "2026-05-11T12:33:13.584Z"
+}
+-------------------------------
+[PASS] auth signup calcuser_1778502792-1262 (POST /v1/signup -> HTTP 200)
+--- auth primary user signin response (200) ---
+{
+  "status": "ok",
+  "message": "signin succeeded",
+  "data": {
+    "user": {
+      "id": "457271e4-e5dc-43e7-a2cf-8c7c366a9e1f",
+      "username": "calcuser_1778502792-1262",
+      "email": "calcuser_1778502792-1262@example.com",
+      "full_name": "Calculator Smoke Test User",
+      "birthdate": "1998-05-20",
+      "gender": "male",
+      "role": "user",
+      "admin_status": "not_requested",
+      "tenant": "prod",
+      "status": "active",
+      "email_verified": false,
+      "created_at": "2026-05-11T12:33:13.529441+00:00",
+      "updated_at": "2026-05-11T12:33:13.966213+00:00",
+      "last_login_at": "2026-05-11T12:33:13.966213+00:00",
+      "admin_requested_at": null,
+      "admin_reviewed_at": null,
+      "admin_reviewed_by": null,
+      "admin_request_reason": null,
+      "admin_decision_reason": null
+    },
+    "tokens": "<redacted>"
+  },
+  "request_id": "req-8154d7f3d2b341c1a0c417f6f1b7f15d",
+  "trace_id": "trace-b5edc9f4d0454dac9c53d4d77c1fd2a2",
+  "timestamp": "2026-05-11T12:33:13.962Z"
+}
+-------------------------------
+[PASS] auth primary user signin (POST /v1/signin -> HTTP 200)
+[PASS] primary user access token extracted
+[PASS] primary user id extracted: 457271e4-e5dc-43e7-a2cf-8c7c366a9e1f
+[PASS] primary user role is user
+--- auth admin signin response (200) ---
+{
+  "status": "ok",
+  "message": "signin succeeded",
+  "data": {
+    "user": {
+      "id": "5333c659-7333-4372-bcef-3f9a6da92dd6",
+      "username": "admin",
+      "email": "admin@auth_service.local",
+      "full_name": "Default Administrator",
+      "birthdate": null,
+      "gender": "prefer_not_to_say",
+      "role": "admin",
+      "admin_status": "approved",
+      "tenant": "prod",
+      "status": "active",
+      "email_verified": true,
+      "created_at": "2026-05-11T05:51:24.854475+00:00",
+      "updated_at": "2026-05-11T12:33:14.551778+00:00",
+      "last_login_at": "2026-05-11T12:33:14.551778+00:00",
+      "admin_requested_at": "2026-05-11T05:51:24.802179+00:00",
+      "admin_reviewed_at": null,
+      "admin_reviewed_by": null,
+      "admin_request_reason": "Default bootstrap administrator",
+      "admin_decision_reason": null
+    },
+    "tokens": "<redacted>"
+  },
+  "request_id": "req-2bb84c000e5a43df900b482372d35c08",
+  "trace_id": "trace-6c975d53981a41a7a4708e28f9798f9b",
+  "timestamp": "2026-05-11T12:33:14.559Z"
+}
+-------------------------------
+[PASS] auth admin signin (POST /v1/signin -> HTTP 200)
+[PASS] admin token extracted
+[PASS] admin token is approved admin
+--- auth signup calcother_1778502792-1262 response (200) ---
+{
+  "status": "ok",
+  "message": "signup succeeded",
+  "data": {
+    "user": {
+      "id": "1fefa30c-9be1-4a4d-8dd9-12c808d5d8b5",
+      "username": "calcother_1778502792-1262",
+      "email": "calcother_1778502792-1262@example.com",
+      "full_name": "Calculator Smoke Test Second User",
+      "birthdate": "1998-05-20",
+      "gender": "male",
+      "role": "user",
+      "admin_status": "not_requested",
+      "tenant": "prod",
+      "status": "active",
+      "email_verified": false,
+      "created_at": null,
+      "updated_at": null,
+      "last_login_at": null,
+      "admin_requested_at": null,
+      "admin_reviewed_at": null,
+      "admin_reviewed_by": null,
+      "admin_request_reason": null,
+      "admin_decision_reason": null
+    },
+    "tokens": "<redacted>"
+  },
+  "request_id": "req-369a47c6b82f459b8ce11c6af732b236",
+  "trace_id": "trace-582d4c6bf5454539b71f3f4f6884d861",
+  "timestamp": "2026-05-11T12:33:15.200Z"
+}
+-------------------------------
+[PASS] auth signup calcother_1778502792-1262 (POST /v1/signup -> HTTP 200)
+--- auth second user signin response (200) ---
+{
+  "status": "ok",
+  "message": "signin succeeded",
+  "data": {
+    "user": {
+      "id": "1fefa30c-9be1-4a4d-8dd9-12c808d5d8b5",
+      "username": "calcother_1778502792-1262",
+      "email": "calcother_1778502792-1262@example.com",
+      "full_name": "Calculator Smoke Test Second User",
+      "birthdate": "1998-05-20",
+      "gender": "male",
+      "role": "user",
+      "admin_status": "not_requested",
+      "tenant": "prod",
+      "status": "active",
+      "email_verified": false,
+      "created_at": "2026-05-11T12:33:15.196423+00:00",
+      "updated_at": "2026-05-11T12:33:15.588142+00:00",
+      "last_login_at": "2026-05-11T12:33:15.588142+00:00",
+      "admin_requested_at": null,
+      "admin_reviewed_at": null,
+      "admin_reviewed_by": null,
+      "admin_request_reason": null,
+      "admin_decision_reason": null
+    },
+    "tokens": "<redacted>"
+  },
+  "request_id": "req-417de964eb444a4e8b6e42e29d5d6c3d",
+  "trace_id": "trace-9f89c7bd541047629a20e85930053dd4",
+  "timestamp": "2026-05-11T12:33:15.600Z"
+}
+-------------------------------
+[PASS] auth second user signin (POST /v1/signin -> HTTP 200)
+[PASS] second user token extracted
+[PASS] second user id extracted: 1fefa30c-9be1-4a4d-8dd9-12c808d5d8b5
+--- calculator hello response (200) ---
+{
+  "service": {
+    "name": "calculator_service",
+    "env": "production",
+    "version": "v1.0.0"
+  },
+  "status": "ok",
+  "message": "calculator_service is running"
+}
+-------------------------------
+[PASS] calculator hello (GET /hello -> HTTP 200)
+[PASS] calculator hello envelope status is ok
+--- calculator health response (200) ---
+{
+  "status": "ok",
+  "service": "calculator_service",
+  "version": "v1.0.0",
+  "environment": "production",
+  "timestamp": "2026-05-11T12:33:16.175630699Z",
+  "dependencies": {
+    "jwt": "<redacted>",
+    "postgres": {
+      "status": "ok",
+      "latency_ms": 15.9
+    },
+    "redis": {
+      "status": "ok",
+      "latency_ms": 4.3
+    },
+    "kafka": {
+      "status": "ok",
+      "latency_ms": 46.7
+    },
+    "s3": {
+      "status": "ok",
+      "latency_ms": 10.4
+    },
+    "mongodb": {
+      "status": "ok",
+      "latency_ms": 3.4
+    },
+    "apm": {
+      "status": "ok",
+      "latency_ms": 8.0
+    },
+    "elasticsearch": {
+      "status": "ok",
+      "latency_ms": 10.4
+    }
+  }
+}
+-------------------------------
+[PASS] calculator health (GET /health -> HTTP 200)
+[PASS] calculator health envelope status is ok
+--- calculator docs response (200) ---
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Calculator Service API</title>
+  <link rel="icon" href="data:," />
+  <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@5.19.0/swagger-ui.css" />
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      min-height: 100%;
+      background: #ffffff;
+    }
+    #swagger-ui {
+      width: 100%;
+    }
+    .swagger-ui .topbar {
+      display: none;
+    }
+    .swagger-ui .wrapper {
+      max-width: 1460px;
+      padding: 0 20px;
+    }
+    .swagger-ui .scheme-container {
+      padding: 20px;
+      box-shadow: none;
+      border-bottom: 1px solid #e5e7eb;
+    }
+  </style>
+</head>
+<body>
+  <div id="swagger-ui"></div>
+  <script src="https://unpkg.com/swagger-ui-dist@5.19.0/swagger-ui-bundle.js"></script>
+  <script src="https://unpkg.com/swagger-ui-dist@5.19.0/swagger-ui-standalone-preset.js"></script>
+  <script>
+    const openApiSpec = {
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Calculator Service API",
+    "version": "v1.0.0",
+    "description": "Interactive API console for calculator_service. Login through auth_service, copy access_token, click Authorize, and paste only the token value. Swagger sends Authorization: Bearer <token>."
+  },
+  "tags": [
+    {
+      "name": "system",
+      "description": "Public system endpoints"
+    },
+    {
+      "name": "calculator",
+      "description": "JWT-protected calculator APIs"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "Paste only the access_token value from auth_service. Swagger sends Authorization: Bearer <to
+-------------------------------
+[PASS] calculator docs (GET /docs -> HTTP 200)
+--- calculator root rejected response (404) ---
+{
+  "status": "error",
+  "message": "Route not found",
+  "error_code": "NOT_FOUND",
+  "details": {},
+  "path": "/",
+  "request_id": "req-f2acd58a172e41e089874e125d6c7483",
+  "trace_id": "trace-f284321d746b4c8ebe00c77b75ad427f",
+  "timestamp": "2026-05-11T12:33:16.523771312Z"
+}
+-------------------------------
+[PASS] calculator root rejected (GET / -> HTTP 404)
+--- calculator live rejected response (404) ---
+{
+  "status": "error",
+  "message": "Route not found",
+  "error_code": "NOT_FOUND",
+  "details": {},
+  "path": "/live",
+  "request_id": "req-524ee1a37bbd45fbb6e1d04933ff779e",
+  "trace_id": "trace-69959b0f9d794ba68722cf8239ac0938",
+  "timestamp": "2026-05-11T12:33:16.686536990Z"
+}
+-------------------------------
+[PASS] calculator live rejected (GET /live -> HTTP 404)
+--- calculator ready rejected response (404) ---
+{
+  "status": "error",
+  "message": "Route not found",
+  "error_code": "NOT_FOUND",
+  "details": {},
+  "path": "/ready",
+  "request_id": "req-fdf99430f10748c5a62bde8aa8373226",
+  "trace_id": "trace-3c4afca6b4ab438c9019eaad47031538",
+  "timestamp": "2026-05-11T12:33:16.857547393Z"
+}
+-------------------------------
+[PASS] calculator ready rejected (GET /ready -> HTTP 404)
+--- calculator healthy rejected response (404) ---
+{
+  "status": "error",
+  "message": "Route not found",
+  "error_code": "NOT_FOUND",
+  "details": {},
+  "path": "/healthy",
+  "request_id": "req-cf16dcacfa2c4928b6ff36a1a488771a",
+  "trace_id": "trace-c210895f667e42cb8db45722226522ac",
+  "timestamp": "2026-05-11T12:33:17.036834169Z"
+}
+-------------------------------
+[PASS] calculator healthy rejected (GET /healthy -> HTTP 404)
+--- calculator openapi json rejected response (404) ---
+{
+  "status": "error",
+  "message": "Route not found",
+  "error_code": "NOT_FOUND",
+  "details": {},
+  "path": "/openapi.json",
+  "request_id": "req-2b4399e63cbb453794f0a7a473d5d2c2",
+  "trace_id": "trace-5965cf323c554d1fb13dbf1dfd75cdfb",
+  "timestamp": "2026-05-11T12:33:17.219596595Z"
+}
+-------------------------------
+[PASS] calculator openapi json rejected (GET /openapi.json -> HTTP 404)
+--- calculator v3 api docs rejected response (404) ---
+{
+  "status": "error",
+  "message": "Route not found",
+  "error_code": "NOT_FOUND",
+  "details": {},
+  "path": "/v3/api-docs",
+  "request_id": "req-25a5ab94cc4144bdad6e3a1bac069b57",
+  "trace_id": "trace-d871177d0baa4b8ba6cb41ebc8446041",
+  "timestamp": "2026-05-11T12:33:17.427395088Z"
+}
+-------------------------------
+[PASS] calculator v3 api docs rejected (GET /v3/api-docs -> HTTP 404)
+--- calculator swagger ui rejected response (404) ---
+{
+  "status": "error",
+  "message": "Route not found",
+  "error_code": "NOT_FOUND",
+  "details": {},
+  "path": "/swagger-ui/index.html",
+  "request_id": "req-0da8e8602ba84e0ca478190f061e689c",
+  "trace_id": "trace-493aa7e8e8024379bc0c46f4199c2511",
+  "timestamp": "2026-05-11T12:33:17.602717040Z"
+}
+-------------------------------
+[PASS] calculator swagger ui rejected (GET /swagger-ui/index.html -> HTTP 404)
+--- calculator swagger html rejected response (404) ---
+{
+  "status": "error",
+  "message": "Route not found",
+  "error_code": "NOT_FOUND",
+  "details": {},
+  "path": "/swagger-ui.html",
+  "request_id": "req-2c2c11a1d1194f6bb193b109b8aa62f1",
+  "trace_id": "trace-671dda401dc34f8488415def2dc16d80",
+  "timestamp": "2026-05-11T12:33:17.758986769Z"
+}
+-------------------------------
+[PASS] calculator swagger html rejected (GET /swagger-ui.html -> HTTP 404)
+--- operations without token response (401) ---
+{
+  "status": "error",
+  "message": "Authentication required",
+  "error_code": "UNAUTHORIZED",
+  "details": {},
+  "path": "/v1/calculator/operations",
+  "request_id": "req-564bebea23cc4a0589dae15c76fa5139",
+  "trace_id": "trace-fc3d085f44b447f7927ef88c2c6fcea8",
+  "timestamp": "2026-05-11T12:33:17.914550515Z"
+}
+-------------------------------
+[PASS] operations without token (GET /v1/calculator/operations -> HTTP 401)
+[PASS] operations without token error envelope is UNAUTHORIZED
+--- operations invalid token response (401) ---
+{
+  "status": "error",
+  "message": "Invalid or expired token",
+  "error_code": "UNAUTHORIZED",
+  "details": {},
+  "path": "/v1/calculator/operations",
+  "request_id": "req-cd28457658a643b69176e2c1f228e198",
+  "trace_id": "trace-835d30c4016a454aa97e1de43f6e4e86",
+  "timestamp": "2026-05-11T12:33:18.175112452Z"
+}
+-------------------------------
+[PASS] operations invalid token (GET /v1/calculator/operations -> HTTP 401)
+[PASS] operations invalid token error envelope is UNAUTHORIZED
+--- operations with token response (200) ---
+{
+  "status": "ok",
+  "message": "operations loaded",
+  "data": [
+    {
+      "operation": "ADD",
+      "description": "Addition",
+      "arity_description": "Two or more operands",
+      "min_operands": 2,
+      "max_operands": -1
+    },
+    {
+      "operation": "SUBTRACT",
+      "description": "Subtraction",
+      "arity_description": "Two or more operands",
+      "min_operands": 2,
+      "max_operands": -1
+    },
+    {
+      "operation": "MULTIPLY",
+      "description": "Multiplication",
+      "arity_description": "Two or more operands",
+      "min_operands": 2,
+      "max_operands": -1
+    },
+    {
+      "operation": "DIVIDE",
+      "description": "Division",
+      "arity_description": "Exactly two operands",
+      "min_operands": 2,
+      "max_operands": 2
+    },
+    {
+      "operation": "MODULO",
+      "description": "Modulo",
+      "arity_description": "Exactly two operands",
+      "min_operands": 2,
+      "max_operands": 2
+    },
+    {
+      "operation": "POWER",
+      "description": "Power",
+      "arity_description": "Exactly two operands",
+      "min_operands": 2,
+      "max_operands": 2
+    },
+    {
+      "operation": "SQRT",
+      "description": "Square root",
+      "arity_description": "Exactly one operand",
+      "min_operands": 1,
+      "max_operands": 1
+    },
+    {
+      "operation": "PERCENTAGE",
+      "description": "Percentage",
+      "arity_description": "Two operands: percentage, value",
+      "min_operands": 2,
+      "max_operands": 2
+    },
+    {
+      "operation": "SIN",
+      "description": "Sine in degrees",
+      "arity_description": "Exactly one operand",
+      "min_operands": 1,
+      "max_operands": 1
+    },
+    {
+      "operation": "COS",
+      "description": "Cosine in degrees",
+      "arity_description": "Exactly one operand",
+      "m
+-------------------------------
+[PASS] operations with token (GET /v1/calculator/operations -> HTTP 200)
+[PASS] operations with token envelope status is ok
+OK
+[PASS] operations list contains all supported operations
+--- calculate ADD [10,20,5] response (200) ---
+{
+  "status": "ok",
+  "message": "calculation completed",
+  "data": {
+    "calculation_id": "calc-1bd789fb-760a-47ba-8f19-7e3b1e1d8992",
+    "user_id": "457271e4-e5dc-43e7-a2cf-8c7c366a9e1f",
+    "tenant": "prod",
+    "operation": "ADD",
+    "expression": null,
+    "operands": [
+      10,
+      20,
+      5
+    ],
+    "result": "35",
+    "status": "COMPLETED",
+    "error_code": null,
+    "error_message": null,
+    "duration_ms": 0,
+    "s3_object_key": "calculator_service/production/tenant/prod/users/457271e4-e5dc-43e7-a2cf-8c7c366a9e1f/events/2026/05/11/123318_calculation_completed_evt-ad14d0df-aef0-451b-bdbe-223800c4a728.json",
+    "created_at": "2026-05-11T12:33:18.651631470Z"
+  },
+  "request_id": "req-a8e00244564f444abbb7bb170e543888",
+  "trace_id": "trace-341f3134756b4069b70f8b6bc6e9e11b",
+  "timestamp": "2026-05-11T12:33:18.723667779Z"
+}
+-------------------------------
+[PASS] calculate ADD [10,20,5] (POST /v1/calculator/calculate -> HTTP 200)
+[PASS] calculate ADD [10,20,5] envelope status is ok
+OK
+[PASS] calculate ADD [10,20,5] result matches expected 35
+--- calculate SUBTRACT [100,30,20] response (200) ---
+{
+  "status": "ok",
+  "message": "calculation completed",
+  "data": {
+    "calculation_id": "calc-df7e70bd-d46c-4134-bc84-46ce09719998",
+    "user_id": "457271e4-e5dc-43e7-a2cf-8c7c366a9e1f",
+    "tenant": "prod",
+    "operation": "SUBTRACT",
+    "expression": null,
+    "operands": [
+      100,
+      30,
+      20
+    ],
+    "result": "50",
+    "status": "COMPLETED",
+    "error_code": null,
+    "error_message": null,
+    "duration_ms": 0,
+    "s3_object_key": "calculator_service/production/tenant/prod/users/457271e4-e5dc-43e7-a2cf-8c7c366a9e1f/events/2026/05/11/123319_calculation_completed_evt-6b92fadb-ae1c-4aa0-b568-9aa288223d21.json",
+    "created_at": "2026-05-11T12:33:19.071589256Z"
+  },
+  "request_id": "req-f50d5a9e21f34ff6a01604e2b862a14a",
+  "trace_id": "trace-fbce605077a8499d92fdc08a2d82dc5a",
+  "timestamp": "2026-05-11T12:33:19.136056382Z"
+}
+-------------------------------
+[PASS] calculate SUBTRACT [100,30,20] (POST /v1/calculator/calculate -> HTTP 200)
+[PASS] calculate SUBTRACT [100,30,20] envelope status is ok
+OK
+[PASS] calculate SUBTRACT [100,30,20] result matches expected 50
+--- calculate MULTIPLY [2,3,4] response (200) ---
+{
+  "status": "ok",
+  "message": "calculation completed",
+  "data": {
+    "calculation_id": "calc-824184c1-287f-415e-9eac-e4116d20145e",
+    "user_id": "457271e4-e5dc-43e7-a2cf-8c7c366a9e1f",
+    "tenant": "prod",
+    "operation": "MULTIPLY",
+    "expression": null,
+    "operands": [
+      2,
+      3,
+      4
+    ],
+    "result": "24",
+    "status": "COMPLETED",
+    "error_code": null,
+    "error_message": null,
+    "duration_ms": 0,
+    "s3_object_key": "calculator_service/production/tenant/prod/users/457271e4-e5dc-43e7-a2cf-8c7c366a9e1f/events/2026/05/11/123319_calculation_completed_evt-6fa1c10e-f9d8-4d12-b74d-98dc31b91ebd.json",
+    "created_at": "2026-05-11T12:33:19.477849848Z"
+  },
+  "request_id": "req-f176eb4bb1f74bedb54bfab89af9ccde",
+  "trace_id": "trace-265ec92d900e48aab76c6bbcf46fb0e7",
+  "timestamp": "2026-05-11T12:33:19.532464261Z"
+}
+-------------------------------
+[PASS] calculate MULTIPLY [2,3,4] (POST /v1/calculator/calculate -> HTTP 200)
+[PASS] calculate MULTIPLY [2,3,4] envelope status is ok
+OK
+[PASS] calculate MULTIPLY [2,3,4] result matches expected 24
+--- calculate DIVIDE [100,4] response (200) ---
+{
+  "status": "ok",
+  "message": "calculation completed",
+  "data": {
+    "calculation_id": "calc-aac1c45c-e9e9-4f9f-b35e-7de67b492839",
+    "user_id": "457271e4-e5dc-43e7-a2cf-8c7c366a9e1f",
+    "tenant": "prod",
+    "operation": "DIVIDE",
+    "expression": null,
+    "operands": [
+      100,
+      4
+    ],
+    "result": "25",
+    "status": "COMPLETED",
+    "error_code": null,
+    "error_message": null,
+    "duration_ms": 0,
+    "s3_object_key": "calculator_service/production/tenant/prod/users/457271e4-e5dc-43e7-a2cf-8c7c366a9e1f/events/2026/05/11/123319_calculation_completed_evt-87d71fb1-bbdf-4286-bda9-1bbabe6f18f0.json",
+    "created_at": "2026-05-11T12:33:19.888084358Z"
+  },
+  "request_id": "req-635b3c55104c425f84c0bae463cf653a",
+  "trace_id": "trace-156ff85ffa4e49eb8930c449e4ab8b2a",
+  "timestamp": "2026-05-11T12:33:19.950401786Z"
+}
+-------------------------------
+[PASS] calculate DIVIDE [100,4] (POST /v1/calculator/calculate -> HTTP 200)
+[PASS] calculate DIVIDE [100,4] envelope status is ok
+OK
+[PASS] calculate DIVIDE [100,4] result matches expected 25
+--- calculate MODULO [10,3] response (200) ---
+{
+  "status": "ok",
+  "message": "calculation completed",
+  "data": {
+    "calculation_id": "calc-315da8e7-c59b-4e80-9cec-3bac46fbb005",
+    "user_id": "457271e4-e5dc-43e7-a2cf-8c7c366a9e1f",
+    "tenant": "prod",
+    "operation": "MODULO",
+    "expression": null,
+    "operands": [
+      10,
+      3
+    ],
+    "result": "1",
+    "status": "COMPLETED",
+    "error_code": null,
+    "error_message": null,
+    "duration_ms": 0,
+    "s3_object_key": "calculator_service/production/tenant/prod/users/457271e4-e5dc-43e7-a2cf-8c7c366a9e1f/events/2026/05/11/123320_calculation_completed_evt-93b06277-aeac-45bb-b723-b992c74d35f9.json",
+    "created_at": "2026-05-11T12:33:20.321279673Z"
+  },
+  "request_id": "req-10838ec848234106ba1d69822d59277a",
+  "trace_id": "trace-d1f9a7d2224948c48bbeb67a0a038d66",
+  "timestamp": "2026-05-11T12:33:20.387529041Z"
+}
+-------------------------------
+[PASS] calculate MODULO [10,3] (POST /v1/calculator/calculate -> HTTP 200)
+[PASS] calculate MODULO [10,3] envelope status is ok
+OK
+[PASS] calculate MODULO [10,3] result matches expected 1
+--- calculate POWER [2,8] response (200) ---
+{
+  "status": "ok",
+  "message": "calculation completed",
+  "data": {
+    "calculation_id": "calc-3560f811-ae78-460e-b63b-2c7520749b41",
+    "user_id": "457271e4-e5dc-43e7-a2cf-8c7c366a9e1f",
+    "tenant": "prod",
+    "operation": "POWER",
+    "expression": null,
+    "operands": [
+      2,
+      8
+    ],
+    "result": "256",
+    "status": "COMPLETED",
+    "error_code": null,
+    "error_message": null,
+    "duration_ms": 0,
+    "s3_object_key": "calculator_service/production/tenant/prod/users/457271e4-e5dc-43e7-a2cf-8c7c366a9e1f/events/2026/05/11/123320_calculation_completed_evt-b6391590-a5be-4418-9fff-1d1f41e47493.json",
+    "created_at": "2026-05-11T12:33:20.731002572Z"
+  },
+  "request_id": "req-7f40fa6d7a1e49f9b4189e0166a8c5f9",
+  "trace_id": "trace-9ddac0f6283b4c169087f4ff2cb479ef",
+  "timestamp": "2026-05-11T12:33:20.797030674Z"
+}
+-------------------------------
+[PASS] calculate POWER [2,8] (POST /v1/calculator/calculate -> HTTP 200)
+[PASS] calculate POWER [2,8] envelope status is ok
+OK
+[PASS] calculate POWER [2,8] result matches expected 256
+--- calculate SQRT [81] response (200) ---
+{
+  "status": "ok",
+  "message": "calculation completed",
+  "data": {
+    "calculation_id": "calc-d6207bd3-0db5-4d8d-a7c1-7cf0e8051bb6",
+    "user_id": "457271e4-e5dc-43e7-a2cf-8c7c366a9e1f",
+    "tenant": "prod",
+    "operation": "SQRT",
+    "expression": null,
+    "operands": [
+      81
+    ],
+    "result": "9",
+    "status": "COMPLETED",
+    "error_code": null,
+    "error_message": null,
+    "duration_ms": 0,
+    "s3_object_key": "calculator_service/production/tenant/prod/users/457271e4-e5dc-43e7-a2cf-8c7c366a9e1f/events/2026/05/11/123321_calculation_completed_evt-30b0769b-58c4-4144-86f4-93de1abced37.json",
+    "created_at": "2026-05-11T12:33:21.129860314Z"
+  },
+  "request_id": "req-b68598d330434525b80e59ea604607f4",
+  "trace_id": "trace-b8212ed9b0dc457aa68d7252221e13ad",
+  "timestamp": "2026-05-11T12:33:21.178044166Z"
+}
+-------------------------------
+[PASS] calculate SQRT [81] (POST /v1/calculator/calculate -> HTTP 200)
+[PASS] calculate SQRT [81] envelope status is ok
+OK
+[PASS] calculate SQRT [81] result matches expected 9
+--- calculate PERCENTAGE [10,200] response (200) ---
+{
+  "status": "ok",
+  "message": "calculation completed",
+  "data": {
+    "calculation_id": "calc-745303a8-502a-4e59-bf51-41d61eca95c8",
+    "user_id": "457271e4-e5dc-43e7-a2cf-8c7c366a9e1f",
+    "tenant": "prod",
+    "operation": "PERCENTAGE",
+    "expression": null,
+    "operands": [
+      10,
+      200
+    ],
+    "result": "20",
+    "status": "COMPLETED",
+    "error_code": null,
+    "error_message": null,
+    "duration_ms": 0,
+    "s3_object_key": "calculator_service/production/tenant/prod/users/457271e4-e5dc-43e7-a2cf-8c7c366a9e1f/events/2026/05/11/123321_calculation_completed_evt-bf4917a3-f747-4f4d-9f96-f705dc797c40.json",
+    "created_at": "2026-05-11T12:33:21.518874939Z"
+  },
+  "request_id": "req-77cb8e93bc7a4a9d98925b247730dd6d",
+  "trace_id": "trace-3a8a9230e42345be9be085acc9604bf6",
+  "timestamp": "2026-05-11T12:33:21.613922671Z"
+}
+-------------------------------
+[PASS] calculate PERCENTAGE [10,200] (POST /v1/calculator/calculate -> HTTP 200)
+[PASS] calculate PERCENTAGE [10,200] envelope status is ok
+OK
+[PASS] calculate PERCENTAGE [10,200] result matches expected 20
+--- calculate SIN [30] response (200) ---
+{
+  "status": "ok",
+  "message": "calculation completed",
+  "data": {
+    "calculation_id": "calc-ede380e3-029e-4f65-90ff-4199d6453b5c",
+    "user_id": "457271e4-e5dc-43e7-a2cf-8c7c366a9e1f",
+    "tenant": "prod",
+    "operation": "SIN",
+    "expression": null,
+    "operands": [
+      30
+    ],
+    "result": "0.49999999999999994",
+    "status": "COMPLETED",
+    "error_code": null,
+    "error_message": null,
+    "duration_ms": 0,
+    "s3_object_key": "calculator_service/production/tenant/prod/users/457271e4-e5dc-43e7-a2cf-8c7c366a9e1f/events/2026/05/11/123321_calculation_completed_evt-0f4a1de5-fc87-4a98-8e67-c661e0b9b88b.json",
+    "created_at": "2026-05-11T12:33:21.914651665Z"
+  },
+  "request_id": "req-d8f47a43c0004247b06a9a5e4bc8bb2c",
+  "trace_id": "trace-c136a781289f45748458962ed263efe8",
+  "timestamp": "2026-05-11T12:33:21.978845623Z"
+}
+-------------------------------
+[PASS] calculate SIN [30] (POST /v1/calculator/calculate -> HTTP 200)
+[PASS] calculate SIN [30] envelope status is ok
+OK
+[PASS] calculate SIN [30] result matches expected 0.5
+--- calculate COS [60] response (200) ---
+{
+  "status": "ok",
+  "message": "calculation completed",
+  "data": {
+    "calculation_id": "calc-488fe04b-4db1-433d-a33d-0e022fdd9565",
+    "user_id": "457271e4-e5dc-43e7-a2cf-8c7c366a9e1f",
+    "tenant": "prod",
+    "operation": "COS",
+    "expression": null,
+    "operands": [
+      60
+    ],
+    "result": "0.5000000000000001",
+    "status": "COMPLETED",
+    "error_code": null,
+    "error_message": null,
+    "duration_ms": 0,
+    "s3_object_key": "calculator_service/production/tenant/prod/users/457271e4-e5dc-43e7-a2cf-8c7c366a9e1f/events/2026/05/11/123322_calculation_completed_evt-7cd34a0a-cdcb-4431-9023-e2894d88677f.json",
+    "created_at": "2026-05-11T12:33:22.308811967Z"
+  },
+  "request_id": "req-66a7ec694e7744cfbedc2e0061514b65",
+  "trace_id": "trace-b2d17e0ae89449a88ced85bc01e9819b",
+  "timestamp": "2026-05-11T12:33:22.374934287Z"
+}
+-------------------------------
+[PASS] calculate COS [60] (POST /v1/calculator/calculate -> HTTP 200)
+[PASS] calculate COS [60] envelope status is ok
+OK
+[PASS] calculate COS [60] result matches expected 0.5
+--- calculate TAN [45] response (200) ---
+{
+  "status": "ok",
+  "message": "calculation completed",
+  "data": {
+    "calculation_id": "calc-70ca463e-6253-4531-b544-fed8b620bc58",
+    "user_id": "457271e4-e5dc-43e7-a2cf-8c7c366a9e1f",
+    "tenant": "prod",
+    "operation": "TAN",
+    "expression": null,
+    "operands": [
+      45
+    ],
+    "result": "0.9999999999999999",
+    "status": "COMPLETED",
+    "error_code": null,
+    "error_message": null,
+    "duration_ms": 0,
+    "s3_object_key": "calculator_service/production/tenant/prod/users/457271e4-e5dc-43e7-a2cf-8c7c366a9e1f/events/2026/05/11/123322_calculation_completed_evt-245f7f55-fd2c-4420-a093-066ce1f53e75.json",
+    "created_at": "2026-05-11T12:33:22.743282775Z"
+  },
+  "request_id": "req-1c06485d65214cce9374c21771f1f2bf",
+  "trace_id": "trace-d440205630ca40c6a8095af0baa29347",
+  "timestamp": "2026-05-11T12:33:22.803157809Z"
+}
+-------------------------------
+[PASS] calculate TAN [45] (POST /v1/calculator/calculate -> HTTP 200)
+[PASS] calculate TAN [45] envelope status is ok
+OK
+[PASS] calculate TAN [45] result matches expected 1
+--- calculate LOG [1000] response (200) ---
+{
+  "status": "ok",
+  "message": "calculation completed",
+  "data": {
+    "calculation_id": "calc-420b0632-09c9-47ce-b646-d22ec6d7c515",
+    "user_id": "457271e4-e5dc-43e7-a2cf-8c7c366a9e1f",
+    "tenant": "prod",
+    "operation": "LOG",
+    "expression": null,
+    "operands": [
+      1000
+    ],
+    "result": "3",
+    "status": "COMPLETED",
+    "error_code": null,
+    "error_message": null,
+    "duration_ms": 0,
+    "s3_object_key": "calculator_service/production/tenant/prod/users/457271e4-e5dc-43e7-a2cf-8c7c366a9e1f/events/2026/05/11/123323_calculation_completed_evt-ae2dcfc1-62eb-4403-a0d6-cf02831669c8.json",
+    "created_at": "2026-05-11T12:33:23.155003580Z"
+  },
+  "request_id": "req-4fac73a1044e4682a9816a7bd21aedd7",
+  "trace_id": "trace-fdd626bd05294fce9b537fc264bbb54f",
+  "timestamp": "2026-05-11T12:33:23.222075179Z"
+}
+-------------------------------
+[PASS] calculate LOG [1000] (POST /v1/calculator/calculate -> HTTP 200)
+[PASS] calculate LOG [1000] envelope status is ok
+OK
+[PASS] calculate LOG [1000] result matches expected 3
+--- calculate LN [1] response (200) ---
+{
+  "status": "ok",
+  "message": "calculation completed",
+  "data": {
+    "calculation_id": "calc-36f8e5d6-aa60-497d-a0b6-e06f5c088373",
+    "user_id": "457271e4-e5dc-43e7-a2cf-8c7c366a9e1f",
+    "tenant": "prod",
+    "operation": "LN",
+    "expression": null,
+    "operands": [
+      1
+    ],
+    "result": "0",
+    "status": "COMPLETED",
+    "error_code": null,
+    "error_message": null,
+    "duration_ms": 0,
+    "s3_object_key": "calculator_service/production/tenant/prod/users/457271e4-e5dc-43e7-a2cf-8c7c366a9e1f/events/2026/05/11/123323_calculation_completed_evt-45243e11-cfdd-4ee5-80ea-02ecf71e533b.json",
+    "created_at": "2026-05-11T12:33:23.566164261Z"
+  },
+  "request_id": "req-587e101a3863431593b9484d0736751a",
+  "trace_id": "trace-55125342ce934ed6a1422b49cc1b887f",
+  "timestamp": "2026-05-11T12:33:23.612187376Z"
+}
+-------------------------------
+[PASS] calculate LN [1] (POST /v1/calculator/calculate -> HTTP 200)
+[PASS] calculate LN [1] envelope status is ok
+OK
+[PASS] calculate LN [1] result matches expected 0
+--- calculate ABS [-123.45] response (200) ---
+{
+  "status": "ok",
+  "message": "calculation completed",
+  "data": {
+    "calculation_id": "calc-7a1941ae-64bf-4e29-9bc6-85c3e8eaab24",
+    "user_id": "457271e4-e5dc-43e7-a2cf-8c7c366a9e1f",
+    "tenant": "prod",
+    "operation": "ABS",
+    "expression": null,
+    "operands": [
+      -123.45
+    ],
+    "result": "123.45",
+    "status": "COMPLETED",
+    "error_code": null,
+    "error_message": null,
+    "duration_ms": 0,
+    "s3_object_key": "calculator_service/production/tenant/prod/users/457271e4-e5dc-43e7-a2cf-8c7c366a9e1f/events/2026/05/11/123323_calculation_completed_evt-9954077e-ad17-4edc-9030-27bffa942304.json",
+    "created_at": "2026-05-11T12:33:23.960842100Z"
+  },
+  "request_id": "req-74cd25cf31f14d61a428a263411b15db",
+  "trace_id": "trace-3449b50ba0a64b208f08045300ffbfa3",
+  "timestamp": "2026-05-11T12:33:24.011046376Z"
+}
+-------------------------------
+[PASS] calculate ABS [-123.45] (POST /v1/calculator/calculate -> HTTP 200)
+[PASS] calculate ABS [-123.45] envelope status is ok
+OK
+[PASS] calculate ABS [-123.45] result matches expected 123.45
+--- calculate ROUND [12.6] response (200) ---
+{
+  "status": "ok",
+  "message": "calculation completed",
+  "data": {
+    "calculation_id": "calc-197cff9a-f645-43dd-b3d6-bace4805b173",
+    "user_id": "457271e4-e5dc-43e7-a2cf-8c7c366a9e1f",
+    "tenant": "prod",
+    "operation": "ROUND",
+    "expression": null,
+    "operands": [
+      12.6
+    ],
+    "result": "13",
+    "status": "COMPLETED",
+    "error_code": null,
+    "error_message": null,
+    "duration_ms": 0,
+    "s3_object_key": "calculator_service/production/tenant/prod/users/457271e4-e5dc-43e7-a2cf-8c7c366a9e1f/events/2026/05/11/123324_calculation_completed_evt-dbffa766-68dd-40fc-b94d-26cc19637b23.json",
+    "created_at": "2026-05-11T12:33:24.395144357Z"
+  },
+  "request_id": "req-0bfbd52271a74617ad254788f86b309a",
+  "trace_id": "trace-a622a2168b434bc4b6b9a23ba9bf3b81",
+  "timestamp": "2026-05-11T12:33:24.467292343Z"
+}
+-------------------------------
+[PASS] calculate ROUND [12.6] (POST /v1/calculator/calculate -> HTTP 200)
+[PASS] calculate ROUND [12.6] envelope status is ok
+OK
+[PASS] calculate ROUND [12.6] result matches expected 13
+--- calculate FLOOR [12.9] response (200) ---
+{
+  "status": "ok",
+  "message": "calculation completed",
+  "data": {
+    "calculation_id": "calc-9e82e6a7-daeb-43d0-bd61-9ca17648d615",
+    "user_id": "457271e4-e5dc-43e7-a2cf-8c7c366a9e1f",
+    "tenant": "prod",
+    "operation": "FLOOR",
+    "expression": null,
+    "operands": [
+      12.9
+    ],
+    "result": "12",
+    "status": "COMPLETED",
+    "error_code": null,
+    "error_message": null,
+    "duration_ms": 0,
+    "s3_object_key": "calculator_service/production/tenant/prod/users/457271e4-e5dc-43e7-a2cf-8c7c366a9e1f/events/2026/05/11/123324_calculation_completed_evt-205b119f-019a-4cc6-8baa-4267b7daaa3e.json",
+    "created_at": "2026-05-11T12:33:24.832702918Z"
+  },
+  "request_id": "req-c63df4dd11eb4881a016d98ac9465321",
+  "trace_id": "trace-bd7ad248f55e44958cc80255b01f7690",
+  "timestamp": "2026-05-11T12:33:24.874375892Z"
+}
+-------------------------------
+[PASS] calculate FLOOR [12.9] (POST /v1/calculator/calculate -> HTTP 200)
+[PASS] calculate FLOOR [12.9] envelope status is ok
+OK
+[PASS] calculate FLOOR [12.9] result matches expected 12
+--- calculate CEIL [12.1] response (200) ---
+{
+  "status": "ok",
+  "message": "calculation completed",
+  "data": {
+    "calculation_id": "calc-6981a513-ac82-41a8-8e0f-43b991ef149a",
+    "user_id": "457271e4-e5dc-43e7-a2cf-8c7c366a9e1f",
+    "tenant": "prod",
+    "operation": "CEIL",
+    "expression": null,
+    "operands": [
+      12.1
+    ],
+    "result": "13",
+    "status": "COMPLETED",
+    "error_code": null,
+    "error_message": null,
+    "duration_ms": 0,
+    "s3_object_key": "calculator_service/production/tenant/prod/users/457271e4-e5dc-43e7-a2cf-8c7c366a9e1f/events/2026/05/11/123325_calculation_completed_evt-29dfac74-8d6a-42eb-bbac-7a9895a582ea.json",
+    "created_at": "2026-05-11T12:33:25.215493045Z"
+  },
+  "request_id": "req-7e4bd420123444d48f6b347638b7d56c",
+  "trace_id": "trace-c056842f5b074ae9b4f816b1b6253e50",
+  "timestamp": "2026-05-11T12:33:25.261768439Z"
+}
+-------------------------------
+[PASS] calculate CEIL [12.1] (POST /v1/calculator/calculate -> HTTP 200)
+[PASS] calculate CEIL [12.1] envelope status is ok
+OK
+[PASS] calculate CEIL [12.1] result matches expected 13
+--- calculate FACTORIAL [5] response (200) ---
+{
+  "status": "ok",
+  "message": "calculation completed",
+  "data": {
+    "calculation_id": "calc-578edf53-99bd-4359-8de4-2ea2c44bd7a9",
+    "user_id": "457271e4-e5dc-43e7-a2cf-8c7c366a9e1f",
+    "tenant": "prod",
+    "operation": "FACTORIAL",
+    "expression": null,
+    "operands": [
+      5
+    ],
+    "result": "120",
+    "status": "COMPLETED",
+    "error_code": null,
+    "error_message": null,
+    "duration_ms": 0,
+    "s3_object_key": "calculator_service/production/tenant/prod/users/457271e4-e5dc-43e7-a2cf-8c7c366a9e1f/events/2026/05/11/123325_calculation_completed_evt-3ece8aef-3cf5-4f95-8ef2-5a74227ce4b1.json",
+    "created_at": "2026-05-11T12:33:25.615412583Z"
+  },
+  "request_id": "req-ac1eb2724c384306b277732a8a409617",
+  "trace_id": "trace-5734d0036a434e19a6c0ec808da51756",
+  "timestamp": "2026-05-11T12:33:25.680919035Z"
+}
+-------------------------------
+[PASS] calculate FACTORIAL [5] (POST /v1/calculator/calculate -> HTTP 200)
+[PASS] calculate FACTORIAL [5] envelope status is ok
+OK
+[PASS] calculate FACTORIAL [5] result matches expected 120
+--- calculate expression sqrt(16)+(10+5)*3 response (200) ---
+{
+  "status": "ok",
+  "message": "calculation completed",
+  "data": {
+    "calculation_id": "calc-9466c563-756c-4f14-bf7f-3f574d25841f",
+    "user_id": "457271e4-e5dc-43e7-a2cf-8c7c366a9e1f",
+    "tenant": "prod",
+    "operation": null,
+    "expression": "sqrt(16)+(10+5)*3",
+    "operands": [],
+    "result": "49",
+    "status": "COMPLETED",
+    "error_code": null,
+    "error_message": null,
+    "duration_ms": 0,
+    "s3_object_key": "calculator_service/production/tenant/prod/users/457271e4-e5dc-43e7-a2cf-8c7c366a9e1f/events/2026/05/11/123326_calculation_completed_evt-29496b61-2696-45e4-949c-17e0c88581fe.json",
+    "created_at": "2026-05-11T12:33:26.024554653Z"
+  },
+  "request_id": "req-3c6c27a152114756ba546e87113aca87",
+  "trace_id": "trace-5c3a3a9b79fc4a95a1a3caa351a939bd",
+  "timestamp": "2026-05-11T12:33:26.085659472Z"
+}
+-------------------------------
+[PASS] calculate expression sqrt(16)+(10+5)*3 (POST /v1/calculator/calculate -> HTTP 200)
+[PASS] calculate expression sqrt(16)+(10+5)*3 envelope status is ok
+OK
+[PASS] calculate expression sqrt(16)+(10+5)*3 result matches expected 49
+--- calculate expression 2^8 response (200) ---
+{
+  "status": "ok",
+  "message": "calculation completed",
+  "data": {
+    "calculation_id": "calc-1634ff18-d710-4cd0-9cab-4acb5914d5cb",
+    "user_id": "457271e4-e5dc-43e7-a2cf-8c7c366a9e1f",
+    "tenant": "prod",
+    "operation": null,
+    "expression": "2^8",
+    "operands": [],
+    "result": "256",
+    "status": "COMPLETED",
+    "error_code": null,
+    "error_message": null,
+    "duration_ms": 0,
+    "s3_object_key": "calculator_service/production/tenant/prod/users/457271e4-e5dc-43e7-a2cf-8c7c366a9e1f/events/2026/05/11/123326_calculation_completed_evt-b1fe262b-fb7d-4ad8-8591-14c55132888a.json",
+    "created_at": "2026-05-11T12:33:26.447964255Z"
+  },
+  "request_id": "req-4af343e3b4354617a574e7bc1d3cbb08",
+  "trace_id": "trace-3ce184bd59794d9ba72fa78983081ef0",
+  "timestamp": "2026-05-11T12:33:26.513554776Z"
+}
+-------------------------------
+[PASS] calculate expression 2^8 (POST /v1/calculator/calculate -> HTTP 200)
+[PASS] calculate expression 2^8 envelope status is ok
+OK
+[PASS] calculate expression 2^8 result matches expected 256
+--- calculate expression abs(-15)+floor(3.9)+ceil(4.1) response (200) ---
+{
+  "status": "ok",
+  "message": "calculation completed",
+  "data": {
+    "calculation_id": "calc-759dd115-6c2b-4102-82e5-dff8fbc9fedf",
+    "user_id": "457271e4-e5dc-43e7-a2cf-8c7c366a9e1f",
+    "tenant": "prod",
+    "operation": null,
+    "expression": "abs(-15)+floor(3.9)+ceil(4.1)",
+    "operands": [],
+    "result": "23",
+    "status": "COMPLETED",
+    "error_code": null,
+    "error_message": null,
+    "duration_ms": 3,
+    "s3_object_key": "calculator_service/production/tenant/prod/users/457271e4-e5dc-43e7-a2cf-8c7c366a9e1f/events/2026/05/11/123326_calculation_completed_evt-9a6660a1-a3bd-496e-861a-7c19d9c5e7df.json",
+    "created_at": "2026-05-11T12:33:26.866735913Z"
+  },
+  "request_id": "req-9fad1c4cbf1d466a84ae9cdb557960e8",
+  "trace_id": "trace-edd8c2f2352b409f959e45bd7601c41a",
+  "timestamp": "2026-05-11T12:33:26.912884364Z"
+}
+-------------------------------
+[PASS] calculate expression abs(-15)+floor(3.9)+ceil(4.1) (POST /v1/calculator/calculate -> HTTP 200)
+[PASS] calculate expression abs(-15)+floor(3.9)+ceil(4.1) envelope status is ok
+OK
+[PASS] calculate expression abs(-15)+floor(3.9)+ceil(4.1) result matches expected 23
+--- calculate expression log(1000)+ln(1)+round(2.6) response (200) ---
+{
+  "status": "ok",
+  "message": "calculation completed",
+  "data": {
+    "calculation_id": "calc-a454e8e0-266c-43c5-98bb-3224d1136a23",
+    "user_id": "457271e4-e5dc-43e7-a2cf-8c7c366a9e1f",
+    "tenant": "prod",
+    "operation": null,
+    "expression": "log(1000)+ln(1)+round(2.6)",
+    "operands": [],
+    "result": "6",
+    "status": "COMPLETED",
+    "error_code": null,
+    "error_message": null,
+    "duration_ms": 0,
+    "s3_object_key": "calculator_service/production/tenant/prod/users/457271e4-e5dc-43e7-a2cf-8c7c366a9e1f/events/2026/05/11/123327_calculation_completed_evt-e4ec3971-810b-4fd7-9cec-5d6eb67db1ff.json",
+    "created_at": "2026-05-11T12:33:27.284468773Z"
+  },
+  "request_id": "req-4e8db70f92794561af14a3eca215633d",
+  "trace_id": "trace-185fd3c24b074f5eb81e6f6ab768217d",
+  "timestamp": "2026-05-11T12:33:27.346651154Z"
+}
+-------------------------------
+[PASS] calculate expression log(1000)+ln(1)+round(2.6) (POST /v1/calculator/calculate -> HTTP 200)
+[PASS] calculate expression log(1000)+ln(1)+round(2.6) envelope status is ok
+OK
+[PASS] calculate expression log(1000)+ln(1)+round(2.6) result matches expected 6
+--- calculate both operation and expression rejected response (400) ---
+{
+  "status": "error",
+  "message": "Provide exactly one of expression or operation",
+  "error_code": "CALC_MODE_INVALID",
+  "details": {},
+  "path": "/v1/calculator/calculate",
+  "request_id": "req-cf8fbd55108e4315adb25408bf677922",
+  "trace_id": "trace-bd1b956e19504edda813aecd9f2fe01d",
+  "timestamp": "2026-05-11T12:33:27.748977761Z"
+}
+-------------------------------
+[PASS] calculate both operation and expression rejected (POST /v1/calculator/calculate -> HTTP 400)
+[PASS] calculate both operation and expression rejected error envelope is CALC_MODE_INVALID
+--- calculate missing mode rejected response (400) ---
+{
+  "status": "error",
+  "message": "Provide exactly one of expression or operation",
+  "error_code": "CALC_MODE_INVALID",
+  "details": {},
+  "path": "/v1/calculator/calculate",
+  "request_id": "req-a783401043c64dcca9fdf25c866caee4",
+  "trace_id": "trace-e4572f9b4f324e3db4d77dd5f5dbeb95",
+  "timestamp": "2026-05-11T12:33:28.051635942Z"
+}
+-------------------------------
+[PASS] calculate missing mode rejected (POST /v1/calculator/calculate -> HTTP 400)
+[PASS] calculate missing mode rejected error envelope is CALC_MODE_INVALID
+--- calculate divide by zero rejected response (400) ---
+{
+  "status": "error",
+  "message": "Division by zero is not allowed",
+  "error_code": "CALC_DIVIDE_BY_ZERO",
+  "details": {},
+  "path": "/v1/calculator/calculate",
+  "request_id": "req-85200bc6ca5f4a4d99ad7e20157cba59",
+  "trace_id": "trace-8569b70b48c54268bc8c50d0ef39fa51",
+  "timestamp": "2026-05-11T12:33:28.417878714Z"
+}
+-------------------------------
+[PASS] calculate divide by zero rejected (POST /v1/calculator/calculate -> HTTP 400)
+[PASS] calculate divide by zero rejected error envelope is CALC_DIVIDE_BY_ZERO
+--- calculate modulo by zero rejected response (400) ---
+{
+  "status": "error",
+  "message": "Modulo by zero is not allowed",
+  "error_code": "CALC_DIVIDE_BY_ZERO",
+  "details": {},
+  "path": "/v1/calculator/calculate",
+  "request_id": "req-f2861875b85d4e308762ebbee2300c00",
+  "trace_id": "trace-0fef4395d933446a900b47d161eb7422",
+  "timestamp": "2026-05-11T12:33:28.692930675Z"
+}
+-------------------------------
+[PASS] calculate modulo by zero rejected (POST /v1/calculator/calculate -> HTTP 400)
+[PASS] calculate modulo by zero rejected error envelope is CALC_DIVIDE_BY_ZERO
+--- calculate negative sqrt rejected response (400) ---
+{
+  "status": "error",
+  "message": "Square root of a negative number is not allowed",
+  "error_code": "CALC_NEGATIVE_SQUARE_ROOT",
+  "details": {},
+  "path": "/v1/calculator/calculate",
+  "request_id": "req-2073d3d6a76f4d11b6826a6dbf09a74f",
+  "trace_id": "trace-71b0db06caff4f079c9c4a3558e9601a",
+  "timestamp": "2026-05-11T12:33:28.963794496Z"
+}
+-------------------------------
+[PASS] calculate negative sqrt rejected (POST /v1/calculator/calculate -> HTTP 400)
+[PASS] calculate negative sqrt rejected error envelope is CALC_NEGATIVE_SQUARE_ROOT
+--- calculate log nonpositive rejected response (400) ---
+{
+  "status": "error",
+  "message": "Logarithm input must be greater than zero",
+  "error_code": "CALC_INVALID_LOGARITHM",
+  "details": {},
+  "path": "/v1/calculator/calculate",
+  "request_id": "req-335d59ec0d5d4238bf735a37d6bf8c24",
+  "trace_id": "trace-7e9e60b57a554d019566c1d2f70107eb",
+  "timestamp": "2026-05-11T12:33:29.279693667Z"
+}
+-------------------------------
+[PASS] calculate log nonpositive rejected (POST /v1/calculator/calculate -> HTTP 400)
+[PASS] calculate log nonpositive rejected error envelope is CALC_INVALID_LOGARITHM
+--- calculate factorial negative rejected response (400) ---
+{
+  "status": "error",
+  "message": "Factorial input must be a non-negative integer",
+  "error_code": "CALC_INVALID_FACTORIAL",
+  "details": {},
+  "path": "/v1/calculator/calculate",
+  "request_id": "req-47f091c060bd428084573ad512402bb8",
+  "trace_id": "trace-c4f359ac9e964d88aa88a1b811f9458f",
+  "timestamp": "2026-05-11T12:33:29.586275885Z"
+}
+-------------------------------
+[PASS] calculate factorial negative rejected (POST /v1/calculator/calculate -> HTTP 400)
+[PASS] calculate factorial negative rejected error envelope is CALC_INVALID_FACTORIAL
+--- calculate invalid expression rejected response (400) ---
+{
+  "status": "error",
+  "message": "Number expected at position 5",
+  "error_code": "CALC_INVALID_EXPRESSION",
+  "details": {},
+  "path": "/v1/calculator/calculate",
+  "request_id": "req-5fa0ee665f7e41e4bac0f2b329ed6962",
+  "trace_id": "trace-f7abbea1a2024d87a065566322741760",
+  "timestamp": "2026-05-11T12:33:29.897227968Z"
+}
+-------------------------------
+[PASS] calculate invalid expression rejected (POST /v1/calculator/calculate -> HTTP 400)
+[PASS] calculate invalid expression rejected error envelope is CALC_INVALID_EXPRESSION
+--- calculate invalid operation rejected response (400) ---
+{
+  "status": "error",
+  "message": "Unsupported operation: NOPE",
+  "error_code": "CALC_INVALID_OPERATION",
+  "details": {},
+  "path": "/v1/calculator/calculate",
+  "request_id": "req-35a877e7fa534d839b5048bf4370d399",
+  "trace_id": "trace-d41cd99ce03743cdaf3ea55054a6f396",
+  "timestamp": "2026-05-11T12:33:30.219909570Z"
+}
+-------------------------------
+[PASS] calculate invalid operation rejected (POST /v1/calculator/calculate -> HTTP 400)
+[PASS] calculate invalid operation rejected error envelope is CALC_INVALID_OPERATION
+--- history current user response (200) ---
+{
+  "status": "ok",
+  "message": "history loaded",
+  "data": {
+    "user_id": "457271e4-e5dc-43e7-a2cf-8c7c366a9e1f",
+    "limit": 50,
+    "count": 31,
+    "items": [
+      {
+        "calculation_id": "calc-4cbd86c0-12ac-4abd-bee5-3a05cdb5fb72",
+        "user_id": "457271e4-e5dc-43e7-a2cf-8c7c366a9e1f",
+        "tenant": "prod",
+        "operation": "NOPE",
+        "expression": null,
+        "operands": [
+          1,
+          2
+        ],
+        "result": null,
+        "status": "FAILED",
+        "error_code": "CALC_INVALID_OPERATION",
+        "error_message": "Unsupported operation: NOPE",
+        "duration_ms": 0,
+        "s3_object_key": "calculator_service/production/tenant/prod/users/457271e4-e5dc-43e7-a2cf-8c7c366a9e1f/events/2026/05/11/123330_calculation_failed_evt-af242037-5fcf-4383-8d37-f7bd8a31731e.json",
+        "created_at": "2026-05-11T12:33:30.226161Z"
+      },
+      {
+        "calculation_id": "calc-03c37fb3-320e-413f-b484-b6732d0cc99a",
+        "user_id": "457271e4-e5dc-43e7-a2cf-8c7c366a9e1f",
+        "tenant": "prod",
+        "operation": null,
+        "expression": "sqrt(",
+        "operands": [],
+        "result": null,
+        "status": "FAILED",
+        "error_code": "CALC_INVALID_EXPRESSION",
+        "error_message": "Number expected at position 5",
+        "duration_ms": 0,
+        "s3_object_key": "calculator_service/production/tenant/prod/users/457271e4-e5dc-43e7-a2cf-8c7c366a9e1f/events/2026/05/11/123329_calculation_failed_evt-c9203ff5-d167-4f61-a21c-b7cdc7438017.json",
+        "created_at": "2026-05-11T12:33:29.897334Z"
+      },
+      {
+        "calculation_id": "calc-4edd2581-b34f-4795-b253-b8a3f22c2966",
+        "user_id": "457271e4-e5dc-43e7-a2cf-8c7c366a9e1f",
+        "tenant": "prod",
+        "operation": "FACTORIAL",
+        "expres
+-------------------------------
+[PASS] history current user (GET /v1/calculator/history?limit=50 -> HTTP 200)
+[PASS] history current user envelope status is ok
+--- history current user low limit response (200) ---
+{
+  "status": "ok",
+  "message": "history loaded",
+  "data": {
+    "user_id": "457271e4-e5dc-43e7-a2cf-8c7c366a9e1f",
+    "limit": 1,
+    "count": 1,
+    "items": [
+      {
+        "calculation_id": "calc-4cbd86c0-12ac-4abd-bee5-3a05cdb5fb72",
+        "user_id": "457271e4-e5dc-43e7-a2cf-8c7c366a9e1f",
+        "tenant": "prod",
+        "operation": "NOPE",
+        "expression": null,
+        "operands": [
+          1,
+          2
+        ],
+        "result": null,
+        "status": "FAILED",
+        "error_code": "CALC_INVALID_OPERATION",
+        "error_message": "Unsupported operation: NOPE",
+        "duration_ms": 0,
+        "s3_object_key": "calculator_service/production/tenant/prod/users/457271e4-e5dc-43e7-a2cf-8c7c366a9e1f/events/2026/05/11/123330_calculation_failed_evt-af242037-5fcf-4383-8d37-f7bd8a31731e.json",
+        "created_at": "2026-05-11T12:33:30.226161Z"
+      }
+    ],
+    "source": "postgres"
+  },
+  "request_id": "req-0d35b16b84074930bef8c201b32f4d81",
+  "trace_id": "trace-c4837545efa9411d94963b03d87c7038",
+  "timestamp": "2026-05-11T12:33:30.735415673Z"
+}
+-------------------------------
+[PASS] history current user low limit (GET /v1/calculator/history?limit=1 -> HTTP 200)
+[PASS] history current user low limit envelope status is ok
+--- history own user path response (200) ---
+{
+  "status": "ok",
+  "message": "history loaded",
+  "data": {
+    "user_id": "457271e4-e5dc-43e7-a2cf-8c7c366a9e1f",
+    "limit": 50,
+    "count": 31,
+    "items": [
+      {
+        "calculation_id": "calc-4cbd86c0-12ac-4abd-bee5-3a05cdb5fb72",
+        "user_id": "457271e4-e5dc-43e7-a2cf-8c7c366a9e1f",
+        "tenant": "prod",
+        "operation": "NOPE",
+        "expression": null,
+        "operands": [
+          1,
+          2
+        ],
+        "result": null,
+        "status": "FAILED",
+        "error_code": "CALC_INVALID_OPERATION",
+        "error_message": "Unsupported operation: NOPE",
+        "duration_ms": 0,
+        "s3_object_key": "calculator_service/production/tenant/prod/users/457271e4-e5dc-43e7-a2cf-8c7c366a9e1f/events/2026/05/11/123330_calculation_failed_evt-af242037-5fcf-4383-8d37-f7bd8a31731e.json",
+        "created_at": "2026-05-11T12:33:30.226161Z"
+      },
+      {
+        "calculation_id": "calc-03c37fb3-320e-413f-b484-b6732d0cc99a",
+        "user_id": "457271e4-e5dc-43e7-a2cf-8c7c366a9e1f",
+        "tenant": "prod",
+        "operation": null,
+        "expression": "sqrt(",
+        "operands": [],
+        "result": null,
+        "status": "FAILED",
+        "error_code": "CALC_INVALID_EXPRESSION",
+        "error_message": "Number expected at position 5",
+        "duration_ms": 0,
+        "s3_object_key": "calculator_service/production/tenant/prod/users/457271e4-e5dc-43e7-a2cf-8c7c366a9e1f/events/2026/05/11/123329_calculation_failed_evt-c9203ff5-d167-4f61-a21c-b7cdc7438017.json",
+        "created_at": "2026-05-11T12:33:29.897334Z"
+      },
+      {
+        "calculation_id": "calc-4edd2581-b34f-4795-b253-b8a3f22c2966",
+        "user_id": "457271e4-e5dc-43e7-a2cf-8c7c366a9e1f",
+        "tenant": "prod",
+        "operation": "FACTORIAL",
+        "expres
+-------------------------------
+[PASS] history own user path (GET /v1/calculator/history/457271e4-e5dc-43e7-a2cf-8c7c366a9e1f?limit=50 -> HTTP 200)
+[PASS] history own user path envelope status is ok
+--- get created calculation record response (200) ---
+{
+  "status": "ok",
+  "message": "calculation record loaded",
+  "data": {
+    "calculation_id": "calc-a454e8e0-266c-43c5-98bb-3224d1136a23",
+    "user_id": "457271e4-e5dc-43e7-a2cf-8c7c366a9e1f",
+    "tenant": "prod",
+    "operation": null,
+    "expression": "log(1000)+ln(1)+round(2.6)",
+    "operands": [],
+    "result": "6",
+    "status": "COMPLETED",
+    "error_code": null,
+    "error_message": null,
+    "duration_ms": 0,
+    "s3_object_key": "calculator_service/production/tenant/prod/users/457271e4-e5dc-43e7-a2cf-8c7c366a9e1f/events/2026/05/11/123327_calculation_completed_evt-e4ec3971-810b-4fd7-9cec-5d6eb67db1ff.json",
+    "created_at": "2026-05-11T12:33:27.284468773Z"
+  },
+  "request_id": "req-d5de411dd7cd4ba39010dca214df14d6",
+  "trace_id": "trace-73c03bf2b4ca48e4b8dfcd4b67e22938",
+  "timestamp": "2026-05-11T12:33:31.131792721Z"
+}
+-------------------------------
+[PASS] get created calculation record (GET /v1/calculator/records/calc-a454e8e0-266c-43c5-98bb-3224d1136a23 -> HTTP 200)
+[PASS] get created calculation record envelope status is ok
+--- get missing calculation record response (404) ---
+{
+  "status": "error",
+  "message": "Calculation record not found",
+  "error_code": "CALC_RECORD_NOT_FOUND",
+  "details": {},
+  "path": "/v1/calculator/records/missing-calc-676a00c4-22cb-48da-9608-abf3a1dc2c3a",
+  "request_id": "req-784b7ff785a04d75af55c594589116cb",
+  "trace_id": "trace-be1a68d70b41400ba2fe83f9a3a0b3b7",
+  "timestamp": "2026-05-11T12:33:31.378013299Z"
+}
+-------------------------------
+[PASS] get missing calculation record (GET /v1/calculator/records/missing-calc-676a00c4-22cb-48da-9608-abf3a1dc2c3a -> HTTP 404)
+[PASS] get missing calculation record error envelope is CALC_RECORD_NOT_FOUND
+--- second user forbidden reading primary history response (403) ---
+{
+  "status": "error",
+  "message": "Caller is not allowed to read this user's calculator history",
+  "error_code": "FORBIDDEN",
+  "details": {},
+  "path": "/v1/calculator/history/457271e4-e5dc-43e7-a2cf-8c7c366a9e1f",
+  "request_id": "req-5e5265807a2c41ae9f197e65ad9a65a1",
+  "trace_id": "trace-6f226d37e659434a87ce9606b949c6b1",
+  "timestamp": "2026-05-11T12:33:31.618329437Z"
+}
+-------------------------------
+[PASS] second user forbidden reading primary history (GET /v1/calculator/history/457271e4-e5dc-43e7-a2cf-8c7c366a9e1f?limit=10 -> HTTP 403)
+[PASS] second user forbidden reading primary history error envelope is FORBIDDEN
+--- approved admin can read primary history response (200) ---
+{
+  "status": "ok",
+  "message": "history loaded",
+  "data": {
+    "user_id": "457271e4-e5dc-43e7-a2cf-8c7c366a9e1f",
+    "limit": 10,
+    "count": 10,
+    "items": [
+      {
+        "calculation_id": "calc-4cbd86c0-12ac-4abd-bee5-3a05cdb5fb72",
+        "user_id": "457271e4-e5dc-43e7-a2cf-8c7c366a9e1f",
+        "tenant": "prod",
+        "operation": "NOPE",
+        "expression": null,
+        "operands": [
+          1,
+          2
+        ],
+        "result": null,
+        "status": "FAILED",
+        "error_code": "CALC_INVALID_OPERATION",
+        "error_message": "Unsupported operation: NOPE",
+        "duration_ms": 0,
+        "s3_object_key": "calculator_service/production/tenant/prod/users/457271e4-e5dc-43e7-a2cf-8c7c366a9e1f/events/2026/05/11/123330_calculation_failed_evt-af242037-5fcf-4383-8d37-f7bd8a31731e.json",
+        "created_at": "2026-05-11T12:33:30.226161Z"
+      },
+      {
+        "calculation_id": "calc-03c37fb3-320e-413f-b484-b6732d0cc99a",
+        "user_id": "457271e4-e5dc-43e7-a2cf-8c7c366a9e1f",
+        "tenant": "prod",
+        "operation": null,
+        "expression": "sqrt(",
+        "operands": [],
+        "result": null,
+        "status": "FAILED",
+        "error_code": "CALC_INVALID_EXPRESSION",
+        "error_message": "Number expected at position 5",
+        "duration_ms": 0,
+        "s3_object_key": "calculator_service/production/tenant/prod/users/457271e4-e5dc-43e7-a2cf-8c7c366a9e1f/events/2026/05/11/123329_calculation_failed_evt-c9203ff5-d167-4f61-a21c-b7cdc7438017.json",
+        "created_at": "2026-05-11T12:33:29.897334Z"
+      },
+      {
+        "calculation_id": "calc-4edd2581-b34f-4795-b253-b8a3f22c2966",
+        "user_id": "457271e4-e5dc-43e7-a2cf-8c7c366a9e1f",
+        "tenant": "prod",
+        "operation": "FACTORIAL",
+        "expres
+-------------------------------
+[PASS] approved admin can read primary history (GET /v1/calculator/history/457271e4-e5dc-43e7-a2cf-8c7c366a9e1f?limit=10 -> HTTP 200)
+[PASS] approved admin can read primary history envelope status is ok
+--- delete current user history response (200) ---
+{
+  "status": "ok",
+  "message": "history cleared",
+  "data": {
+    "deleted_count": 31
+  },
+  "request_id": "req-e6e2d53fe8514ea1b25cfa995e27ba4f",
+  "trace_id": "trace-41fb0203106943e8a8bd1a76a8aeec75",
+  "timestamp": "2026-05-11T12:33:32.119566829Z"
+}
+-------------------------------
+[PASS] delete current user history (DELETE /v1/calculator/history -> HTTP 200)
+[PASS] delete current user history envelope status is ok
+--- history after delete current user response (200) ---
+{
+  "status": "ok",
+  "message": "history loaded",
+  "data": {
+    "user_id": "457271e4-e5dc-43e7-a2cf-8c7c366a9e1f",
+    "limit": 50,
+    "count": 0,
+    "items": [],
+    "source": "postgres"
+  },
+  "request_id": "req-2f3bb2140c604bfeb9143465b9395bc3",
+  "trace_id": "trace-c859df012e074ee8aa4604f3c72724d5",
+  "timestamp": "2026-05-11T12:33:32.318291093Z"
+}
+-------------------------------
+[PASS] history after delete current user (GET /v1/calculator/history?limit=50 -> HTTP 200)
+[PASS] history after delete current user envelope status is ok
+--- calculator health after api checks response (200) ---
+{
+  "status": "ok",
+  "service": "calculator_service",
+  "version": "v1.0.0",
+  "environment": "production",
+  "timestamp": "2026-05-11T12:33:32.628021561Z",
+  "dependencies": {
+    "jwt": "<redacted>",
+    "postgres": {
+      "status": "ok",
+      "latency_ms": 1.3
+    },
+    "redis": {
+      "status": "ok",
+      "latency_ms": 3.2
+    },
+    "kafka": {
+      "status": "ok",
+      "latency_ms": 119.6
+    },
+    "s3": {
+      "status": "ok",
+      "latency_ms": 9.6
+    },
+    "mongodb": {
+      "status": "ok",
+      "latency_ms": 1.6
+    },
+    "apm": {
+      "status": "ok",
+      "latency_ms": 5.5
+    },
+    "elasticsearch": {
+      "status": "ok",
+      "latency_ms": 5.7
+    }
+  }
+}
+-------------------------------
+[PASS] calculator health after api checks (GET /health -> HTTP 200)
+[PASS] calculator health after api checks envelope status is ok
+
+Summary: 138 total, 138 passed, 0 failed, 0 skipped
+Calculator Base URL: http://192.168.56.100:2022
+Auth Base URL:       http://192.168.56.100:6062
+Test username:       calcuser_1778502792-1262
+Primary user id:     457271e4-e5dc-43e7-a2cf-8c7c366a9e1f
+Second user id:      1fefa30c-9be1-4a4d-8dd9-12c808d5d8b5
+Last calculation id: calc-a454e8e0-266c-43c5-98bb-3224d1136a23
+Delete history:      1
+Response files:      /tmp/tmp.6NVWDg7Olj
+
+All required calculator service checks passed.

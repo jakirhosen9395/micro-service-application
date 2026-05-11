@@ -1,0 +1,453 @@
+using AdminService.Api.Configuration;
+using AdminService.Api.Contracts;
+using AdminService.Api.Domain;
+using AdminService.Api.Http;
+using AdminService.Api.Infrastructure.Logging;
+using AdminService.Api.Persistence;
+using Confluent.Kafka;
+using Microsoft.EntityFrameworkCore;
+using Npgsql;
+using System.Text.Json;
+
+namespace AdminService.Api.Infrastructure.Kafka;
+
+public sealed class KafkaConsumerBackgroundService : BackgroundService
+{
+    private readonly AdminSettings _settings;
+    private readonly IDbContextFactory<AdminDbContext> _dbFactory;
+    private readonly AppLogger _logger;
+
+    public KafkaConsumerBackgroundService(AdminSettings settings, IDbContextFactory<AdminDbContext> dbFactory, AppLogger logger)
+    {
+        _settings = settings;
+        _dbFactory = dbFactory;
+        _logger = logger;
+    }
+
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    {
+        await _logger.InfoAsync("kafka.consumer.started", "Kafka consumer started", extra: new Dictionary<string, object?> { ["group"] = _settings.KafkaConsumerGroup }, cancellationToken: stoppingToken);
+        var config = new ConsumerConfig
+        {
+            BootstrapServers = _settings.KafkaBootstrapServers,
+            GroupId = _settings.KafkaConsumerGroup,
+            AutoOffsetReset = AutoOffsetReset.Earliest,
+            EnableAutoCommit = false,
+            EnablePartitionEof = false
+        };
+
+        using var consumer = new ConsumerBuilder<string, string>(config).Build();
+        consumer.Subscribe(_settings.KafkaConsumeTopics);
+
+        while (!stoppingToken.IsCancellationRequested)
+        {
+            try
+            {
+                var result = consumer.Consume(stoppingToken);
+                if (result?.Message?.Value is null) continue;
+                await ProcessMessageAsync(result, stoppingToken);
+                consumer.Commit(result);
+            }
+            catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
+            {
+                break;
+            }
+            catch (ConsumeException ex)
+            {
+                await _logger.ErrorAsync("kafka.consume.failed", "Kafka consume failed", ex, errorCode: "KAFKA_CONSUME_FAILED", cancellationToken: CancellationToken.None);
+            }
+            catch (Exception ex)
+            {
+                await _logger.ErrorAsync("kafka.message.process_failed", "Kafka message processing failed", ex, errorCode: "KAFKA_MESSAGE_PROCESS_FAILED", cancellationToken: CancellationToken.None);
+            }
+        }
+    }
+
+    private async Task ProcessMessageAsync(ConsumeResult<string, string> result, CancellationToken cancellationToken)
+    {
+        EventEnvelope? envelope;
+        try
+        {
+            envelope = JsonSerializer.Deserialize<EventEnvelope>(result.Message.Value, JsonOptionsFactory.Options);
+        }
+        catch (JsonException)
+        {
+            await StoreInvalidMessageAsync(result, "invalid-envelope", cancellationToken);
+            return;
+        }
+
+        if (envelope is null || string.IsNullOrWhiteSpace(envelope.EventId) || string.IsNullOrWhiteSpace(envelope.EventType))
+        {
+            await StoreInvalidMessageAsync(result, "missing-event-identity", cancellationToken);
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(envelope.Tenant))
+        {
+            envelope.Tenant = _settings.Tenant;
+        }
+
+        if (!string.Equals(envelope.Tenant, _settings.Tenant, StringComparison.Ordinal))
+        {
+            await _logger.InfoAsync("kafka.message.ignored_tenant", "Kafka message ignored because tenant does not match this service instance", extra: new Dictionary<string, object?>
+            {
+                ["event_id"] = envelope.EventId,
+                ["event_type"] = envelope.EventType,
+                ["event_tenant"] = envelope.Tenant,
+                ["service_tenant"] = _settings.Tenant,
+                ["topic"] = result.Topic
+            }, cancellationToken: cancellationToken);
+            return;
+        }
+
+        await using var db = await _dbFactory.CreateDbContextAsync(cancellationToken);
+        var exists = await db.KafkaInboxEvents.AnyAsync(x => x.EventId == envelope.EventId || (x.Topic == result.Topic && x.Partition == result.Partition.Value && x.OffsetValue == result.Offset.Value), cancellationToken);
+        if (exists) return;
+
+        var inbox = new KafkaInboxEvent
+        {
+            EventId = envelope.EventId,
+            Tenant = envelope.Tenant,
+            Topic = result.Topic,
+            Partition = result.Partition.Value,
+            OffsetValue = result.Offset.Value,
+            EventType = envelope.EventType,
+            SourceService = envelope.Service,
+            Payload = result.Message.Value,
+            Status = InboxStatuses.Processing,
+            CreatedAt = DateTimeOffset.UtcNow
+        };
+        db.KafkaInboxEvents.Add(inbox);
+        try
+        {
+            await db.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateException ex) when (IsUniqueConstraintViolation(ex))
+        {
+            await _logger.InfoAsync("kafka.inbox.duplicate_ignored", "Duplicate Kafka inbox message ignored", extra: new Dictionary<string, object?>
+            {
+                ["event_id"] = envelope.EventId,
+                ["event_type"] = envelope.EventType,
+                ["topic"] = result.Topic,
+                ["partition"] = result.Partition.Value,
+                ["offset"] = result.Offset.Value
+            }, cancellationToken: cancellationToken);
+            return;
+        }
+
+        try
+        {
+            if (string.Equals(envelope.Service, _settings.ServiceName, StringComparison.Ordinal))
+            {
+                inbox.Status = InboxStatuses.Ignored;
+                inbox.ProcessedAt = DateTimeOffset.UtcNow;
+            }
+            else
+            {
+                await ApplyProjectionAsync(db, envelope, result.Topic, cancellationToken);
+                inbox.Status = InboxStatuses.Processed;
+                inbox.ProcessedAt = DateTimeOffset.UtcNow;
+            }
+        }
+        catch (Exception ex)
+        {
+            inbox.Status = InboxStatuses.Failed;
+            inbox.ErrorMessage = SecretRedactor.SafeExceptionMessage(ex);
+            await _logger.ErrorAsync("kafka.inbox.projection_failed", "Kafka inbox projection failed", ex, errorCode: "INBOX_PROJECTION_FAILED", extra: new Dictionary<string, object?>
+            {
+                ["event_id"] = envelope.EventId,
+                ["event_type"] = envelope.EventType,
+                ["source_service"] = envelope.Service,
+                ["topic"] = result.Topic
+            }, cancellationToken: cancellationToken);
+        }
+
+        await db.SaveChangesAsync(cancellationToken);
+    }
+
+    private async Task StoreInvalidMessageAsync(ConsumeResult<string, string> result, string reason, CancellationToken cancellationToken)
+    {
+        await using var db = await _dbFactory.CreateDbContextAsync(cancellationToken);
+        var eventId = $"invalid-{result.Topic}-{result.Partition.Value}-{result.Offset.Value}";
+        if (await db.KafkaInboxEvents.AnyAsync(x => x.EventId == eventId, cancellationToken)) return;
+        db.KafkaInboxEvents.Add(new KafkaInboxEvent
+        {
+            EventId = eventId,
+            Tenant = _settings.Tenant,
+            Topic = result.Topic,
+            Partition = result.Partition.Value,
+            OffsetValue = result.Offset.Value,
+            EventType = "invalid",
+            SourceService = null,
+            Payload = null,
+            Status = InboxStatuses.Ignored,
+            ErrorMessage = reason,
+            ProcessedAt = DateTimeOffset.UtcNow
+        });
+
+        try
+        {
+            await db.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateException ex) when (IsUniqueConstraintViolation(ex))
+        {
+            // Another service instance or retry already recorded this malformed message.
+        }
+    }
+
+    private static bool IsUniqueConstraintViolation(DbUpdateException exception)
+        => exception.InnerException is PostgresException postgres && postgres.SqlState == PostgresErrorCodes.UniqueViolation;
+
+    private static async Task ApplyProjectionAsync(AdminDbContext db, EventEnvelope envelope, string topic, CancellationToken cancellationToken)
+    {
+        var eventType = envelope.EventType.ToLowerInvariant();
+        if (topic == "auth.admin.requests" || eventType is "auth.admin.requested" or "admin.registration.requested" or "admin.registration.created")
+        {
+            await UpsertRegistrationAsync(db, envelope, cancellationToken);
+            return;
+        }
+
+        if (topic == "auth.admin.decisions" || eventType.StartsWith("admin.registration.", StringComparison.Ordinal) || eventType.StartsWith("auth.admin.decision", StringComparison.Ordinal))
+        {
+            await ApplyRegistrationDecisionAsync(db, envelope, cancellationToken);
+            return;
+        }
+
+        if (eventType.StartsWith("access.request.", StringComparison.Ordinal))
+        {
+            await UpsertAccessRequestAsync(db, envelope, cancellationToken);
+            return;
+        }
+
+        if (eventType.StartsWith("access.grant.", StringComparison.Ordinal))
+        {
+            await UpsertAccessGrantAsync(db, envelope, cancellationToken);
+            return;
+        }
+
+        if (eventType.StartsWith("calculation.", StringComparison.Ordinal))
+        {
+            await UpsertCalculationAsync(db, envelope, cancellationToken);
+            return;
+        }
+
+        if (eventType.StartsWith("todo.", StringComparison.Ordinal))
+        {
+            await UpsertTodoAsync(db, envelope, cancellationToken);
+            return;
+        }
+
+        if (eventType.StartsWith("report.", StringComparison.Ordinal))
+        {
+            await UpsertReportAsync(db, envelope, cancellationToken);
+            return;
+        }
+
+        if (eventType.StartsWith("user.", StringComparison.Ordinal) || eventType.StartsWith("auth.user.", StringComparison.Ordinal) || eventType.StartsWith("auth.signup", StringComparison.Ordinal))
+        {
+            await UpsertUserAsync(db, envelope, cancellationToken);
+        }
+    }
+
+    private static async Task UpsertRegistrationAsync(AdminDbContext db, EventEnvelope envelope, CancellationToken ct)
+    {
+        var p = envelope.Payload;
+        var requestId = Text(p, "request_id", "id") ?? envelope.AggregateId;
+        var userId = Text(p, "user_id", "target_user_id") ?? envelope.UserId ?? envelope.AggregateId;
+        var tenant = envelope.Tenant;
+        var entity = await db.AdminRegistrationRequests.FirstOrDefaultAsync(x => x.Tenant == tenant && x.RequestId == requestId, ct);
+        if (entity is null)
+        {
+            entity = new AdminRegistrationRequest { Tenant = tenant, RequestId = requestId, UserId = userId };
+            db.AdminRegistrationRequests.Add(entity);
+        }
+        entity.Username = Text(p, "username") ?? entity.Username;
+        entity.Email = Text(p, "email") ?? entity.Email;
+        entity.FullName = Text(p, "full_name", "fullName") ?? entity.FullName;
+        entity.Gender = Text(p, "gender") ?? entity.Gender;
+        entity.Reason = Text(p, "reason") ?? entity.Reason;
+        entity.Status = Text(p, "status") ?? DecisionStatuses.Pending;
+        entity.RequestedAt = Time(p, "requested_at", envelope.Timestamp);
+        entity.Birthdate = Date(p, "birthdate") ?? entity.Birthdate;
+    }
+
+    private static async Task ApplyRegistrationDecisionAsync(AdminDbContext db, EventEnvelope envelope, CancellationToken ct)
+    {
+        var p = envelope.Payload;
+        var requestId = Text(p, "request_id", "id") ?? envelope.AggregateId;
+        var tenant = envelope.Tenant;
+        var entity = await db.AdminRegistrationRequests.FirstOrDefaultAsync(x => x.Tenant == tenant && x.RequestId == requestId, ct);
+        if (entity is null) return;
+        var status = Text(p, "decision", "status") ?? (envelope.EventType.EndsWith("approved", StringComparison.OrdinalIgnoreCase) ? DecisionStatuses.Approved : DecisionStatuses.Rejected);
+        entity.Status = status;
+        entity.ReviewedAt = envelope.Timestamp;
+        entity.ReviewedBy = Text(p, "reviewed_by", "actor_id") ?? envelope.ActorId;
+        entity.DecisionReason = Text(p, "reason") ?? entity.DecisionReason;
+    }
+
+    private static async Task UpsertAccessRequestAsync(AdminDbContext db, EventEnvelope envelope, CancellationToken ct)
+    {
+        var p = envelope.Payload;
+        var requestId = Text(p, "request_id") ?? envelope.AggregateId;
+        var tenant = envelope.Tenant;
+        var entity = await db.AdminAccessRequests.FirstOrDefaultAsync(x => x.Tenant == tenant && x.RequestId == requestId, ct);
+        if (entity is null)
+        {
+            entity = new AdminAccessRequest { Tenant = tenant, RequestId = requestId };
+            db.AdminAccessRequests.Add(entity);
+        }
+        entity.RequesterUserId = Text(p, "requester_user_id", "requester_id", "user_id") ?? entity.RequesterUserId;
+        entity.TargetUserId = Text(p, "target_user_id") ?? envelope.UserId ?? entity.TargetUserId;
+        entity.ResourceType = Text(p, "resource_type") ?? entity.ResourceType;
+        entity.Scope = Text(p, "scope") ?? entity.Scope;
+        entity.Reason = Text(p, "reason") ?? entity.Reason;
+        entity.Status = Text(p, "status") ?? StatusFromEvent(envelope.EventType);
+        entity.RequestedAt = Time(p, "requested_at", envelope.Timestamp);
+        entity.RequestedBy = Text(p, "requested_by") ?? entity.RequestedBy;
+        entity.ExpiresAt = NullableTime(p, "expires_at") ?? entity.ExpiresAt;
+    }
+
+    private static async Task UpsertAccessGrantAsync(AdminDbContext db, EventEnvelope envelope, CancellationToken ct)
+    {
+        var p = envelope.Payload;
+        var grantId = Text(p, "grant_id") ?? envelope.AggregateId;
+        var tenant = envelope.Tenant;
+        var entity = await db.AdminAccessGrants.FirstOrDefaultAsync(x => x.Tenant == tenant && x.GrantId == grantId, ct);
+        if (entity is null)
+        {
+            entity = new AdminAccessGrant { Tenant = tenant, GrantId = grantId };
+            db.AdminAccessGrants.Add(entity);
+        }
+        entity.RequestId = Text(p, "request_id") ?? entity.RequestId;
+        entity.RequesterUserId = Text(p, "requester_user_id", "requester_id") ?? entity.RequesterUserId;
+        entity.TargetUserId = Text(p, "target_user_id") ?? envelope.UserId ?? entity.TargetUserId;
+        entity.ResourceType = Text(p, "resource_type") ?? entity.ResourceType;
+        entity.Scope = Text(p, "scope") ?? entity.Scope;
+        entity.Status = envelope.EventType.EndsWith("revoked", StringComparison.OrdinalIgnoreCase) ? GrantStatuses.Revoked : Text(p, "status") ?? GrantStatuses.Active;
+        entity.ApprovedBy = Text(p, "approved_by", "actor_id") ?? envelope.ActorId ?? entity.ApprovedBy;
+        entity.ApprovedAt = Time(p, "approved_at", envelope.Timestamp);
+        entity.ExpiresAt = NullableTime(p, "expires_at") ?? DateTimeOffset.UtcNow.AddDays(30);
+        if (entity.Status == GrantStatuses.Revoked)
+        {
+            entity.RevokedBy = Text(p, "revoked_by", "actor_id") ?? envelope.ActorId;
+            entity.RevokedAt = envelope.Timestamp;
+            entity.RevokeReason = Text(p, "reason", "revoke_reason");
+        }
+    }
+
+    private static async Task UpsertUserAsync(AdminDbContext db, EventEnvelope envelope, CancellationToken ct)
+    {
+        var p = envelope.Payload;
+        var tenant = envelope.Tenant;
+        var userId = Text(p, "user_id", "id") ?? envelope.UserId ?? envelope.AggregateId;
+        var entity = await db.AdminUserProjections.FirstOrDefaultAsync(x => x.Tenant == tenant && x.UserId == userId, ct);
+        if (entity is null)
+        {
+            entity = new AdminUserProjection { Tenant = tenant, UserId = userId };
+            db.AdminUserProjections.Add(entity);
+        }
+        entity.Username = Text(p, "username") ?? entity.Username;
+        entity.Email = Text(p, "email") ?? entity.Email;
+        entity.FullName = Text(p, "full_name") ?? entity.FullName;
+        entity.Role = Text(p, "role") ?? entity.Role;
+        entity.AdminStatus = Text(p, "admin_status") ?? entity.AdminStatus;
+        entity.Status = Text(p, "status") ?? entity.Status;
+        entity.LastSeenAt = NullableTime(p, "last_seen_at") ?? entity.LastSeenAt;
+        entity.Payload = envelope.Payload.GetRawText();
+    }
+
+    private static async Task UpsertCalculationAsync(AdminDbContext db, EventEnvelope envelope, CancellationToken ct)
+    {
+        var p = envelope.Payload;
+        var id = Text(p, "calculation_id", "id") ?? envelope.AggregateId;
+        var tenant = envelope.Tenant;
+        var entity = await db.AdminCalculationProjections.FirstOrDefaultAsync(x => x.Tenant == tenant && x.CalculationId == id, ct);
+        if (entity is null)
+        {
+            entity = new AdminCalculationProjection { Tenant = tenant, CalculationId = id };
+            db.AdminCalculationProjections.Add(entity);
+        }
+        entity.UserId = envelope.UserId ?? Text(p, "user_id") ?? entity.UserId;
+        entity.Status = Text(p, "status") ?? StatusFromEvent(envelope.EventType);
+        entity.Operation = Text(p, "operation") ?? entity.Operation;
+        entity.OccurredAt = Time(p, "occurred_at", envelope.Timestamp);
+        entity.Payload = envelope.Payload.GetRawText();
+    }
+
+    private static async Task UpsertTodoAsync(AdminDbContext db, EventEnvelope envelope, CancellationToken ct)
+    {
+        var p = envelope.Payload;
+        var id = Text(p, "todo_id", "id") ?? envelope.AggregateId;
+        var tenant = envelope.Tenant;
+        var entity = await db.AdminTodoProjections.FirstOrDefaultAsync(x => x.Tenant == tenant && x.TodoId == id, ct);
+        if (entity is null)
+        {
+            entity = new AdminTodoProjection { Tenant = tenant, TodoId = id };
+            db.AdminTodoProjections.Add(entity);
+        }
+        entity.UserId = envelope.UserId ?? Text(p, "user_id") ?? entity.UserId;
+        entity.Status = Text(p, "status") ?? StatusFromEvent(envelope.EventType);
+        entity.Title = Text(p, "title") ?? entity.Title;
+        entity.OccurredAt = Time(p, "occurred_at", envelope.Timestamp);
+        entity.Payload = envelope.Payload.GetRawText();
+    }
+
+    private static async Task UpsertReportAsync(AdminDbContext db, EventEnvelope envelope, CancellationToken ct)
+    {
+        var p = envelope.Payload;
+        var id = Text(p, "report_id", "id") ?? envelope.AggregateId;
+        var tenant = envelope.Tenant;
+        var entity = await db.AdminReportProjections.FirstOrDefaultAsync(x => x.Tenant == tenant && x.ReportId == id, ct);
+        if (entity is null)
+        {
+            entity = new AdminReportProjection { Tenant = tenant, ReportId = id };
+            db.AdminReportProjections.Add(entity);
+        }
+        entity.UserId = envelope.UserId ?? Text(p, "user_id", "target_user_id") ?? entity.UserId;
+        entity.ReportType = Text(p, "report_type") ?? entity.ReportType;
+        entity.Format = Text(p, "format") ?? entity.Format;
+        entity.Status = Text(p, "status") ?? StatusFromEvent(envelope.EventType);
+        entity.RequestedBy = Text(p, "requested_by") ?? envelope.ActorId ?? entity.RequestedBy;
+        entity.RequestedAt = Time(p, "requested_at", envelope.Timestamp);
+        entity.Payload = envelope.Payload.GetRawText();
+    }
+
+    private static string StatusFromEvent(string eventType)
+    {
+        var last = eventType.Split('.', StringSplitOptions.RemoveEmptyEntries).LastOrDefault() ?? "received";
+        return last.Replace('-', '_').ToLowerInvariant();
+    }
+
+    private static string? Text(JsonElement element, params string[] names)
+    {
+        foreach (var name in names)
+        {
+            if (element.ValueKind == JsonValueKind.Object && element.TryGetProperty(name, out var property))
+            {
+                if (property.ValueKind == JsonValueKind.String) return property.GetString();
+                if (property.ValueKind is JsonValueKind.Number or JsonValueKind.True or JsonValueKind.False) return property.ToString();
+            }
+        }
+        return null;
+    }
+
+    private static DateTimeOffset Time(JsonElement element, string name, DateTimeOffset fallback) => NullableTime(element, name) ?? fallback;
+
+    private static DateTimeOffset? NullableTime(JsonElement element, string name)
+    {
+        if (element.ValueKind == JsonValueKind.Object && element.TryGetProperty(name, out var property))
+        {
+            if (property.ValueKind == JsonValueKind.String && DateTimeOffset.TryParse(property.GetString(), out var value)) return value.ToUniversalTime();
+        }
+        return null;
+    }
+
+    private static DateOnly? Date(JsonElement element, string name)
+    {
+        if (element.ValueKind == JsonValueKind.Object && element.TryGetProperty(name, out var property))
+        {
+            if (property.ValueKind == JsonValueKind.String && DateOnly.TryParse(property.GetString(), out var value)) return value;
+        }
+        return null;
+    }
+}
