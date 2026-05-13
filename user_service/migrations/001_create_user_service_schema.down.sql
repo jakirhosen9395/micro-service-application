@@ -1,0 +1,17 @@
+set search_path to user_service;
+drop table if exists kafka_inbox_events cascade;
+drop table if exists outbox_events cascade;
+drop table if exists user_dashboard_snapshots cascade;
+drop table if exists user_permission_snapshots cascade;
+drop table if exists user_rbac_policies cascade;
+drop table if exists user_service_state cascade;
+drop table if exists user_report_projections cascade;
+drop table if exists user_report_requests cascade;
+drop table if exists user_access_grants cascade;
+drop table if exists user_access_requests cascade;
+drop table if exists user_todo_projections cascade;
+drop table if exists user_calculation_projections cascade;
+drop table if exists user_activity_events cascade;
+drop table if exists user_preferences cascade;
+drop table if exists user_profiles cascade;
+drop schema if exists user_service cascade;

@@ -1,0 +1,61 @@
+{
+  "name": "report_service",
+  "version": "1.0.0",
+  "description": "Production-grade report_service for asynchronous reporting, Kafka projections, BullMQ jobs, S3 report storage, MongoDB logs, and Elastic observability.",
+  "type": "module",
+  "private": true,
+  "main": "dist/main.js",
+  "engines": {
+    "node": ">=24 <25",
+    "npm": ">=11 <12"
+  },
+  "scripts": {
+    "dev": "NODE_OPTIONS='-r ./apm-preload.cjs' tsx watch src/main.ts api",
+    "dev:all": "NODE_OPTIONS='-r ./apm-preload.cjs' tsx watch src/main.ts all",
+    "dev:worker": "NODE_OPTIONS='-r ./apm-preload.cjs' tsx watch src/main.ts worker",
+    "dev:consumer": "NODE_OPTIONS='-r ./apm-preload.cjs' tsx watch src/main.ts consumer",
+    "dev:outbox": "NODE_OPTIONS='-r ./apm-preload.cjs' tsx watch src/main.ts outbox",
+    "dev:scheduler": "NODE_OPTIONS='-r ./apm-preload.cjs' tsx watch src/main.ts scheduler",
+    "build": "tsup src/main.ts --format esm --clean --sourcemap",
+    "start": "node -r ./apm-preload.cjs dist/main.js api",
+    "start:all": "node -r ./apm-preload.cjs dist/main.js all",
+    "start:worker": "node -r ./apm-preload.cjs dist/main.js worker",
+    "start:consumer": "node -r ./apm-preload.cjs dist/main.js consumer",
+    "start:outbox": "node -r ./apm-preload.cjs dist/main.js outbox",
+    "start:scheduler": "node -r ./apm-preload.cjs dist/main.js scheduler",
+    "check": "tsc --noEmit",
+    "test": "vitest run",
+    "lint": "npm run check",
+    "format": "prettier --write .",
+    "clean": "rm -rf dist dist-types .tsup coverage",
+    "rebuild": "npm run clean && npm run check && npm run build"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.1045.0",
+    "bullmq": "^5.76.8",
+    "csv-stringify": "^6.7.0",
+    "dotenv": "^17.4.2",
+    "elastic-apm-node": "^4.15.0",
+    "exceljs": "^4.4.0",
+    "fastify": "^5.8.5",
+    "ioredis": "^5.10.1",
+    "jsonwebtoken": "^9.0.3",
+    "kafkajs": "^2.2.4",
+    "mongodb": "^7.2.0",
+    "pdfkit": "^0.18.0",
+    "pg": "^8.20.0",
+    "swagger-ui-dist": "^5.19.0",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/node": "^24.4.0",
+    "@types/pdfkit": "^0.17.6",
+    "@types/pg": "^8.20.0",
+    "prettier": "^3.8.3",
+    "tsx": "^4.21.0",
+    "tsup": "^8.5.1",
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.6"
+  }
+}

@@ -1,0 +1,256 @@
+spring:
+  main:
+    banner-mode: "off"
+  application:
+    name: "${TODO_SERVICE_NAME:todo_list_service}"
+
+  profiles:
+    active: "${SPRING_PROFILES_ACTIVE:dev}"
+
+  threads:
+    virtual:
+      enabled: true
+
+  mvc:
+    throw-exception-if-no-handler-found: true
+
+  web:
+    resources:
+      add-mappings: false
+
+  jackson:
+    serialization:
+      INDENT_OUTPUT: true
+    default-property-inclusion: non_null
+
+  datasource:
+    url: "jdbc:postgresql://${TODO_POSTGRES_HOST:localhost}:${TODO_POSTGRES_PORT:5432}/${TODO_POSTGRES_DB:db_micro_services}?currentSchema=${TODO_POSTGRES_SCHEMA:todo}"
+    username: "${TODO_POSTGRES_USER:user_micro_services}"
+    password: "${TODO_POSTGRES_PASSWORD:}"
+    hikari:
+      pool-name: todo-postgres-pool
+      minimum-idle: 2
+      maximum-pool-size: ${TODO_POSTGRES_POOL_SIZE:10}
+      connection-timeout: 3000
+      validation-timeout: 2000
+
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: none
+    properties:
+      hibernate:
+        default_schema: "${TODO_POSTGRES_SCHEMA:todo}"
+        jdbc:
+          time_zone: UTC
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    default-schema: "${TODO_POSTGRES_SCHEMA:todo}"
+    schemas: "${TODO_POSTGRES_SCHEMA:todo}"
+    create-schemas: true
+    table: todo_list_service_flyway_schema_history
+    baseline-on-migrate: true
+    baseline-version: 0
+    validate-on-migrate: false
+    out-of-order: false
+
+  data:
+    redis:
+      host: "${TODO_REDIS_HOST:localhost}"
+      port: ${TODO_REDIS_PORT:6379}
+      password: "${TODO_REDIS_PASSWORD:}"
+      database: ${TODO_REDIS_DB:0}
+      timeout: "${TODO_HEALTH_TIMEOUT_SECONDS:3}s"
+      repositories:
+        enabled: false
+
+    mongodb:
+      repositories:
+        enabled: false
+
+  mongodb:
+    host: "${TODO_MONGO_HOST:localhost}"
+    port: ${TODO_MONGO_PORT:27017}
+    username: "${TODO_MONGO_USERNAME:}"
+    password: "${TODO_MONGO_PASSWORD:}"
+    database: "${TODO_MONGO_DATABASE:db_micro_services}"
+    authentication-database: "${TODO_MONGO_AUTH_SOURCE:admin}"
+
+  kafka:
+    bootstrap-servers: "${TODO_KAFKA_BOOTSTRAP_SERVERS:localhost:9092}"
+    admin:
+      auto-create: ${TODO_KAFKA_AUTO_CREATE_TOPICS:true}
+      properties:
+        request.timeout.ms: ${TODO_HEALTH_TIMEOUT_SECONDS:3}000
+        default.api.timeout.ms: ${TODO_HEALTH_TIMEOUT_SECONDS:3}000
+    consumer:
+      group-id: "${TODO_KAFKA_CONSUMER_GROUP:todo_list_service-development}"
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+    listener:
+      missing-topics-fatal: false
+    producer:
+      retries: 3
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      properties:
+        spring.json.add.type.headers: false
+
+server:
+  address: "${TODO_HOST:0.0.0.0}"
+  port: ${TODO_PORT:8080}
+  shutdown: graceful
+
+management:
+  endpoints:
+    web:
+      exposure:
+        exclude: "*"
+  endpoint:
+    health:
+      enabled: false
+    info:
+      enabled: false
+
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
+
+logging:
+  level:
+    root: "${TODO_LOG_LEVEL:info}"
+    org.apache.kafka: WARN
+    org.apache.kafka.clients.NetworkClient: WARN
+    org.springframework.kafka.core.KafkaAdmin: WARN
+    org.springframework.boot.actuate.endpoint.web.EndpointLinksResolver: ERROR
+    org.springframework.data.repository.config: WARN
+    org.hibernate.SQL: WARN
+    org.hibernate.orm.jdbc.error: ERROR
+    org.hibernate.orm.deprecation: ERROR
+    org.mongodb.driver.client: WARN
+    org.mongodb.driver.cluster: WARN
+    co.elastic.apm.agent.awssdk.v2: ERROR
+
+todo:
+  service-name: "${TODO_SERVICE_NAME:todo_list_service}"
+  service-version: "${TODO_VERSION:v1.0.0}"
+  host: "${TODO_HOST:0.0.0.0}"
+  port: ${TODO_PORT:8080}
+  env: "${TODO_ENV:development}"
+  node-env: "${TODO_NODE_ENV:development}"
+  tenant: "${TODO_TENANT:dev}"
+
+  logs-level: "${TODO_LOG_LEVEL:info}"
+  log-format: "${TODO_LOG_FORMAT:pretty-json}"
+  logstash-enabled: ${TODO_LOGSTASH_ENABLED:false}
+  logstash-host: "${TODO_LOGSTASH_HOST:localhost}"
+  logstash-port: ${TODO_LOGSTASH_PORT:5000}
+
+  cors:
+    allowed-origins: "${TODO_CORS_ALLOWED_ORIGINS:http://localhost:3000,http://localhost:5173}"
+    allowed-methods: "${TODO_CORS_ALLOWED_METHODS:GET,POST,PUT,PATCH,DELETE,OPTIONS}"
+    allowed-headers: "${TODO_CORS_ALLOWED_HEADERS:Authorization,Content-Type,X-Request-ID,X-Trace-ID,X-Correlation-ID}"
+    allow-credentials: ${TODO_CORS_ALLOW_CREDENTIALS:true}
+    max-age-seconds: ${TODO_CORS_MAX_AGE_SECONDS:3600}
+
+  security:
+    require-https: ${TODO_SECURITY_REQUIRE_HTTPS:false}
+    secure-cookies: ${TODO_SECURITY_SECURE_COOKIES:false}
+    require-tenant-match: ${TODO_SECURITY_REQUIRE_TENANT_MATCH:true}
+
+  jwt:
+    secret: "${TODO_JWT_SECRET:}"
+    issuer: "${TODO_JWT_ISSUER:auth}"
+    audience: "${TODO_JWT_AUDIENCE:micro-app}"
+    algorithm: "${TODO_JWT_ALGORITHM:HS256}"
+    leeway-seconds: ${TODO_JWT_LEEWAY_SECONDS:5}
+
+  postgres:
+    host: "${TODO_POSTGRES_HOST:localhost}"
+    port: ${TODO_POSTGRES_PORT:5432}
+    user: "${TODO_POSTGRES_USER:user_micro_services}"
+    password: "${TODO_POSTGRES_PASSWORD:}"
+    db: "${TODO_POSTGRES_DB:db_micro_services}"
+    schema: "${TODO_POSTGRES_SCHEMA:todo}"
+    pool-size: ${TODO_POSTGRES_POOL_SIZE:10}
+    max-overflow: ${TODO_POSTGRES_MAX_OVERFLOW:10}
+    migration-mode: "${TODO_POSTGRES_MIGRATION_MODE:auto}"
+
+  redis:
+    host: "${TODO_REDIS_HOST:localhost}"
+    port: ${TODO_REDIS_PORT:6379}
+    password: "${TODO_REDIS_PASSWORD:}"
+    db: ${TODO_REDIS_DB:0}
+    cache-ttl-seconds: ${TODO_REDIS_CACHE_TTL_SECONDS:300}
+
+  kafka:
+    bootstrap-servers: "${TODO_KAFKA_BOOTSTRAP_SERVERS:localhost:9092}"
+    admin:
+      auto-create: ${TODO_KAFKA_AUTO_CREATE_TOPICS:true}
+      properties:
+        request.timeout.ms: ${TODO_HEALTH_TIMEOUT_SECONDS:3}000
+        default.api.timeout.ms: ${TODO_HEALTH_TIMEOUT_SECONDS:3}000
+    events-topic: "${TODO_KAFKA_EVENTS_TOPIC:todo.events}"
+    dead-letter-topic: "${TODO_KAFKA_DEAD_LETTER_TOPIC:todo.dead-letter}"
+    consumer-group: "${TODO_KAFKA_CONSUMER_GROUP:todo_list_service-development}"
+    consume-topics: "${TODO_KAFKA_CONSUME_TOPICS:auth.events,auth.admin.requests,auth.admin.decisions,admin.events,user.events,calculator.events,todo.events,report.events,access.events}"
+    auto-create-topics: ${TODO_KAFKA_AUTO_CREATE_TOPICS:true}
+    topic-partitions: 3
+    topic-replication-factor: 1
+    retries: 3
+
+  s3:
+    endpoint: "${TODO_S3_ENDPOINT:}"
+    access-key: "${TODO_S3_ACCESS_KEY:}"
+    secret-key: "${TODO_S3_SECRET_KEY:}"
+    region: "${TODO_S3_REGION:us-east-1}"
+    force-path-style: ${TODO_S3_FORCE_PATH_STYLE:true}
+    bucket: "${TODO_S3_BUCKET:microservice}"
+    audit-prefix: "${TODO_S3_AUDIT_PREFIX:todo_list_service/development}"
+    report-prefix: "${TODO_S3_REPORT_PREFIX:report_service/development}"
+
+  mongo:
+    host: "${TODO_MONGO_HOST:localhost}"
+    port: ${TODO_MONGO_PORT:27017}
+    username: "${TODO_MONGO_USERNAME:}"
+    password: "${TODO_MONGO_PASSWORD:}"
+    database: "${TODO_MONGO_DATABASE:db_micro_services}"
+    auth-source: "${TODO_MONGO_AUTH_SOURCE:admin}"
+    log-collection: "${TODO_MONGO_LOG_COLLECTION:todo_list_service_development_logs}"
+
+  elasticsearch:
+    url: "${TODO_ELASTICSEARCH_URL:}"
+    username: "${TODO_ELASTICSEARCH_USERNAME:elastic}"
+    password: "${TODO_ELASTICSEARCH_PASSWORD:}"
+
+  apm:
+    server-url: "${TODO_APM_SERVER_URL:}"
+    secret-token: "${TODO_APM_SECRET_TOKEN:}"
+    transaction-sample-rate: "${TODO_APM_TRANSACTION_SAMPLE_RATE:1.0}"
+    capture-body: "${TODO_APM_CAPTURE_BODY:errors}"
+
+  kibana:
+    url: "${TODO_KIBANA_URL:}"
+    username: "${TODO_KIBANA_USERNAME:elastic}"
+    password: "${TODO_KIBANA_PASSWORD:}"
+
+  health:
+    timeout-seconds: ${TODO_HEALTH_TIMEOUT_SECONDS:3}
+
+  defaults:
+    page-size: ${TODO_DEFAULT_PAGE_SIZE:20}
+    max-page-size: ${TODO_MAX_PAGE_SIZE:100}
+
+  outbox:
+    retry-delay-ms: ${TODO_OUTBOX_RETRY_DELAY_MS:30000}
+
+  validation:
+    title-max-length: 255
+    description-max-length: 5000
+    max-tags: 20
+    tag-max-length: 50

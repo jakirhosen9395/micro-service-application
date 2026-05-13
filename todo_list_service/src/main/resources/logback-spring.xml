@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration scan="false" debug="false">
+    <statusListener class="ch.qos.logback.core.status.NopStatusListener"/>
+    <springProperty scope="context" name="LOG_LEVEL" source="todo.logs-level" defaultValue="info"/>
+
+    <appender name="CONSOLE_JSON" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+            <includeMdc>true</includeMdc>
+            <jsonGeneratorDecorator class="net.logstash.logback.decorate.PrettyPrintingJsonGeneratorDecorator"/>
+            <customFields>{"service":"todo_list_service","service.name":"todo_list_service"}</customFields>
+        </encoder>
+    </appender>
+
+    <root level="${LOG_LEVEL}">
+        <appender-ref ref="CONSOLE_JSON"/>
+    </root>
+</configuration>

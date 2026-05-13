@@ -1,0 +1,22 @@
+#!/usr/bin/env sh
+set -e
+GRADLE_VERSION=9.5.0
+if command -v gradle >/dev/null 2>&1; then
+  exec gradle "$@"
+fi
+WRAPPER_DIR="$HOME/.gradle/wrapper/dists/gradle-$GRADLE_VERSION-bin"
+GRADLE_HOME="$WRAPPER_DIR/gradle-$GRADLE_VERSION"
+if [ ! -x "$GRADLE_HOME/bin/gradle" ]; then
+  mkdir -p "$WRAPPER_DIR"
+  ZIP="$WRAPPER_DIR/gradle-$GRADLE_VERSION-bin.zip"
+  if command -v curl >/dev/null 2>&1; then
+    curl -fsSL "https://services.gradle.org/distributions/gradle-$GRADLE_VERSION-bin.zip" -o "$ZIP"
+  elif command -v wget >/dev/null 2>&1; then
+    wget -q "https://services.gradle.org/distributions/gradle-$GRADLE_VERSION-bin.zip" -O "$ZIP"
+  else
+    echo "Neither gradle, curl, nor wget is available." >&2
+    exit 1
+  fi
+  unzip -q "$ZIP" -d "$WRAPPER_DIR"
+fi
+exec "$GRADLE_HOME/bin/gradle" "$@"

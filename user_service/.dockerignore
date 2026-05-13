@@ -1,0 +1,10 @@
+.git
+bin
+coverage.out
+*.log
+*.tmp
+.DS_Store
+.env
+.env.*
+var
+.cache
