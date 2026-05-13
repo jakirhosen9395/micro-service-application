@@ -92,13 +92,20 @@ class RouteContractTest {
         assertTrue(security.contains("use Auth service Bearer JWT"));
     }
     @Test
-    void elasticApmDisablesIncompatibleKafkaAndAwsSdkAutoInstrumentations() throws Exception {
-        String infrastructureConfig = Files.readString(
-                Path.of("src/main/java/com/microapp/calculator/config/InfrastructureConfig.java")
+    void elasticApmBootstrapsBeforeSpringAndKeepsDependencyInstrumentationEnabled() throws Exception {
+        String application = Files.readString(
+                Path.of("src/main/java/com/microapp/calculator/CalculatorServiceApplication.java")
+        );
+        String bootstrap = Files.readString(
+                Path.of("src/main/java/com/microapp/calculator/config/ElasticApmBootstrap.java")
         );
 
-        assertTrue(infrastructureConfig.contains("disable_instrumentations"));
-        assertTrue(infrastructureConfig.contains("apache-httpclient,apache-httpasyncclient,apache-httpclient5,kafka,aws-sdk"));
+        assertTrue(application.contains("ElasticApmBootstrap.attachFromEnvironment()"));
+        assertTrue(bootstrap.contains("metrics_interval"));
+        assertTrue(bootstrap.contains("breakdown_metrics"));
+        assertTrue(bootstrap.contains("global_labels"));
+        assertFalse(bootstrap.contains("disable_instrumentations"));
     }
+
 
 }

@@ -1,0 +1,55 @@
+{
+  "status": "ok",
+  "service": {
+    "name": "auth_service",
+    "environment": "development",
+    "version": "v1.0.0"
+  },
+  "version": "v1.0.0",
+  "environment": "development",
+  "timestamp": "2026-05-13T13:18:46.061Z",
+  "checks": {
+    "jwt": "ok",
+    "postgres": "ok",
+    "redis": "ok",
+    "kafka": "ok",
+    "s3": "ok",
+    "mongodb": "ok",
+    "apm": "ok",
+    "elasticsearch": "ok"
+  },
+  "dependencies": {
+    "jwt": {
+      "status": "ok",
+      "latency_ms": 12.078
+    },
+    "postgres": {
+      "status": "ok",
+      "latency_ms": 4.715
+    },
+    "redis": {
+      "status": "ok",
+      "latency_ms": 23.729
+    },
+    "kafka": {
+      "status": "ok",
+      "latency_ms": 8.675
+    },
+    "s3": {
+      "status": "ok",
+      "latency_ms": 134.399
+    },
+    "mongodb": {
+      "status": "ok",
+      "latency_ms": 26.473
+    },
+    "apm": {
+      "status": "ok",
+      "latency_ms": 19.515
+    },
+    "elasticsearch": {
+      "status": "ok",
+      "latency_ms": 60.292
+    }
+  }
+}

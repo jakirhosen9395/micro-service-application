@@ -27,6 +27,8 @@ class PrettyJsonFormatter(logging.Formatter):
 
     def format(self, record: logging.LogRecord) -> str:
         apm_trace_id, apm_transaction_id = _current_apm_ids()
+        apm_trace_id = apm_trace_id or getattr(record, "apm_trace_id", None)
+        apm_transaction_id = apm_transaction_id or getattr(record, "apm_transaction_id", None)
         doc: dict[str, Any] = {
             "timestamp": iso_now(),
             "level": record.levelname,

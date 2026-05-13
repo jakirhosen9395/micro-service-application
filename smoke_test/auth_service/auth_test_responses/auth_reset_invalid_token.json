@@ -1,0 +1,25 @@
+{
+  "status": "error",
+  "message": "Validation failed",
+  "error_code": "VALIDATION_ERROR",
+  "details": {
+    "errors": [
+      {
+        "type": "string_too_short",
+        "loc": [
+          "body",
+          "reset_token"
+        ],
+        "msg": "String should have at least 20 characters",
+        "input": "invalid-reset-token",
+        "ctx": {
+          "min_length": 20
+        }
+      }
+    ]
+  },
+  "path": "/v1/password/reset",
+  "request_id": "req-0335da0d-f031-4a3b-aaaf-b1e24112b40e",
+  "trace_id": "78bea8dc2f6d4e04896630d47e293161",
+  "timestamp": "2026-05-13T13:18:48.220Z"
+}

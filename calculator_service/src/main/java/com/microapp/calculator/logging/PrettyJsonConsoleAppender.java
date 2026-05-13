@@ -7,6 +7,7 @@ import ch.qos.logback.core.UnsynchronizedAppenderBase;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.microapp.calculator.observability.ApmTraceContext;
 import com.microapp.calculator.util.SecretRedactor;
 
 import java.time.Instant;
@@ -23,6 +24,7 @@ public class PrettyJsonConsoleAppender extends UnsynchronizedAppenderBase<ILoggi
     protected void append(ILoggingEvent event) {
         try {
             Map<String, Object> json = new LinkedHashMap<>();
+            ApmTraceContext.Ids apmIds = ApmTraceContext.current();
             json.put("timestamp", Instant.ofEpochMilli(event.getTimeStamp()).toString());
             json.put("level", event.getLevel().toString());
             json.put("logger", event.getLoggerName());
@@ -33,6 +35,13 @@ public class PrettyJsonConsoleAppender extends UnsynchronizedAppenderBase<ILoggi
             putIfPresent(json, "correlation_id", event.getMDCPropertyMap().get("correlation_id"));
             putIfPresent(json, "user_id", event.getMDCPropertyMap().get("user_id"));
             putIfPresent(json, "actor_id", event.getMDCPropertyMap().get("actor_id"));
+            putIfPresent(json, "elastic_trace_id", apmIds.traceId());
+            putIfPresent(json, "elastic_transaction_id", apmIds.transactionId());
+            putIfPresent(json, "elastic_span_id", apmIds.spanId());
+            putIfPresent(json, "service.name", "calculator_service");
+            putIfPresent(json, "trace.id", apmIds.traceId());
+            putIfPresent(json, "transaction.id", apmIds.transactionId());
+            putIfPresent(json, "span.id", apmIds.spanId());
             IThrowableProxy throwable = event.getThrowableProxy();
             if (throwable != null) {
                 json.put("exception_class", throwable.getClassName());

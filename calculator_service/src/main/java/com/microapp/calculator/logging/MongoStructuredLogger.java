@@ -1,6 +1,7 @@
 package com.microapp.calculator.logging;
 
 import com.microapp.calculator.config.AppProperties;
+import com.microapp.calculator.observability.ApmTraceContext;
 import com.microapp.calculator.security.UserPrincipal;
 import com.microapp.calculator.util.RequestContext;
 import com.microapp.calculator.util.SecretRedactor;
@@ -75,6 +76,7 @@ public class MongoStructuredLogger {
     private Document base(String level, String event, String message, String errorCode, Throwable throwable, Map<String, Object> extra) {
         RequestContext.Context ctx = RequestContext.current();
         UserPrincipal user = ctx.user();
+        ApmTraceContext.Ids apmIds = ApmTraceContext.current();
         Document doc = new Document();
         doc.put("timestamp", Instant.now().toString());
         doc.put("level", level);
@@ -90,6 +92,9 @@ public class MongoStructuredLogger {
         doc.put("correlation_id", ctx.correlationId());
         doc.put("user_id", user == null ? null : user.userId());
         doc.put("actor_id", user == null ? null : user.userId());
+        doc.put("elastic_trace_id", apmIds.traceId());
+        doc.put("elastic_transaction_id", apmIds.transactionId());
+        doc.put("elastic_span_id", apmIds.spanId());
         doc.put("method", null);
         doc.put("path", null);
         doc.put("status_code", null);

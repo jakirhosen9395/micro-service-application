@@ -1,0 +1,10 @@
+{
+  "status": "error",
+  "message": "Invalid refresh token",
+  "error_code": "INVALID_REFRESH_TOKEN",
+  "details": {},
+  "path": "/v1/token/refresh",
+  "request_id": "req-5b219d94-f4ab-4613-9151-c75483d8fbef",
+  "trace_id": "e9c36e39b46d490d90185c3522537274",
+  "timestamp": "2026-05-13T13:18:47.989Z"
+}

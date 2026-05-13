@@ -1,0 +1,10 @@
+{
+  "status": "error",
+  "message": "Approved admin access required",
+  "error_code": "ADMIN_ACCESS_REQUIRED",
+  "details": {},
+  "path": "/v1/admin/requests",
+  "request_id": "req-a2a185c8-7195-4a7d-bf30-fc17d60ef68b",
+  "trace_id": "b6e6697ff2d6427ca732dfbe85a7af8f",
+  "timestamp": "2026-05-13T13:18:50.831Z"
+}

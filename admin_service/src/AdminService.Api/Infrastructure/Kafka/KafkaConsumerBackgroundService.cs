@@ -5,6 +5,7 @@ using AdminService.Api.Http;
 using AdminService.Api.Infrastructure.Logging;
 using AdminService.Api.Persistence;
 using Confluent.Kafka;
+using Elastic.Apm;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 using System.Text.Json;
@@ -45,7 +46,14 @@ public sealed class KafkaConsumerBackgroundService : BackgroundService
             {
                 var result = consumer.Consume(stoppingToken);
                 if (result?.Message?.Value is null) continue;
-                await ProcessMessageAsync(result, stoppingToken);
+                await Agent.Tracer.CaptureTransaction($"admin.kafka.consume {result.Topic}", "messaging", async transaction =>
+                {
+                    transaction.SetLabel("component", "kafka-consumer");
+                    transaction.SetLabel("topic", result.Topic);
+                    transaction.SetLabel("partition", result.Partition.Value);
+                    transaction.SetLabel("offset", result.Offset.Value);
+                    await ProcessMessageAsync(result, stoppingToken);
+                });
                 consumer.Commit(result);
             }
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
@@ -252,8 +260,9 @@ public sealed class KafkaConsumerBackgroundService : BackgroundService
     private static async Task UpsertRegistrationAsync(AdminDbContext db, EventEnvelope envelope, CancellationToken ct)
     {
         var p = envelope.Payload;
+        var user = Object(p, "user");
         var requestId = Text(p, "request_id", "id") ?? envelope.AggregateId;
-        var userId = Text(p, "user_id", "target_user_id") ?? envelope.UserId ?? envelope.AggregateId;
+        var userId = Text(p, "user_id", "target_user_id") ?? Text(user, "id", "user_id") ?? envelope.UserId ?? envelope.AggregateId;
         var tenant = envelope.Tenant;
         var entity = await db.AdminRegistrationRequests.FirstOrDefaultAsync(x => x.Tenant == tenant && x.RequestId == requestId, ct);
         if (entity is null)
@@ -261,14 +270,14 @@ public sealed class KafkaConsumerBackgroundService : BackgroundService
             entity = new AdminRegistrationRequest { Tenant = tenant, RequestId = requestId, UserId = userId };
             db.AdminRegistrationRequests.Add(entity);
         }
-        entity.Username = Text(p, "username") ?? entity.Username;
-        entity.Email = Text(p, "email") ?? entity.Email;
-        entity.FullName = Text(p, "full_name", "fullName") ?? entity.FullName;
-        entity.Gender = Text(p, "gender") ?? entity.Gender;
-        entity.Reason = Text(p, "reason") ?? entity.Reason;
-        entity.Status = Text(p, "status") ?? DecisionStatuses.Pending;
-        entity.RequestedAt = Time(p, "requested_at", envelope.Timestamp);
-        entity.Birthdate = Date(p, "birthdate") ?? entity.Birthdate;
+        entity.Username = Text(p, "username") ?? Text(user, "username") ?? entity.Username;
+        entity.Email = Text(p, "email") ?? Text(user, "email") ?? entity.Email;
+        entity.FullName = Text(p, "full_name", "fullName") ?? Text(user, "full_name", "fullName") ?? entity.FullName;
+        entity.Gender = Text(p, "gender") ?? Text(user, "gender") ?? entity.Gender;
+        entity.Reason = Text(p, "reason", "admin_request_reason") ?? Text(user, "admin_request_reason") ?? entity.Reason;
+        entity.Status = Text(p, "decision", "registration_status") ?? DecisionStatuses.Pending;
+        entity.RequestedAt = NullableTime(p, "requested_at") ?? NullableTime(user, "admin_requested_at", "created_at") ?? envelope.Timestamp;
+        entity.Birthdate = Date(p, "birthdate") ?? Date(user, "birthdate") ?? entity.Birthdate;
     }
 
     private static async Task ApplyRegistrationDecisionAsync(AdminDbContext db, EventEnvelope envelope, CancellationToken ct)
@@ -338,21 +347,22 @@ public sealed class KafkaConsumerBackgroundService : BackgroundService
     private static async Task UpsertUserAsync(AdminDbContext db, EventEnvelope envelope, CancellationToken ct)
     {
         var p = envelope.Payload;
+        var user = Object(p, "user");
         var tenant = envelope.Tenant;
-        var userId = Text(p, "user_id", "id") ?? envelope.UserId ?? envelope.AggregateId;
+        var userId = Text(p, "user_id", "id") ?? Text(user, "id", "user_id") ?? envelope.UserId ?? envelope.AggregateId;
         var entity = await db.AdminUserProjections.FirstOrDefaultAsync(x => x.Tenant == tenant && x.UserId == userId, ct);
         if (entity is null)
         {
             entity = new AdminUserProjection { Tenant = tenant, UserId = userId };
             db.AdminUserProjections.Add(entity);
         }
-        entity.Username = Text(p, "username") ?? entity.Username;
-        entity.Email = Text(p, "email") ?? entity.Email;
-        entity.FullName = Text(p, "full_name") ?? entity.FullName;
-        entity.Role = Text(p, "role") ?? entity.Role;
-        entity.AdminStatus = Text(p, "admin_status") ?? entity.AdminStatus;
-        entity.Status = Text(p, "status") ?? entity.Status;
-        entity.LastSeenAt = NullableTime(p, "last_seen_at") ?? entity.LastSeenAt;
+        entity.Username = Text(p, "username") ?? Text(user, "username") ?? entity.Username;
+        entity.Email = Text(p, "email") ?? Text(user, "email") ?? entity.Email;
+        entity.FullName = Text(p, "full_name", "fullName") ?? Text(user, "full_name", "fullName") ?? entity.FullName;
+        entity.Role = Text(p, "role") ?? Text(user, "role") ?? entity.Role;
+        entity.AdminStatus = Text(p, "admin_status") ?? Text(user, "admin_status") ?? entity.AdminStatus;
+        entity.Status = Text(p, "status") ?? Text(user, "status") ?? StatusFromEvent(envelope.EventType);
+        entity.LastSeenAt = NullableTime(p, "last_seen_at") ?? NullableTime(user, "last_login_at", "last_seen_at") ?? entity.LastSeenAt;
         entity.Payload = envelope.Payload.GetRawText();
     }
 
@@ -433,14 +443,32 @@ public sealed class KafkaConsumerBackgroundService : BackgroundService
 
     private static DateTimeOffset Time(JsonElement element, string name, DateTimeOffset fallback) => NullableTime(element, name) ?? fallback;
 
-    private static DateTimeOffset? NullableTime(JsonElement element, string name)
+    private static JsonElement? Object(JsonElement element, string name)
     {
-        if (element.ValueKind == JsonValueKind.Object && element.TryGetProperty(name, out var property))
+        if (element.ValueKind == JsonValueKind.Object && element.TryGetProperty(name, out var property) && property.ValueKind == JsonValueKind.Object)
         {
-            if (property.ValueKind == JsonValueKind.String && DateTimeOffset.TryParse(property.GetString(), out var value)) return value.ToUniversalTime();
+            return property;
         }
         return null;
     }
+
+    private static string? Text(JsonElement? element, params string[] names)
+        => element.HasValue ? Text(element.Value, names) : null;
+
+    private static DateTimeOffset? NullableTime(JsonElement element, params string[] names)
+    {
+        foreach (var name in names)
+        {
+            if (element.ValueKind == JsonValueKind.Object && element.TryGetProperty(name, out var property))
+            {
+                if (property.ValueKind == JsonValueKind.String && DateTimeOffset.TryParse(property.GetString(), out var value)) return value.ToUniversalTime();
+            }
+        }
+        return null;
+    }
+
+    private static DateTimeOffset? NullableTime(JsonElement? element, params string[] names)
+        => element.HasValue ? NullableTime(element.Value, names) : null;
 
     private static DateOnly? Date(JsonElement element, string name)
     {
@@ -450,4 +478,7 @@ public sealed class KafkaConsumerBackgroundService : BackgroundService
         }
         return null;
     }
+
+    private static DateOnly? Date(JsonElement? element, string name)
+        => element.HasValue ? Date(element.Value, name) : null;
 }

@@ -92,8 +92,10 @@ public static class OpenApiDocument
     private static object BuildSpec(AdminSettings settings)
     {
         var paths = new Dictionary<string, object?>();
-        foreach (var path in ProtectedGetPaths()) paths[path] = PathItem(GetOperation(path));
-        foreach (var path in ProtectedPostPaths()) paths[path] = PathItem(null, PostOperation(path));
+        foreach (var path in ProtectedGetPaths()) paths[path] = PathItem(get: GetOperation(path));
+        foreach (var path in ProtectedPostPaths()) paths[path] = PathItem(post: PostOperation(path));
+        foreach (var path in ProtectedPutPaths()) paths[path] = PathItem(put: MutationOperation(path, "put"));
+        foreach (var path in ProtectedDeletePaths()) paths[path] = PathItem(delete: MutationOperation(path, "delete"));
         paths["/hello"] = PathItem(GetPublicOperation("Service identity check", HelloExample(settings)));
         paths["/health"] = PathItem(GetPublicOperation("Dependency health check", HealthExample(settings)));
         paths["/docs"] = PathItem(GetPublicOperation("Swagger UI", new { status = "ok" }));
@@ -127,11 +129,13 @@ public static class OpenApiDocument
         };
     }
 
-    private static object PathItem(object? get = null, object? post = null)
+    private static object PathItem(object? get = null, object? post = null, object? put = null, object? delete = null)
     {
         var d = new Dictionary<string, object?>();
         if (get is not null) d["get"] = get;
         if (post is not null) d["post"] = post;
+        if (put is not null) d["put"] = put;
+        if (delete is not null) d["delete"] = delete;
         return d;
     }
 
@@ -157,7 +161,16 @@ public static class OpenApiDocument
         security = BearerSecurity(),
         parameters = PathParameters(path),
         requestBody = RequestBodyFor(path),
-        responses = ProtectedResponses("200")
+        responses = ProtectedResponses(path == "/v1/admin/reports" ? "201" : "200")
+    };
+
+    private static object MutationOperation(string path, string method) => new
+    {
+        summary = Summary(path),
+        description = Description(path, method == "delete" ? "delete or request deletion through PostgreSQL state and Kafka outbox events" : "disabled template/schedule mutation endpoint returns 501 in this build"),
+        security = BearerSecurity(),
+        parameters = PathParameters(path),
+        responses = ProtectedResponses(method == "delete" ? "200" : "501")
     };
 
     private static object[] BearerSecurity() => new object[] { new Dictionary<string, string[]> { ["bearerAuth"] = Array.Empty<string>() } };
@@ -297,20 +310,57 @@ public static class OpenApiDocument
         "/v1/admin/users",
         "/v1/admin/users/{userId}",
         "/v1/admin/users/{userId}/activity",
+        "/v1/admin/users/{userId}/dashboard",
+        "/v1/admin/users/{userId}/preferences",
+        "/v1/admin/users/{userId}/security-context",
+        "/v1/admin/users/{userId}/rbac",
+        "/v1/admin/users/{userId}/effective-permissions",
+        "/v1/admin/users/{userId}/access-requests",
         "/v1/admin/users/{userId}/access-grants",
         "/v1/admin/users/{userId}/reports",
         "/v1/admin/calculations",
+        "/v1/admin/calculations/failed",
+        "/v1/admin/calculations/history-cleared",
+        "/v1/admin/calculations/audit",
         "/v1/admin/calculations/{calculationId}",
         "/v1/admin/calculations/users/{userId}",
+        "/v1/admin/calculations/users/{userId}/summary",
+        "/v1/admin/calculations/users/{userId}/failed",
+        "/v1/admin/calculations/users/{userId}/operations/{operation}",
         "/v1/admin/calculations/summary",
         "/v1/admin/todos",
+        "/v1/admin/todos/overdue",
+        "/v1/admin/todos/today",
+        "/v1/admin/todos/archived",
+        "/v1/admin/todos/deleted",
+        "/v1/admin/todos/audit",
         "/v1/admin/todos/{todoId}",
+        "/v1/admin/todos/{todoId}/history",
         "/v1/admin/todos/users/{userId}",
+        "/v1/admin/todos/users/{userId}/summary",
+        "/v1/admin/todos/users/{userId}/overdue",
+        "/v1/admin/todos/users/{userId}/today",
+        "/v1/admin/todos/users/{userId}/activity",
         "/v1/admin/todos/summary",
         "/v1/admin/reports",
+        "/v1/admin/reports/types",
+        "/v1/admin/reports/types/{reportType}",
         "/v1/admin/reports/{reportId}",
+        "/v1/admin/reports/{reportId}/metadata",
+        "/v1/admin/reports/{reportId}/progress",
+        "/v1/admin/reports/{reportId}/events",
+        "/v1/admin/reports/{reportId}/files",
+        "/v1/admin/reports/{reportId}/preview",
+        "/v1/admin/reports/{reportId}/download-info",
         "/v1/admin/reports/users/{userId}",
         "/v1/admin/reports/summary",
+        "/v1/admin/reports/templates",
+        "/v1/admin/reports/templates/{templateId}",
+        "/v1/admin/reports/schedules",
+        "/v1/admin/reports/schedules/{scheduleId}",
+        "/v1/admin/reports/queue/summary",
+        "/v1/admin/reports/audit",
+        "/v1/admin/reports/audit/{eventId}",
         "/v1/admin/audit",
         "/v1/admin/audit/{eventId}"
     };
@@ -326,6 +376,26 @@ public static class OpenApiDocument
         "/v1/admin/users/{userId}/activate",
         "/v1/admin/users/{userId}/force-password-reset",
         "/v1/admin/reports",
-        "/v1/admin/reports/{reportId}/cancel"
+        "/v1/admin/reports/{reportId}/cancel",
+        "/v1/admin/reports/{reportId}/retry",
+        "/v1/admin/reports/{reportId}/regenerate",
+        "/v1/admin/reports/templates",
+        "/v1/admin/reports/templates/{templateId}/activate",
+        "/v1/admin/reports/templates/{templateId}/deactivate",
+        "/v1/admin/reports/schedules",
+        "/v1/admin/reports/schedules/{scheduleId}/pause",
+        "/v1/admin/reports/schedules/{scheduleId}/resume"
+    };
+
+    private static IEnumerable<string> ProtectedPutPaths() => new[]
+    {
+        "/v1/admin/reports/templates/{templateId}",
+        "/v1/admin/reports/schedules/{scheduleId}"
+    };
+
+    private static IEnumerable<string> ProtectedDeletePaths() => new[]
+    {
+        "/v1/admin/reports/{reportId}",
+        "/v1/admin/reports/schedules/{scheduleId}"
     };
 }

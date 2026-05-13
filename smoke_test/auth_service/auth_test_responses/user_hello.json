@@ -1,0 +1,9 @@
+{
+  "message": "user_service is running",
+  "service": {
+    "env": "development",
+    "name": "user_service",
+    "version": "v1.0.0"
+  },
+  "status": "ok"
+}

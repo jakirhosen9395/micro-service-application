@@ -1,0 +1,10 @@
+{
+  "status": "error",
+  "message": "Username or email already exists",
+  "error_code": "USER_ALREADY_EXISTS",
+  "details": {},
+  "path": "/v1/signup",
+  "request_id": "req-8b97e401-89ab-4620-9be1-4a83228f1f61",
+  "trace_id": "b2eabbcbf68f414d9b659cc107c05e64",
+  "timestamp": "2026-05-13T13:18:49.107Z"
+}

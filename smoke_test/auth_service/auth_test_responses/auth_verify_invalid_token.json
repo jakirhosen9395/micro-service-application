@@ -1,0 +1,10 @@
+{
+  "status": "error",
+  "message": "Invalid token",
+  "error_code": "INVALID_TOKEN",
+  "details": {},
+  "path": "/v1/verify",
+  "request_id": "req-574a4321-f917-4d8b-879a-bb62718a32fa",
+  "trace_id": "673af9504e1a4df1b23e285013812585",
+  "timestamp": "2026-05-13T13:18:47.456Z"
+}

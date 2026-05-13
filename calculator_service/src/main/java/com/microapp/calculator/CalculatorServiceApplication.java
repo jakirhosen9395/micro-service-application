@@ -1,6 +1,7 @@
 package com.microapp.calculator;
 
 import com.microapp.calculator.config.AppProperties;
+import com.microapp.calculator.config.ElasticApmBootstrap;
 import com.microapp.calculator.config.EnvFileLoader;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -14,6 +15,7 @@ public class CalculatorServiceApplication {
 
     public static void main(String[] args) {
         EnvFileLoader.load();
+        ElasticApmBootstrap.attachFromEnvironment();
         SpringApplication.run(CalculatorServiceApplication.class, args);
     }
 }

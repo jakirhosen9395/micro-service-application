@@ -29,12 +29,17 @@ DotEnvLoader.Load();
 var settings = AdminSettings.Load();
 settings.Validate();
 Environment.SetEnvironmentVariable("ELASTIC_APM_SERVICE_NAME", settings.ServiceName);
+Environment.SetEnvironmentVariable("ELASTIC_APM_SERVICE_VERSION", settings.Version.TrimStart('v', 'V'));
 Environment.SetEnvironmentVariable("ELASTIC_APM_ENVIRONMENT", settings.EnvironmentName);
 Environment.SetEnvironmentVariable("ELASTIC_APM_SERVER_URL", settings.ApmServerUrl);
 Environment.SetEnvironmentVariable("ELASTIC_APM_SERVER_URLS", settings.ApmServerUrl);
 Environment.SetEnvironmentVariable("ELASTIC_APM_SECRET_TOKEN", settings.ApmSecretToken);
 Environment.SetEnvironmentVariable("ELASTIC_APM_TRANSACTION_SAMPLE_RATE", settings.ApmTransactionSampleRate.ToString(System.Globalization.CultureInfo.InvariantCulture));
 Environment.SetEnvironmentVariable("ELASTIC_APM_CAPTURE_BODY", settings.ApmCaptureBody);
+Environment.SetEnvironmentVariable("ELASTIC_APM_CAPTURE_HEADERS", "true");
+Environment.SetEnvironmentVariable("ELASTIC_APM_CENTRAL_CONFIG", "true");
+Environment.SetEnvironmentVariable("ELASTIC_APM_METRICS_INTERVAL", "30s");
+Environment.SetEnvironmentVariable("ELASTIC_APM_GLOBAL_LABELS", $"tenant={settings.Tenant},service={settings.ServiceName}");
 JwtSecurityTokenHandler.DefaultMapInboundClaims = false;
 
 var builder = WebApplication.CreateBuilder(args);

@@ -1,0 +1,36 @@
+{
+  "status": "ok",
+  "message": "signin succeeded",
+  "data": {
+    "user": {
+      "id": "5b96a939-038c-4959-a387-2d362f34dded",
+      "username": "authuser_1778678325-32580",
+      "email": "authuser_1778678325-32580@example.com",
+      "full_name": "Auth Full Test User",
+      "birthdate": "1998-05-20",
+      "gender": "male",
+      "role": "user",
+      "admin_status": "not_requested",
+      "tenant": "dev",
+      "status": "active",
+      "email_verified": false,
+      "created_at": "2026-05-13T13:18:48.739437+00:00",
+      "updated_at": "2026-05-13T13:18:50.147597+00:00",
+      "last_login_at": "2026-05-13T13:18:50.147597+00:00",
+      "admin_requested_at": null,
+      "admin_reviewed_at": null,
+      "admin_reviewed_by": null,
+      "admin_request_reason": null,
+      "admin_decision_reason": null
+    },
+    "tokens": {
+      "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJhdXRoIiwiYXVkIjoibWljcm8tYXBwIiwic3ViIjoiNWI5NmE5MzktMDM4Yy00OTU5LWEzODctMmQzNjJmMzRkZGVkIiwianRpIjoiM2QyMWM5YTMtYTM0OS00ZDBmLWI1ZmMtZDY2ZTk2YWQ4NDEyIiwidXNlcm5hbWUiOiJhdXRodXNlcl8xNzc4Njc4MzI1LTMyNTgwIiwiZW1haWwiOiJhdXRodXNlcl8xNzc4Njc4MzI1LTMyNTgwQGV4YW1wbGUuY29tIiwicm9sZSI6InVzZXIiLCJhZG1pbl9zdGF0dXMiOiJub3RfcmVxdWVzdGVkIiwidGVuYW50IjoiZGV2Iiwic3RhdHVzIjoiYWN0aXZlIiwiaWF0IjoxNzc4Njc4MzMwLCJuYmYiOjE3Nzg2NzgzMzAsImV4cCI6MTc3ODY3OTIzMH0.sxvBbSW1etxoXz8JvWZQHv_ZHyEcHOMsGN7aY4wCtMg",
+      "refresh_token": "XwkMQk-sD42V85In-i9KTlN5BmKwWhIedIp25w9Ic-_SpXoyD-8tFGfIvMxdbd5h",
+      "token_type": "Bearer",
+      "expires_in": 900
+    }
+  },
+  "request_id": "req-a727931e-e9b7-4f16-aa68-11107fab50af",
+  "trace_id": "a4e29e33c7eb43998b07a72669f40a1b",
+  "timestamp": "2026-05-13T13:18:50.387Z"
+}

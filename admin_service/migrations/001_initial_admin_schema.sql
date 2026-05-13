@@ -1,5 +1,6 @@
-create extension if not exists pgcrypto;
 create schema if not exists {{schema}};
+set search_path to {{schema}}, public;
+create extension if not exists pgcrypto with schema {{schema}};
 
 create table if not exists {{schema}}.admin_profiles (
   id uuid primary key default gen_random_uuid(),

@@ -1,0 +1,31 @@
+{
+  "status": "ok",
+  "message": "admin request decision recorded",
+  "data": {
+    "user": {
+      "id": "78d5b1f2-c053-4d9f-9493-98b9242242d3",
+      "username": "authadmin_1778678325-32580",
+      "email": "authadmin_1778678325-32580@example.com",
+      "full_name": "Auth Full Test Pending Admin",
+      "birthdate": "1998-05-20",
+      "gender": "male",
+      "role": "admin",
+      "admin_status": "approved",
+      "tenant": "dev",
+      "status": "active",
+      "email_verified": false,
+      "created_at": "2026-05-13T13:18:54.910514+00:00",
+      "updated_at": "2026-05-13T13:18:58.014349+00:00",
+      "last_login_at": "2026-05-13T13:18:57.487182+00:00",
+      "admin_requested_at": "2026-05-13T13:18:54.914515+00:00",
+      "admin_reviewed_at": "2026-05-13T13:18:58.014349+00:00",
+      "admin_reviewed_by": "a8213998-3218-4d0e-91bf-33c2146c9b67",
+      "admin_request_reason": "I need admin access to verify the auth service admin approval flow.",
+      "admin_decision_reason": "Approved by auth full API test."
+    },
+    "decision": "approve"
+  },
+  "request_id": "req-eec31f5d-5334-4111-ae66-49d0b549e036",
+  "trace_id": "629c6140eebf46189ae318872cad431c",
+  "timestamp": "2026-05-13T13:18:58.078Z"
+}

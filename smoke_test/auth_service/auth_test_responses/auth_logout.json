@@ -1,0 +1,10 @@
+{
+  "status": "ok",
+  "message": "logout succeeded",
+  "data": {
+    "revoked": true
+  },
+  "request_id": "req-8ef4c3f1-8a6c-4d12-9d86-195a24bca992",
+  "trace_id": "6e41f090c2a4441d961c2dec3ab6d527",
+  "timestamp": "2026-05-13T13:18:59.340Z"
+}

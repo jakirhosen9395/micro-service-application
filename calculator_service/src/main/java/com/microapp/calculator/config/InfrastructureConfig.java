@@ -157,24 +157,7 @@ public class InfrastructureConfig {
     @Bean
     public ApplicationRunner elasticApmAttacher(AppProperties props) {
         return args -> {
-            Map<String, String> apm = new HashMap<>();
-            apm.put("service_name", props.getServiceName());
-            apm.put("environment", props.getEnvironment());
-            apm.put("server_url", props.getApm().getServerUrl());
-            apm.put("secret_token", props.getApm().getSecretToken());
-            apm.put("transaction_sample_rate", props.getApm().getTransactionSampleRate());
-            apm.put("capture_body", props.getApm().getCaptureBody());
-            apm.put("application_packages", "com.microapp.calculator");
-            apm.put(
-                    "disable_instrumentations",
-                    "apache-httpclient,apache-httpasyncclient,apache-httpclient5,kafka,aws-sdk"
-            );
-
-            try {
-                co.elastic.apm.attach.ElasticApmAttacher.attach(apm);
-            } catch (Throwable ignored) {
-                // APM connectivity is represented in /health; do not print secrets or fail here.
-            }
+            ElasticApmBootstrap.attach(props);
         };
     }
 

@@ -1,0 +1,29 @@
+{
+  "status": "error",
+  "message": "Validation failed",
+  "error_code": "VALIDATION_ERROR",
+  "details": {
+    "errors": [
+      {
+        "type": "missing",
+        "loc": [
+          "body",
+          "reason"
+        ],
+        "msg": "Field required",
+        "input": {
+          "username": "badadmin",
+          "email": "badadmin@example.com",
+          "password": "Admin1234!Aa",
+          "full_name": "Bad Admin",
+          "birthdate": "1998-05-20",
+          "gender": "male"
+        }
+      }
+    ]
+  },
+  "path": "/v1/admin/register",
+  "request_id": "req-d5b7c20d-9a9e-4f73-8d6d-69e9b58ec88b",
+  "trace_id": "6c6e76facf1a4e458b8e791d5b223a96",
+  "timestamp": "2026-05-13T13:18:48.461Z"
+}

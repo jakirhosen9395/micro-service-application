@@ -1,0 +1,36 @@
+{
+  "status": "ok",
+  "message": "signin succeeded",
+  "data": {
+    "user": {
+      "id": "78d5b1f2-c053-4d9f-9493-98b9242242d3",
+      "username": "authadmin_1778678325-32580",
+      "email": "authadmin_1778678325-32580@example.com",
+      "full_name": "Auth Full Test Pending Admin",
+      "birthdate": "1998-05-20",
+      "gender": "male",
+      "role": "admin",
+      "admin_status": "pending",
+      "tenant": "dev",
+      "status": "active",
+      "email_verified": false,
+      "created_at": "2026-05-13T13:18:54.910514+00:00",
+      "updated_at": "2026-05-13T13:18:57.487182+00:00",
+      "last_login_at": "2026-05-13T13:18:57.487182+00:00",
+      "admin_requested_at": "2026-05-13T13:18:54.914515+00:00",
+      "admin_reviewed_at": null,
+      "admin_reviewed_by": null,
+      "admin_request_reason": "I need admin access to verify the auth service admin approval flow.",
+      "admin_decision_reason": null
+    },
+    "tokens": {
+      "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJhdXRoIiwiYXVkIjoibWljcm8tYXBwIiwic3ViIjoiNzhkNWIxZjItYzA1My00ZDlmLTk0OTMtOThiOTI0MjI0MmQzIiwianRpIjoiOGY4ODE2ZDgtMjg2Yy00NTcwLWFlNmYtNTBmYTQ5ZmM5ZDkxIiwidXNlcm5hbWUiOiJhdXRoYWRtaW5fMTc3ODY3ODMyNS0zMjU4MCIsImVtYWlsIjoiYXV0aGFkbWluXzE3Nzg2NzgzMjUtMzI1ODBAZXhhbXBsZS5jb20iLCJyb2xlIjoiYWRtaW4iLCJhZG1pbl9zdGF0dXMiOiJwZW5kaW5nIiwidGVuYW50IjoiZGV2Iiwic3RhdHVzIjoiYWN0aXZlIiwiaWF0IjoxNzc4Njc4MzM3LCJuYmYiOjE3Nzg2NzgzMzcsImV4cCI6MTc3ODY3OTIzN30.MuBOp2mYnWXF25_vsWiFjP_ecZcloExL0VlDNqyddU0",
+      "refresh_token": "n8lwlUXZgc3IjDgUJreicO4jx2P5Va9IisAjFgRwd1DEQt6QzRf0FWGt2c-F6von",
+      "token_type": "Bearer",
+      "expires_in": 900
+    }
+  },
+  "request_id": "req-f3e5adf1-1aac-49fc-9d67-092d0451049c",
+  "trace_id": "bb436d1a8a3845c2b296be7eed23a66a",
+  "timestamp": "2026-05-13T13:18:57.532Z"
+}

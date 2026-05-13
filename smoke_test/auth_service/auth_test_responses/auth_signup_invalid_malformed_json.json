@@ -1,0 +1,25 @@
+{
+  "status": "error",
+  "message": "Validation failed",
+  "error_code": "VALIDATION_ERROR",
+  "details": {
+    "errors": [
+      {
+        "type": "json_invalid",
+        "loc": [
+          "body",
+          12
+        ],
+        "msg": "JSON decode error",
+        "input": {},
+        "ctx": {
+          "error": "Expecting value"
+        }
+      }
+    ]
+  },
+  "path": "/v1/signup",
+  "request_id": "req-8025a2fe-5780-4ff9-8554-043596e53553",
+  "trace_id": "0964f16c10494b4582fdb0e317254bcb",
+  "timestamp": "2026-05-13T13:18:47.673Z"
+}

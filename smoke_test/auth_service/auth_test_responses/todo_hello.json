@@ -1,0 +1,9 @@
+{
+  "status" : "ok",
+  "message" : "todo_list_service is running",
+  "service" : {
+    "name" : "todo_list_service",
+    "env" : "development",
+    "version" : "v1.0.0"
+  }
+}

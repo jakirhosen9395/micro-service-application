@@ -1,0 +1,31 @@
+{
+  "status": "ok",
+  "message": "admin request decision recorded",
+  "data": {
+    "user": {
+      "id": "fe02f7ec-05cc-4327-b2b4-15171a0f5ee2",
+      "username": "authreject_1778678325-32580",
+      "email": "authreject_1778678325-32580@example.com",
+      "full_name": "Auth Full Test Rejected Admin",
+      "birthdate": "1998-05-20",
+      "gender": "male",
+      "role": "admin",
+      "admin_status": "rejected",
+      "tenant": "dev",
+      "status": "active",
+      "email_verified": false,
+      "created_at": "2026-05-13T13:18:58.660982+00:00",
+      "updated_at": "2026-05-13T13:18:58.858818+00:00",
+      "last_login_at": null,
+      "admin_requested_at": "2026-05-13T13:18:58.665621+00:00",
+      "admin_reviewed_at": "2026-05-13T13:18:58.858818+00:00",
+      "admin_reviewed_by": "a8213998-3218-4d0e-91bf-33c2146c9b67",
+      "admin_request_reason": "This request should be rejected by the auth full API test.",
+      "admin_decision_reason": "Rejected by auth full API test."
+    },
+    "decision": "reject"
+  },
+  "request_id": "req-6eb1a36c-34f4-4343-966a-d3a87062e1d1",
+  "trace_id": "89e55791efa04100be4c95958369f8ae",
+  "timestamp": "2026-05-13T13:18:58.900Z"
+}

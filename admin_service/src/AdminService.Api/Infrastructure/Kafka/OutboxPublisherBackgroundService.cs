@@ -3,6 +3,7 @@ using AdminService.Api.Domain;
 using AdminService.Api.Infrastructure.Logging;
 using AdminService.Api.Persistence;
 using Confluent.Kafka;
+using Elastic.Apm;
 using Microsoft.EntityFrameworkCore;
 using System.Text;
 using System.Text.Json;
@@ -32,7 +33,12 @@ public sealed class OutboxPublisherBackgroundService : BackgroundService
         {
             try
             {
-                await PublishBatchAsync(stoppingToken);
+                await Agent.Tracer.CaptureTransaction("admin.outbox.publish_batch", "messaging", async transaction =>
+                {
+                    transaction.SetLabel("component", "outbox");
+                    transaction.SetLabel("service", _settings.ServiceName);
+                    await PublishBatchAsync(stoppingToken);
+                });
             }
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
             {
@@ -57,6 +63,7 @@ public sealed class OutboxPublisherBackgroundService : BackgroundService
             .Take(25)
             .ToListAsync(cancellationToken);
 
+        Exception? batchFailure = null;
         foreach (var row in rows)
         {
             row.Status = OutboxStatuses.Processing;
@@ -72,13 +79,27 @@ public sealed class OutboxPublisherBackgroundService : BackgroundService
                     Value = row.Payload,
                     Headers = BuildHeaders(row)
                 };
-                await _producer.ProduceAsync(row.Topic, message, cancellationToken);
+                var span = Agent.Tracer.CurrentTransaction?.StartSpan($"Kafka produce {row.Topic}", "messaging", "kafka", "send");
+                try
+                {
+                    await _producer.ProduceAsync(row.Topic, message, cancellationToken);
+                }
+                catch (Exception ex)
+                {
+                    span?.CaptureException(ex);
+                    throw;
+                }
+                finally
+                {
+                    span?.End();
+                }
                 row.Status = OutboxStatuses.Sent;
                 row.SentAt = DateTimeOffset.UtcNow;
                 row.LastError = null;
             }
             catch (Exception ex)
             {
+                batchFailure ??= ex;
                 row.AttemptCount += 1;
                 row.LastError = SecretRedactor.SafeExceptionMessage(ex);
                 row.Status = row.AttemptCount >= MaxAttempts ? OutboxStatuses.DeadLettered : OutboxStatuses.Failed;
@@ -97,6 +118,8 @@ public sealed class OutboxPublisherBackgroundService : BackgroundService
                 await db.SaveChangesAsync(cancellationToken);
             }
         }
+
+        if (batchFailure is not null) throw batchFailure;
     }
 
     private static Headers BuildHeaders(OutboxEvent row)

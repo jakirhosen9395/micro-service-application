@@ -1,0 +1,25 @@
+{
+  "status": "error",
+  "message": "Validation failed",
+  "error_code": "VALIDATION_ERROR",
+  "details": {
+    "errors": [
+      {
+        "type": "value_error",
+        "loc": [
+          "body",
+          "email"
+        ],
+        "msg": "value is not a valid email address: An email address must have an @-sign.",
+        "input": "not-an-email",
+        "ctx": {
+          "reason": "An email address must have an @-sign."
+        }
+      }
+    ]
+  },
+  "path": "/v1/password/forgot",
+  "request_id": "req-dded0f89-4e13-48f9-bc4d-63255a20db44",
+  "trace_id": "85d70946ad1440e5904092b5aaa67df1",
+  "timestamp": "2026-05-13T13:18:48.113Z"
+}

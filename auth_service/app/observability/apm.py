@@ -56,7 +56,7 @@ def _export_env(settings: Settings) -> None:
     os.environ.setdefault("ELASTIC_APM_TRANSACTION_SAMPLE_RATE", str(settings.apm_transaction_sample_rate))
     os.environ.setdefault("ELASTIC_APM_CAPTURE_BODY", settings.apm_capture_body)
     os.environ.setdefault("ELASTIC_APM_METRICS_INTERVAL", "30s")
-    os.environ.setdefault("ELASTIC_APM_CENTRAL_CONFIG", "false")
+    os.environ.setdefault("ELASTIC_APM_CENTRAL_CONFIG", "true")
     os.environ.setdefault("ELASTIC_APM_VERIFY_SERVER_CERT", "false")
 
 
@@ -134,7 +134,7 @@ class ApmClient:
                 capture_body=self.settings.apm_capture_body,
                 sanitize_field_names=_sanitize_fields(),
                 metrics_interval="30s",
-                central_config=False,
+                central_config=True,
                 verify_server_cert=False,
             )
         _client = self.client
@@ -358,11 +358,10 @@ def install_elastic_apm_middleware(app, settings: Settings) -> None:
         capture_body=settings.apm_capture_body,
         sanitize_field_names=_sanitize_fields(),
         metrics_interval="30s",
-        central_config=False,
+        central_config=True,
         verify_server_cert=False,
     )
     elasticapm.instrument()
     app.add_middleware(ElasticAPM, client=client)
     app.state.elastic_apm_middleware_client = client
     app.state.elastic_apm_installed = True
-

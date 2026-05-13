@@ -45,6 +45,21 @@ public sealed class ContractTests
         Assert.Contains("idx_kafka_inbox_topic_partition_offset", sql, StringComparison.OrdinalIgnoreCase);
     }
 
+
+    [Fact]
+    public void MigrationCreatesAdminSchemaBeforePgcryptoExtension()
+    {
+        var root = FindRoot();
+        var sql = File.ReadAllText(Path.Combine(root.FullName, "migrations", "001_initial_admin_schema.sql"));
+        var createSchemaIndex = sql.IndexOf("create schema if not exists {{schema}}", StringComparison.OrdinalIgnoreCase);
+        var createExtensionIndex = sql.IndexOf("create extension if not exists pgcrypto", StringComparison.OrdinalIgnoreCase);
+
+        Assert.True(createSchemaIndex >= 0, "Migration must create the service schema before extension setup.");
+        Assert.True(createExtensionIndex >= 0, "Migration must create pgcrypto for gen_random_uuid().");
+        Assert.True(createSchemaIndex < createExtensionIndex, "Schema creation must happen before pgcrypto extension creation.");
+        Assert.Contains("set search_path to {{schema}}, public", sql, StringComparison.OrdinalIgnoreCase);
+    }
+
     [Fact]
     public void DockerfileUsesContainerPort8080AndHelloHealthcheck()
     {

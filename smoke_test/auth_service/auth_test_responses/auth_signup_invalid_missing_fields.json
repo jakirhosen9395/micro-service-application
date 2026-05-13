@@ -1,0 +1,35 @@
+{
+  "status": "error",
+  "message": "Validation failed",
+  "error_code": "VALIDATION_ERROR",
+  "details": {
+    "errors": [
+      {
+        "type": "missing",
+        "loc": [
+          "body",
+          "email"
+        ],
+        "msg": "Field required",
+        "input": {
+          "username": "bad"
+        }
+      },
+      {
+        "type": "missing",
+        "loc": [
+          "body",
+          "password"
+        ],
+        "msg": "Field required",
+        "input": {
+          "username": "bad"
+        }
+      }
+    ]
+  },
+  "path": "/v1/signup",
+  "request_id": "req-0f88a426-7f27-40be-949e-3c5aa8d053a9",
+  "trace_id": "e1a36b51e8194b81a84cc663bdb8336b",
+  "timestamp": "2026-05-13T13:18:47.565Z"
+}

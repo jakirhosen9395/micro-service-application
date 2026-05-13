@@ -1,0 +1,1926 @@
+Admin Service Full API Test
+Admin Base URL:        http://192.168.56.100:1010
+Auth Base URL:         http://192.168.56.100:6060
+User Base URL:         http://192.168.56.100:4040
+Calculator Base URL:   http://192.168.56.100:2020
+Todo Base URL:         http://192.168.56.100:3030
+Report Base URL:       http://192.168.56.100:5050
+Mutation mode:         0
+Seed other services:   1
+Admin forwarded proto: https
+Run ID:                1778674585-8319
+
+Auth preparation
+[PASS] auth hello (GET /hello -> HTTP 200)
+[PASS] auth health (GET /health -> HTTP 200)
+[PASS] auth admin signin (POST /v1/signin -> HTTP 200)
+[PASS] admin token extracted
+[PASS] auth admin token belongs to approved admin
+[PASS] auth signup normal user (POST /v1/signup -> HTTP 200)
+[PASS] auth signin normal user (POST /v1/signin -> HTTP 200)
+[PASS] normal user token extracted
+[PASS] normal user id extracted: 3cb4cd9c-b783-485a-a8d5-e5dcb17a0d5d
+[PASS] auth signup second user (POST /v1/signup -> HTTP 200)
+[PASS] auth signin second user (POST /v1/signin -> HTTP 200)
+[PASS] second user token extracted
+[PASS] second user id extracted: 65efa031-32e7-434f-8985-5bfb5fddb7c2
+
+Cross-service seeding for admin projections
+[PASS] user profile me (GET /v1/users/me -> HTTP 200)
+[PASS] user dashboard me (GET /v1/users/me/dashboard -> HTTP 200)
+[FAIL] user create access request
+       POST /v1/users/access-requests expected HTTP 200|201|409 but got 400; response: {   "status": "error",   "message": "expires_at exceeds maximum TTL",   "error_code": "ACCESS_REQUEST_TTL_EXCEEDED",   "details": {},   "path": "/v1/users/access-requests",   "request_id": "req-cc8330d3-648c-4855-86ea-629d2c6d1c3c",   "trace_id": "ebc59e804ce64ac7bb6b47f5162cd05d",   "timestamp": "2026-05-13T12:16:28.075466744Z" } 
+[PASS] access request id extracted from user_service: req-cc8330d3-648c-4855-86ea-629d2c6d1c3c
+[PASS] calculator operations (GET /v1/calculator/operations -> HTTP 200)
+[PASS] calculator calculate add (POST /v1/calculator/calculate -> HTTP 200)
+[PASS] calculation id extracted: calc-c38006de-0bca-46b7-9894-9fb8d8097c5b
+[PASS] todo create (POST /v1/todos -> HTTP 201)
+[PASS] todo id extracted: 975606bb-2ce9-4a00-ae11-152aa75d174d
+[PASS] todo complete (POST /v1/todos/975606bb-2ce9-4a00-ae11-152aa75d174d/complete -> HTTP 200)
+[PASS] report service types (GET /v1/reports/types -> HTTP 200)
+[PASS] report service create report (POST /v1/reports -> HTTP 201)
+Waiting 8s for Kafka projection updates...
+
+Admin public/rejected route contract
+[PASS] admin hello (GET /hello -> HTTP 200)
+[PASS] admin hello envelope status is ok
+[PASS] admin health (GET /health -> HTTP 200)
+[PASS] admin health envelope status is ok
+[PASS] admin health dependency keys are complete
+[PASS] admin docs (GET /docs -> HTTP 200)
+[PASS] admin root rejected (GET / -> HTTP 404)
+[PASS] admin live rejected (GET /live -> HTTP 404)
+[PASS] admin ready rejected (GET /ready -> HTTP 404)
+[PASS] admin healthy rejected (GET /healthy -> HTTP 404)
+[PASS] admin openapi rejected (GET /openapi.json -> HTTP 404)
+[PASS] admin swagger rejected (GET /swagger -> HTTP 404)
+[PASS] admin redoc rejected (GET /redoc -> HTTP 404)
+[PASS] admin swagger index rejected (GET /swagger/index.html -> HTTP 404)
+[PASS] admin swagger json rejected (GET /swagger/v1/swagger.json -> HTTP 404)
+
+Admin auth/authorization contract
+[PASS] admin dashboard without token (GET /v1/admin/dashboard -> HTTP 401)
+[PASS] admin dashboard without token envelope status is error
+[PASS] admin dashboard invalid token (GET /v1/admin/dashboard -> HTTP 401)
+[PASS] admin dashboard invalid token envelope status is error
+[PASS] admin dashboard normal user forbidden (GET /v1/admin/dashboard -> HTTP 403)
+[PASS] admin dashboard normal user forbidden envelope status is error
+[PASS] admin dashboard approved admin (GET /v1/admin/dashboard -> HTTP 200)
+[PASS] admin dashboard approved admin envelope status is ok
+
+Admin projection discovery
+[PASS] admin list users discovery (GET /v1/admin/users?limit=50 -> HTTP 200)
+[PASS] discovered admin user projection id: 65efa031-32e7-434f-8985-5bfb5fddb7c2
+[PASS] admin list registrations discovery (GET /v1/admin/registrations?limit=20 -> HTTP 200)
+[SKIP] discovered registration id
+       no registration requests projected
+[PASS] admin list access requests discovery (GET /v1/admin/access-requests?limit=20 -> HTTP 200)
+[PASS] discovered access request id: req-cc8330d3-648c-4855-86ea-629d2c6d1c3c
+[PASS] admin list access grants discovery (GET /v1/admin/access-grants?limit=20 -> HTTP 200)
+[SKIP] discovered access grant id
+       no access grants projected
+[PASS] admin list calculations discovery (GET /v1/admin/calculations?limit=20 -> HTTP 200)
+[PASS] discovered calculation id: calc-c38006de-0bca-46b7-9894-9fb8d8097c5b
+[PASS] admin list todos discovery (GET /v1/admin/todos?limit=20 -> HTTP 200)
+[PASS] discovered todo id: 975606bb-2ce9-4a00-ae11-152aa75d174d
+[PASS] admin list reports discovery (GET /v1/admin/reports?limit=20 -> HTTP 200)
+[PASS] discovered report id: evt-a2039591-e482-4996-9994-74212fd1dd5a
+[PASS] admin list audit discovery (GET /v1/admin/audit?limit=20 -> HTTP 200)
+[PASS] discovered audit event id: evt-bd462be744ed430dbe1b5e10ed7cdcb0
+[PASS] admin report audit discovery (GET /v1/admin/reports/audit?limit=20 -> HTTP 200)
+[PASS] discovered report audit event id: evt-bd462be744ed430dbe1b5e10ed7cdcb0
+
+Admin read API coverage
+[PASS] admin dashboard (GET /v1/admin/dashboard -> HTTP 200)
+[PASS] admin summary (GET /v1/admin/summary -> HTTP 200)
+[PASS] admin registrations list (GET /v1/admin/registrations?limit=10 -> HTTP 200)
+[PASS] admin registration get missing (GET /v1/admin/registrations/missing-registration-83efdd67-bdd1-4922-be08-e35d6cd37529 -> HTTP 404)
+[PASS] admin access requests list (GET /v1/admin/access-requests?limit=10 -> HTTP 200)
+[PASS] admin access request get (GET /v1/admin/access-requests/req-cc8330d3-648c-4855-86ea-629d2c6d1c3c -> HTTP 404)
+[PASS] admin access request missing (GET /v1/admin/access-requests/missing-access-request-6c674ecf-2e2c-4ef8-91b8-e2967425f4fe -> HTTP 404)
+[PASS] admin access grants list (GET /v1/admin/access-grants?limit=10 -> HTTP 200)
+[PASS] admin access grant missing (GET /v1/admin/access-grants/missing-access-grant-b41bfd59-dc83-45d3-b7b5-0b4a3d3cae2f -> HTTP 404)
+[PASS] admin users list (GET /v1/admin/users?limit=10 -> HTTP 200)
+[PASS] admin user get (GET /v1/admin/users/3cb4cd9c-b783-485a-a8d5-e5dcb17a0d5d -> HTTP 200)
+[PASS] admin user activity (GET /v1/admin/users/3cb4cd9c-b783-485a-a8d5-e5dcb17a0d5d/activity -> HTTP 200)
+[PASS] admin user dashboard (GET /v1/admin/users/3cb4cd9c-b783-485a-a8d5-e5dcb17a0d5d/dashboard -> HTTP 200)
+[PASS] admin user preferences (GET /v1/admin/users/3cb4cd9c-b783-485a-a8d5-e5dcb17a0d5d/preferences -> HTTP 200)
+[PASS] admin user security context (GET /v1/admin/users/3cb4cd9c-b783-485a-a8d5-e5dcb17a0d5d/security-context -> HTTP 200)
+[PASS] admin user rbac (GET /v1/admin/users/3cb4cd9c-b783-485a-a8d5-e5dcb17a0d5d/rbac -> HTTP 200)
+[PASS] admin user effective permissions (GET /v1/admin/users/3cb4cd9c-b783-485a-a8d5-e5dcb17a0d5d/effective-permissions -> HTTP 200)
+[PASS] admin user access requests (GET /v1/admin/users/3cb4cd9c-b783-485a-a8d5-e5dcb17a0d5d/access-requests -> HTTP 200)
+[PASS] admin user access grants (GET /v1/admin/users/3cb4cd9c-b783-485a-a8d5-e5dcb17a0d5d/access-grants -> HTTP 200)
+[PASS] admin user reports (GET /v1/admin/users/3cb4cd9c-b783-485a-a8d5-e5dcb17a0d5d/reports -> HTTP 200)
+[PASS] admin user get missing (GET /v1/admin/users/missing-user-ccbb2308-bf3d-4b8a-af71-cf4437fd80a2 -> HTTP 404)
+[PASS] admin calculations list (GET /v1/admin/calculations?limit=10 -> HTTP 200)
+[PASS] admin calculations summary (GET /v1/admin/calculations/summary -> HTTP 200)
+[PASS] admin calculations failed (GET /v1/admin/calculations/failed -> HTTP 200)
+[FAIL] admin calculations history cleared
+       GET /v1/admin/calculations/history-cleared expected HTTP 200 but got 500; response: {   "status": "error",   "message": "Internal server error",   "error_code": "INTERNAL_SERVER_ERROR",   "details": {},   "path": "/v1/admin/calculations/history-cleared",   "request_id": "req-f01c7ec5-4e13-442a-9e8d-0151f1c75708",   "trace_id": "670f4b62f9fa41c49f9c6e9922be3c2f",   "timestamp": "2026-05-13T12:16:43.9047451+00:00" } 
+[PASS] admin calculations audit (GET /v1/admin/calculations/audit -> HTTP 200)
+[PASS] admin user calculations (GET /v1/admin/calculations/users/3cb4cd9c-b783-485a-a8d5-e5dcb17a0d5d -> HTTP 200)
+[PASS] admin user calculations summary (GET /v1/admin/calculations/users/3cb4cd9c-b783-485a-a8d5-e5dcb17a0d5d/summary -> HTTP 200)
+[PASS] admin user failed calculations (GET /v1/admin/calculations/users/3cb4cd9c-b783-485a-a8d5-e5dcb17a0d5d/failed -> HTTP 200)
+[PASS] admin user calculations by operation (GET /v1/admin/calculations/users/3cb4cd9c-b783-485a-a8d5-e5dcb17a0d5d/operations/ADD -> HTTP 200)
+[PASS] admin calculation get (GET /v1/admin/calculations/calc-c38006de-0bca-46b7-9894-9fb8d8097c5b -> HTTP 200)
+[PASS] admin calculation missing (GET /v1/admin/calculations/missing-calculation-185d07ca-26e5-4105-bbd3-113a7637e70a -> HTTP 404)
+[PASS] admin todos list (GET /v1/admin/todos?limit=10 -> HTTP 200)
+[PASS] admin todos summary (GET /v1/admin/todos/summary -> HTTP 200)
+[FAIL] admin todos overdue
+       GET /v1/admin/todos/overdue expected HTTP 200 but got 500; response: {   "status": "error",   "message": "Internal server error",   "error_code": "INTERNAL_SERVER_ERROR",   "details": {},   "path": "/v1/admin/todos/overdue",   "request_id": "req-886a2328-d485-43e1-bd43-6b6e9e401365",   "trace_id": "03eb48ebb60f458a9e2e8dd42ec87f92",   "timestamp": "2026-05-13T12:16:45.0158359+00:00" } 
+[PASS] admin todos today (GET /v1/admin/todos/today -> HTTP 200)
+[PASS] admin todos archived (GET /v1/admin/todos/archived -> HTTP 200)
+[PASS] admin todos deleted (GET /v1/admin/todos/deleted -> HTTP 200)
+[PASS] admin todos audit (GET /v1/admin/todos/audit -> HTTP 200)
+[PASS] admin user todos (GET /v1/admin/todos/users/3cb4cd9c-b783-485a-a8d5-e5dcb17a0d5d -> HTTP 200)
+[PASS] admin user todos summary (GET /v1/admin/todos/users/3cb4cd9c-b783-485a-a8d5-e5dcb17a0d5d/summary -> HTTP 200)
+[FAIL] admin user todos overdue
+       GET /v1/admin/todos/users/3cb4cd9c-b783-485a-a8d5-e5dcb17a0d5d/overdue expected HTTP 200 but got 500; response: {   "status": "error",   "message": "Internal server error",   "error_code": "INTERNAL_SERVER_ERROR",   "details": {},   "path": "/v1/admin/todos/users/3cb4cd9c-b783-485a-a8d5-e5dcb17a0d5d/overdue",   "request_id": "req-e6f485de-4e61-4238-8a45-cc92c0f72c95",   "trace_id": "5294cb18b5d94422bb05d1f816e3eed6",   "timestamp": "2026-05-13T12:16:45.8631599+00:00" } 
+[PASS] admin user todos today (GET /v1/admin/todos/users/3cb4cd9c-b783-485a-a8d5-e5dcb17a0d5d/today -> HTTP 200)
+[PASS] admin user todos activity (GET /v1/admin/todos/users/3cb4cd9c-b783-485a-a8d5-e5dcb17a0d5d/activity -> HTTP 200)
+[PASS] admin todo get (GET /v1/admin/todos/975606bb-2ce9-4a00-ae11-152aa75d174d -> HTTP 404)
+[PASS] admin todo history (GET /v1/admin/todos/975606bb-2ce9-4a00-ae11-152aa75d174d/history -> HTTP 200)
+[PASS] admin todo missing (GET /v1/admin/todos/missing-todo-0a81e29a-1ecb-4d71-84d8-087167613035 -> HTTP 404)
+[PASS] admin reports list (GET /v1/admin/reports?limit=10 -> HTTP 200)
+[PASS] admin reports summary (GET /v1/admin/reports/summary -> HTTP 200)
+[PASS] admin report types (GET /v1/admin/reports/types -> HTTP 200)
+[PASS] admin report type calculator (GET /v1/admin/reports/types/calculator_history_report -> HTTP 200)
+[PASS] admin report templates list (GET /v1/admin/reports/templates -> HTTP 200)
+[PASS] admin report template get (GET /v1/admin/reports/templates/template-disabled -> HTTP 200)
+[PASS] admin report schedules list (GET /v1/admin/reports/schedules -> HTTP 200)
+[PASS] admin report schedule get (GET /v1/admin/reports/schedules/schedule-disabled -> HTTP 200)
+[PASS] admin report queue summary (GET /v1/admin/reports/queue/summary -> HTTP 200)
+[PASS] admin report audit (GET /v1/admin/reports/audit -> HTTP 200)
+[PASS] admin user report projections (GET /v1/admin/reports/users/3cb4cd9c-b783-485a-a8d5-e5dcb17a0d5d -> HTTP 200)
+[PASS] admin report get (GET /v1/admin/reports/evt-a2039591-e482-4996-9994-74212fd1dd5a -> HTTP 200)
+[PASS] admin report metadata (GET /v1/admin/reports/evt-a2039591-e482-4996-9994-74212fd1dd5a/metadata -> HTTP 200)
+[PASS] admin report progress (GET /v1/admin/reports/evt-a2039591-e482-4996-9994-74212fd1dd5a/progress -> HTTP 200)
+[PASS] admin report events (GET /v1/admin/reports/evt-a2039591-e482-4996-9994-74212fd1dd5a/events -> HTTP 200)
+[PASS] admin report files (GET /v1/admin/reports/evt-a2039591-e482-4996-9994-74212fd1dd5a/files -> HTTP 200)
+[PASS] admin report preview (GET /v1/admin/reports/evt-a2039591-e482-4996-9994-74212fd1dd5a/preview -> HTTP 200)
+[PASS] admin report download info (GET /v1/admin/reports/evt-a2039591-e482-4996-9994-74212fd1dd5a/download-info -> HTTP 200)
+[PASS] admin report missing (GET /v1/admin/reports/missing-report-4ef2ffc1-5a2f-4576-a3e1-225221a6a626 -> HTTP 404)
+[PASS] admin report metadata missing (GET /v1/admin/reports/missing-report-4ef2ffc1-5a2f-4576-a3e1-225221a6a626/metadata -> HTTP 404)
+[PASS] admin audit list (GET /v1/admin/audit?limit=10 -> HTTP 200)
+[PASS] admin audit get (GET /v1/admin/audit/evt-bd462be744ed430dbe1b5e10ed7cdcb0 -> HTTP 200)
+[PASS] admin audit missing (GET /v1/admin/audit/missing-audit-bb8fe666-bea7-45ad-b5fc-a5dc0d961768 -> HTTP 404)
+[PASS] admin report audit event get (GET /v1/admin/reports/audit/evt-bd462be744ed430dbe1b5e10ed7cdcb0 -> HTTP 200)
+
+Admin invalid-input and mutation coverage
+[PASS] admin approve registration missing (POST /v1/admin/registrations/missing-registration-2afdd95e-18ca-4ed0-ac94-12ef42962536/approve -> HTTP 404)
+[PASS] admin reject registration missing (POST /v1/admin/registrations/missing-registration-2afdd95e-18ca-4ed0-ac94-12ef42962536/reject -> HTTP 409)
+[PASS] admin approve registration malformed (POST /v1/admin/registrations/missing-registration-2afdd95e-18ca-4ed0-ac94-12ef42962536/approve -> HTTP 400)
+[PASS] admin approve access request missing (POST /v1/admin/access-requests/missing-access-request-f3e5d9b8-f22c-4322-a85b-52becfc72b6d/approve -> HTTP 404)
+[PASS] admin reject access request missing (POST /v1/admin/access-requests/missing-access-request-f3e5d9b8-f22c-4322-a85b-52becfc72b6d/reject -> HTTP 409)
+[PASS] admin approve access request malformed (POST /v1/admin/access-requests/missing-access-request-f3e5d9b8-f22c-4322-a85b-52becfc72b6d/approve -> HTTP 400)
+[PASS] admin revoke access grant missing (POST /v1/admin/access-grants/missing-access-grant-7e4f783d-3d12-40e6-9ca8-877bb3b23ad5/revoke -> HTTP 404)
+[PASS] admin suspend missing user (POST /v1/admin/users/missing-user-536d02f8-4171-4173-bdbc-912b884bb3ae/suspend -> HTTP 404)
+[PASS] admin activate missing user (POST /v1/admin/users/missing-user-536d02f8-4171-4173-bdbc-912b884bb3ae/activate -> HTTP 404)
+[PASS] admin force password reset missing user (POST /v1/admin/users/missing-user-536d02f8-4171-4173-bdbc-912b884bb3ae/force-password-reset -> HTTP 404)
+[PASS] admin create report invalid format (POST /v1/admin/reports -> HTTP 400)
+[PASS] admin create report missing type (POST /v1/admin/reports -> HTTP 400)
+[PASS] admin create report malformed (POST /v1/admin/reports -> HTTP 400)
+[PASS] admin create report valid (POST /v1/admin/reports -> HTTP 201)
+[PASS] admin cancel report missing (POST /v1/admin/reports/missing-report-44621fe0-be9a-41f2-a24d-e88a0bf2fc08/cancel -> HTTP 404)
+[PASS] admin retry report missing (POST /v1/admin/reports/missing-report-44621fe0-be9a-41f2-a24d-e88a0bf2fc08/retry -> HTTP 404)
+[PASS] admin regenerate report missing (POST /v1/admin/reports/missing-report-44621fe0-be9a-41f2-a24d-e88a0bf2fc08/regenerate -> HTTP 404)
+[PASS] admin delete report missing (DELETE /v1/admin/reports/missing-report-44621fe0-be9a-41f2-a24d-e88a0bf2fc08 -> HTTP 404)
+[PASS] admin create template disabled (POST /v1/admin/reports/templates -> HTTP 501)
+[PASS] admin update template disabled (PUT /v1/admin/reports/templates/template-disabled -> HTTP 501)
+[PASS] admin activate template disabled (POST /v1/admin/reports/templates/template-disabled/activate -> HTTP 501)
+[PASS] admin deactivate template disabled (POST /v1/admin/reports/templates/template-disabled/deactivate -> HTTP 501)
+[PASS] admin create schedule disabled (POST /v1/admin/reports/schedules -> HTTP 501)
+[PASS] admin update schedule disabled (PUT /v1/admin/reports/schedules/schedule-disabled -> HTTP 501)
+[PASS] admin pause schedule disabled (POST /v1/admin/reports/schedules/schedule-disabled/pause -> HTTP 501)
+[PASS] admin resume schedule disabled (POST /v1/admin/reports/schedules/schedule-disabled/resume -> HTTP 501)
+[PASS] admin delete schedule disabled (DELETE /v1/admin/reports/schedules/schedule-disabled -> HTTP 501)
+
+Final health check
+[PASS] admin health after all checks (GET /health -> HTTP 200)
+[PASS] admin health after all checks envelope status is ok
+
+Summary: 166 total, 160 passed, 4 failed, 2 skipped
+Admin Base URL:       http://192.168.56.100:1010
+Auth Base URL:        http://192.168.56.100:6060
+Mutation mode:        0
+Discovered user id:   3cb4cd9c-b783-485a-a8d5-e5dcb17a0d5d
+Discovered reg id:    <none>
+Discovered access id: req-cc8330d3-648c-4855-86ea-629d2c6d1c3c
+Discovered grant id:  <none>
+Discovered calc id:   calc-c38006de-0bca-46b7-9894-9fb8d8097c5b
+Discovered todo id:   975606bb-2ce9-4a00-ae11-152aa75d174d
+Discovered report id: report-9529879b166045f38daee153c627790d
+
+One or more admin service checks failed. Review failed responses above.
+Admin Service Full API Test
+Admin Base URL:        http://192.168.56.100:1010
+Auth Base URL:         http://192.168.56.100:6060
+User Base URL:         http://192.168.56.100:4040
+Calculator Base URL:   http://192.168.56.100:2020
+Todo Base URL:         http://192.168.56.100:3030
+Report Base URL:       http://192.168.56.100:5050
+Mutation mode:         0
+Seed other services:   1
+Admin forwarded proto: https
+Run ID:                1778674642-14642
+
+Auth preparation
+[PASS] auth hello (GET /hello -> HTTP 200)
+[PASS] auth health (GET /health -> HTTP 200)
+[PASS] auth admin signin (POST /v1/signin -> HTTP 200)
+[PASS] admin token extracted
+[PASS] auth admin token belongs to approved admin
+[PASS] auth signup normal user (POST /v1/signup -> HTTP 200)
+[PASS] auth signin normal user (POST /v1/signin -> HTTP 200)
+[PASS] normal user token extracted
+[PASS] normal user id extracted: 8deecf16-a1d3-4ffe-abf0-9eacf8f4602d
+[PASS] auth signup second user (POST /v1/signup -> HTTP 200)
+[PASS] auth signin second user (POST /v1/signin -> HTTP 200)
+[PASS] second user token extracted
+[PASS] second user id extracted: 2f765508-5228-4c1f-b566-327449ad2c99
+
+Cross-service seeding for admin projections
+[PASS] user profile me (GET /v1/users/me -> HTTP 200)
+[PASS] user dashboard me (GET /v1/users/me/dashboard -> HTTP 200)
+[FAIL] user create access request
+       POST /v1/users/access-requests expected HTTP 200|201|409 but got 400; response: {   "status": "error",   "message": "expires_at exceeds maximum TTL",   "error_code": "ACCESS_REQUEST_TTL_EXCEEDED",   "details": {},   "path": "/v1/users/access-requests",   "request_id": "req-bddbe4b7-56a1-4760-9e23-2b82416f9b5d",   "trace_id": "c4b45c4601dc47cd866f23f2c4419a70",   "timestamp": "2026-05-13T12:17:25.410179259Z" } 
+[PASS] access request id extracted from user_service: req-bddbe4b7-56a1-4760-9e23-2b82416f9b5d
+[PASS] calculator operations (GET /v1/calculator/operations -> HTTP 200)
+[PASS] calculator calculate add (POST /v1/calculator/calculate -> HTTP 200)
+[PASS] calculation id extracted: calc-a6ee2df4-be2a-4b71-bee5-27dcf940b1cb
+[PASS] todo create (POST /v1/todos -> HTTP 201)
+[PASS] todo id extracted: 04815fb6-9437-46c2-a57e-991a1d4b2074
+[PASS] todo complete (POST /v1/todos/04815fb6-9437-46c2-a57e-991a1d4b2074/complete -> HTTP 200)
+[PASS] report service types (GET /v1/reports/types -> HTTP 200)
+[PASS] report service create report (POST /v1/reports -> HTTP 201)
+Waiting 8s for Kafka projection updates...
+
+Admin public/rejected route contract
+[PASS] admin hello (GET /hello -> HTTP 200)
+[PASS] admin hello envelope status is ok
+[PASS] admin health (GET /health -> HTTP 200)
+[PASS] admin health envelope status is ok
+[PASS] admin health dependency keys are complete
+[PASS] admin docs (GET /docs -> HTTP 200)
+[PASS] admin root rejected (GET / -> HTTP 404)
+[PASS] admin live rejected (GET /live -> HTTP 404)
+[PASS] admin ready rejected (GET /ready -> HTTP 404)
+[PASS] admin healthy rejected (GET /healthy -> HTTP 404)
+[PASS] admin openapi rejected (GET /openapi.json -> HTTP 404)
+[PASS] admin swagger rejected (GET /swagger -> HTTP 404)
+[PASS] admin redoc rejected (GET /redoc -> HTTP 404)
+[PASS] admin swagger index rejected (GET /swagger/index.html -> HTTP 404)
+[PASS] admin swagger json rejected (GET /swagger/v1/swagger.json -> HTTP 404)
+
+Admin auth/authorization contract
+[PASS] admin dashboard without token (GET /v1/admin/dashboard -> HTTP 401)
+[PASS] admin dashboard without token envelope status is error
+[PASS] admin dashboard invalid token (GET /v1/admin/dashboard -> HTTP 401)
+[PASS] admin dashboard invalid token envelope status is error
+[PASS] admin dashboard normal user forbidden (GET /v1/admin/dashboard -> HTTP 403)
+[PASS] admin dashboard normal user forbidden envelope status is error
+[PASS] admin dashboard approved admin (GET /v1/admin/dashboard -> HTTP 200)
+[PASS] admin dashboard approved admin envelope status is ok
+
+Admin projection discovery
+[PASS] admin list users discovery (GET /v1/admin/users?limit=50 -> HTTP 200)
+[PASS] discovered admin user projection id: 2f765508-5228-4c1f-b566-327449ad2c99
+[PASS] admin list registrations discovery (GET /v1/admin/registrations?limit=20 -> HTTP 200)
+[SKIP] discovered registration id
+       no registration requests projected
+[PASS] admin list access requests discovery (GET /v1/admin/access-requests?limit=20 -> HTTP 200)
+[PASS] discovered access request id: req-bddbe4b7-56a1-4760-9e23-2b82416f9b5d
+[PASS] admin list access grants discovery (GET /v1/admin/access-grants?limit=20 -> HTTP 200)
+[SKIP] discovered access grant id
+       no access grants projected
+[PASS] admin list calculations discovery (GET /v1/admin/calculations?limit=20 -> HTTP 200)
+[PASS] discovered calculation id: calc-a6ee2df4-be2a-4b71-bee5-27dcf940b1cb
+[PASS] admin list todos discovery (GET /v1/admin/todos?limit=20 -> HTTP 200)
+[PASS] discovered todo id: 04815fb6-9437-46c2-a57e-991a1d4b2074
+[PASS] admin list reports discovery (GET /v1/admin/reports?limit=20 -> HTTP 200)
+[PASS] discovered report id: evt-6351d87b-78e1-421c-9edc-55f871b11d21
+[PASS] admin list audit discovery (GET /v1/admin/audit?limit=20 -> HTTP 200)
+[PASS] discovered audit event id: evt-85297317406f4200b27008c2dd5c97fc
+[PASS] admin report audit discovery (GET /v1/admin/reports/audit?limit=20 -> HTTP 200)
+[PASS] discovered report audit event id: evt-85297317406f4200b27008c2dd5c97fc
+
+Admin read API coverage
+[PASS] admin dashboard (GET /v1/admin/dashboard -> HTTP 200)
+[PASS] admin summary (GET /v1/admin/summary -> HTTP 200)
+[PASS] admin registrations list (GET /v1/admin/registrations?limit=10 -> HTTP 200)
+[PASS] admin registration get missing (GET /v1/admin/registrations/missing-registration-8a50592c-75f5-4f60-aa9c-7c7a648987ba -> HTTP 404)
+[PASS] admin access requests list (GET /v1/admin/access-requests?limit=10 -> HTTP 200)
+[PASS] admin access request get (GET /v1/admin/access-requests/req-bddbe4b7-56a1-4760-9e23-2b82416f9b5d -> HTTP 404)
+[PASS] admin access request missing (GET /v1/admin/access-requests/missing-access-request-7b024891-0f11-4f04-96de-12be4f6ad039 -> HTTP 404)
+[PASS] admin access grants list (GET /v1/admin/access-grants?limit=10 -> HTTP 200)
+[PASS] admin access grant missing (GET /v1/admin/access-grants/missing-access-grant-23e52332-58ba-4aa7-b3ab-5bd3c9af48e4 -> HTTP 404)
+[PASS] admin users list (GET /v1/admin/users?limit=10 -> HTTP 200)
+[PASS] admin user get (GET /v1/admin/users/8deecf16-a1d3-4ffe-abf0-9eacf8f4602d -> HTTP 200)
+[PASS] admin user activity (GET /v1/admin/users/8deecf16-a1d3-4ffe-abf0-9eacf8f4602d/activity -> HTTP 200)
+[PASS] admin user dashboard (GET /v1/admin/users/8deecf16-a1d3-4ffe-abf0-9eacf8f4602d/dashboard -> HTTP 200)
+[PASS] admin user preferences (GET /v1/admin/users/8deecf16-a1d3-4ffe-abf0-9eacf8f4602d/preferences -> HTTP 200)
+[PASS] admin user security context (GET /v1/admin/users/8deecf16-a1d3-4ffe-abf0-9eacf8f4602d/security-context -> HTTP 200)
+[PASS] admin user rbac (GET /v1/admin/users/8deecf16-a1d3-4ffe-abf0-9eacf8f4602d/rbac -> HTTP 200)
+[PASS] admin user effective permissions (GET /v1/admin/users/8deecf16-a1d3-4ffe-abf0-9eacf8f4602d/effective-permissions -> HTTP 200)
+[PASS] admin user access requests (GET /v1/admin/users/8deecf16-a1d3-4ffe-abf0-9eacf8f4602d/access-requests -> HTTP 200)
+[PASS] admin user access grants (GET /v1/admin/users/8deecf16-a1d3-4ffe-abf0-9eacf8f4602d/access-grants -> HTTP 200)
+[PASS] admin user reports (GET /v1/admin/users/8deecf16-a1d3-4ffe-abf0-9eacf8f4602d/reports -> HTTP 200)
+[PASS] admin user get missing (GET /v1/admin/users/missing-user-3014079c-8df2-46eb-9c50-cf38494ee147 -> HTTP 404)
+[PASS] admin calculations list (GET /v1/admin/calculations?limit=10 -> HTTP 200)
+[PASS] admin calculations summary (GET /v1/admin/calculations/summary -> HTTP 200)
+[PASS] admin calculations failed (GET /v1/admin/calculations/failed -> HTTP 200)
+[FAIL] admin calculations history cleared
+       GET /v1/admin/calculations/history-cleared expected HTTP 200 but got 500; response: {   "status": "error",   "message": "Internal server error",   "error_code": "INTERNAL_SERVER_ERROR",   "details": {},   "path": "/v1/admin/calculations/history-cleared",   "request_id": "req-b15a5558-849b-4b46-9e48-1ad1f25608d7",   "trace_id": "e670e6228fc64efe92a798e6f751c3dd",   "timestamp": "2026-05-13T12:17:41.5070687+00:00" } 
+[PASS] admin calculations audit (GET /v1/admin/calculations/audit -> HTTP 200)
+[PASS] admin user calculations (GET /v1/admin/calculations/users/8deecf16-a1d3-4ffe-abf0-9eacf8f4602d -> HTTP 200)
+[PASS] admin user calculations summary (GET /v1/admin/calculations/users/8deecf16-a1d3-4ffe-abf0-9eacf8f4602d/summary -> HTTP 200)
+[PASS] admin user failed calculations (GET /v1/admin/calculations/users/8deecf16-a1d3-4ffe-abf0-9eacf8f4602d/failed -> HTTP 200)
+[PASS] admin user calculations by operation (GET /v1/admin/calculations/users/8deecf16-a1d3-4ffe-abf0-9eacf8f4602d/operations/ADD -> HTTP 200)
+[PASS] admin calculation get (GET /v1/admin/calculations/calc-a6ee2df4-be2a-4b71-bee5-27dcf940b1cb -> HTTP 200)
+[PASS] admin calculation missing (GET /v1/admin/calculations/missing-calculation-612f8f1d-162e-43a1-8c3b-40c4cb112aad -> HTTP 404)
+[PASS] admin todos list (GET /v1/admin/todos?limit=10 -> HTTP 200)
+[PASS] admin todos summary (GET /v1/admin/todos/summary -> HTTP 200)
+[FAIL] admin todos overdue
+       GET /v1/admin/todos/overdue expected HTTP 200 but got 500; response: {   "status": "error",   "message": "Internal server error",   "error_code": "INTERNAL_SERVER_ERROR",   "details": {},   "path": "/v1/admin/todos/overdue",   "request_id": "req-2f2103d4-3a88-40a9-b486-28998eed1b12",   "trace_id": "668c8823e76c44a7839a9f5dbf008e17",   "timestamp": "2026-05-13T12:17:42.4809332+00:00" } 
+[PASS] admin todos today (GET /v1/admin/todos/today -> HTTP 200)
+[PASS] admin todos archived (GET /v1/admin/todos/archived -> HTTP 200)
+[PASS] admin todos deleted (GET /v1/admin/todos/deleted -> HTTP 200)
+[PASS] admin todos audit (GET /v1/admin/todos/audit -> HTTP 200)
+[PASS] admin user todos (GET /v1/admin/todos/users/8deecf16-a1d3-4ffe-abf0-9eacf8f4602d -> HTTP 200)
+[PASS] admin user todos summary (GET /v1/admin/todos/users/8deecf16-a1d3-4ffe-abf0-9eacf8f4602d/summary -> HTTP 200)
+[FAIL] admin user todos overdue
+       GET /v1/admin/todos/users/8deecf16-a1d3-4ffe-abf0-9eacf8f4602d/overdue expected HTTP 200 but got 500; response: {   "status": "error",   "message": "Internal server error",   "error_code": "INTERNAL_SERVER_ERROR",   "details": {},   "path": "/v1/admin/todos/users/8deecf16-a1d3-4ffe-abf0-9eacf8f4602d/overdue",   "request_id": "req-df642e6d-c35d-4918-b429-055a8728f2cc",   "trace_id": "48dff8fdd4c74768b8f1936b3a83c3c1",   "timestamp": "2026-05-13T12:17:43.2236939+00:00" } 
+[PASS] admin user todos today (GET /v1/admin/todos/users/8deecf16-a1d3-4ffe-abf0-9eacf8f4602d/today -> HTTP 200)
+[PASS] admin user todos activity (GET /v1/admin/todos/users/8deecf16-a1d3-4ffe-abf0-9eacf8f4602d/activity -> HTTP 200)
+[PASS] admin todo get (GET /v1/admin/todos/04815fb6-9437-46c2-a57e-991a1d4b2074 -> HTTP 404)
+[PASS] admin todo history (GET /v1/admin/todos/04815fb6-9437-46c2-a57e-991a1d4b2074/history -> HTTP 200)
+[PASS] admin todo missing (GET /v1/admin/todos/missing-todo-d5268651-999e-4c49-9345-6872d99d37e9 -> HTTP 404)
+[PASS] admin reports list (GET /v1/admin/reports?limit=10 -> HTTP 200)
+[PASS] admin reports summary (GET /v1/admin/reports/summary -> HTTP 200)
+[PASS] admin report types (GET /v1/admin/reports/types -> HTTP 200)
+[PASS] admin report type calculator (GET /v1/admin/reports/types/calculator_history_report -> HTTP 200)
+[PASS] admin report templates list (GET /v1/admin/reports/templates -> HTTP 200)
+[PASS] admin report template get (GET /v1/admin/reports/templates/template-disabled -> HTTP 200)
+[PASS] admin report schedules list (GET /v1/admin/reports/schedules -> HTTP 200)
+[PASS] admin report schedule get (GET /v1/admin/reports/schedules/schedule-disabled -> HTTP 200)
+[PASS] admin report queue summary (GET /v1/admin/reports/queue/summary -> HTTP 200)
+[PASS] admin report audit (GET /v1/admin/reports/audit -> HTTP 200)
+[PASS] admin user report projections (GET /v1/admin/reports/users/8deecf16-a1d3-4ffe-abf0-9eacf8f4602d -> HTTP 200)
+[PASS] admin report get (GET /v1/admin/reports/evt-6351d87b-78e1-421c-9edc-55f871b11d21 -> HTTP 200)
+[PASS] admin report metadata (GET /v1/admin/reports/evt-6351d87b-78e1-421c-9edc-55f871b11d21/metadata -> HTTP 200)
+[PASS] admin report progress (GET /v1/admin/reports/evt-6351d87b-78e1-421c-9edc-55f871b11d21/progress -> HTTP 200)
+[PASS] admin report events (GET /v1/admin/reports/evt-6351d87b-78e1-421c-9edc-55f871b11d21/events -> HTTP 200)
+[PASS] admin report files (GET /v1/admin/reports/evt-6351d87b-78e1-421c-9edc-55f871b11d21/files -> HTTP 200)
+[PASS] admin report preview (GET /v1/admin/reports/evt-6351d87b-78e1-421c-9edc-55f871b11d21/preview -> HTTP 200)
+[PASS] admin report download info (GET /v1/admin/reports/evt-6351d87b-78e1-421c-9edc-55f871b11d21/download-info -> HTTP 200)
+[PASS] admin report missing (GET /v1/admin/reports/missing-report-055437b3-e85e-4ef3-93cb-706de3844750 -> HTTP 404)
+[PASS] admin report metadata missing (GET /v1/admin/reports/missing-report-055437b3-e85e-4ef3-93cb-706de3844750/metadata -> HTTP 404)
+[PASS] admin audit list (GET /v1/admin/audit?limit=10 -> HTTP 200)
+[PASS] admin audit get (GET /v1/admin/audit/evt-85297317406f4200b27008c2dd5c97fc -> HTTP 200)
+[PASS] admin audit missing (GET /v1/admin/audit/missing-audit-cbdaef92-b6e3-4d92-8b87-e51ffe7bc2e8 -> HTTP 404)
+[PASS] admin report audit event get (GET /v1/admin/reports/audit/evt-85297317406f4200b27008c2dd5c97fc -> HTTP 200)
+
+Admin invalid-input and mutation coverage
+[PASS] admin approve registration missing (POST /v1/admin/registrations/missing-registration-5558f7b1-b1a2-4d30-a7c5-505aa72d1a48/approve -> HTTP 404)
+[PASS] admin reject registration missing (POST /v1/admin/registrations/missing-registration-5558f7b1-b1a2-4d30-a7c5-505aa72d1a48/reject -> HTTP 409)
+[PASS] admin approve registration malformed (POST /v1/admin/registrations/missing-registration-5558f7b1-b1a2-4d30-a7c5-505aa72d1a48/approve -> HTTP 400)
+[PASS] admin approve access request missing (POST /v1/admin/access-requests/missing-access-request-6abda69a-21ef-408c-80fd-ce907fcd9fda/approve -> HTTP 404)
+[PASS] admin reject access request missing (POST /v1/admin/access-requests/missing-access-request-6abda69a-21ef-408c-80fd-ce907fcd9fda/reject -> HTTP 409)
+[PASS] admin approve access request malformed (POST /v1/admin/access-requests/missing-access-request-6abda69a-21ef-408c-80fd-ce907fcd9fda/approve -> HTTP 400)
+[PASS] admin revoke access grant missing (POST /v1/admin/access-grants/missing-access-grant-9334b419-aad3-4956-a9bf-4d9befff9ced/revoke -> HTTP 404)
+[PASS] admin suspend missing user (POST /v1/admin/users/missing-user-2f539271-f46f-448d-a9a1-1e89e7bddf85/suspend -> HTTP 404)
+[PASS] admin activate missing user (POST /v1/admin/users/missing-user-2f539271-f46f-448d-a9a1-1e89e7bddf85/activate -> HTTP 404)
+[PASS] admin force password reset missing user (POST /v1/admin/users/missing-user-2f539271-f46f-448d-a9a1-1e89e7bddf85/force-password-reset -> HTTP 404)
+[PASS] admin create report invalid format (POST /v1/admin/reports -> HTTP 400)
+[PASS] admin create report missing type (POST /v1/admin/reports -> HTTP 400)
+[PASS] admin create report malformed (POST /v1/admin/reports -> HTTP 400)
+[PASS] admin create report valid (POST /v1/admin/reports -> HTTP 201)
+[PASS] admin cancel report missing (POST /v1/admin/reports/missing-report-66a2a251-ee47-44d9-b5d7-3bcb35d0b2df/cancel -> HTTP 404)
+[PASS] admin retry report missing (POST /v1/admin/reports/missing-report-66a2a251-ee47-44d9-b5d7-3bcb35d0b2df/retry -> HTTP 404)
+[PASS] admin regenerate report missing (POST /v1/admin/reports/missing-report-66a2a251-ee47-44d9-b5d7-3bcb35d0b2df/regenerate -> HTTP 404)
+[PASS] admin delete report missing (DELETE /v1/admin/reports/missing-report-66a2a251-ee47-44d9-b5d7-3bcb35d0b2df -> HTTP 404)
+[PASS] admin create template disabled (POST /v1/admin/reports/templates -> HTTP 501)
+[PASS] admin update template disabled (PUT /v1/admin/reports/templates/template-disabled -> HTTP 501)
+[PASS] admin activate template disabled (POST /v1/admin/reports/templates/template-disabled/activate -> HTTP 501)
+[PASS] admin deactivate template disabled (POST /v1/admin/reports/templates/template-disabled/deactivate -> HTTP 501)
+[PASS] admin create schedule disabled (POST /v1/admin/reports/schedules -> HTTP 501)
+[PASS] admin update schedule disabled (PUT /v1/admin/reports/schedules/schedule-disabled -> HTTP 501)
+[PASS] admin pause schedule disabled (POST /v1/admin/reports/schedules/schedule-disabled/pause -> HTTP 501)
+[PASS] admin resume schedule disabled (POST /v1/admin/reports/schedules/schedule-disabled/resume -> HTTP 501)
+[PASS] admin delete schedule disabled (DELETE /v1/admin/reports/schedules/schedule-disabled -> HTTP 501)
+
+Final health check
+[PASS] admin health after all checks (GET /health -> HTTP 200)
+[PASS] admin health after all checks envelope status is ok
+
+Summary: 166 total, 160 passed, 4 failed, 2 skipped
+Admin Base URL:       http://192.168.56.100:1010
+Auth Base URL:        http://192.168.56.100:6060
+Mutation mode:        0
+Discovered user id:   8deecf16-a1d3-4ffe-abf0-9eacf8f4602d
+Discovered reg id:    <none>
+Discovered access id: req-bddbe4b7-56a1-4760-9e23-2b82416f9b5d
+Discovered grant id:  <none>
+Discovered calc id:   calc-a6ee2df4-be2a-4b71-bee5-27dcf940b1cb
+Discovered todo id:   04815fb6-9437-46c2-a57e-991a1d4b2074
+Discovered report id: report-2db09a41c6054c2f96d4bdc32b5178be
+
+One or more admin service checks failed. Review failed responses above.
+Admin Service Full API Test
+Admin Base URL:        http://192.168.56.100:1010
+Auth Base URL:         http://192.168.56.100:6060
+User Base URL:         http://192.168.56.100:4040
+Calculator Base URL:   http://192.168.56.100:2020
+Todo Base URL:         http://192.168.56.100:3030
+Report Base URL:       http://192.168.56.100:5050
+Mutation mode:         0
+Seed other services:   1
+Admin forwarded proto: https
+Run ID:                1778674693-11114
+
+Auth preparation
+[PASS] auth hello (GET /hello -> HTTP 200)
+[PASS] auth health (GET /health -> HTTP 200)
+[PASS] auth admin signin (POST /v1/signin -> HTTP 200)
+[PASS] admin token extracted
+[PASS] auth admin token belongs to approved admin
+[PASS] auth signup normal user (POST /v1/signup -> HTTP 200)
+[PASS] auth signin normal user (POST /v1/signin -> HTTP 200)
+[PASS] normal user token extracted
+[PASS] normal user id extracted: dd6a2547-4ff1-484e-bd92-b9d55ab31978
+[PASS] auth signup second user (POST /v1/signup -> HTTP 200)
+[PASS] auth signin second user (POST /v1/signin -> HTTP 200)
+[PASS] second user token extracted
+[PASS] second user id extracted: a6c96f77-7045-41be-8764-deb27e9ff3ee
+
+Cross-service seeding for admin projections
+[PASS] user profile me (GET /v1/users/me -> HTTP 200)
+[PASS] user dashboard me (GET /v1/users/me/dashboard -> HTTP 200)
+[FAIL] user create access request
+       POST /v1/users/access-requests expected HTTP 200|201|409 but got 400; response: {   "status": "error",   "message": "expires_at exceeds maximum TTL",   "error_code": "ACCESS_REQUEST_TTL_EXCEEDED",   "details": {},   "path": "/v1/users/access-requests",   "request_id": "req-9c259584-de54-4909-910b-28c36edc6c71",   "trace_id": "ef28d215dbfc46ec9851df62bbc0e223",   "timestamp": "2026-05-13T12:18:16.121210934Z" } 
+[PASS] access request id extracted from user_service: req-9c259584-de54-4909-910b-28c36edc6c71
+[PASS] calculator operations (GET /v1/calculator/operations -> HTTP 200)
+[PASS] calculator calculate add (POST /v1/calculator/calculate -> HTTP 200)
+[PASS] calculation id extracted: calc-17071c76-fa67-4801-9064-8d7aaf9aae96
+[PASS] todo create (POST /v1/todos -> HTTP 201)
+[PASS] todo id extracted: b2049f74-532d-49f5-b97a-2b0db64151b3
+[PASS] todo complete (POST /v1/todos/b2049f74-532d-49f5-b97a-2b0db64151b3/complete -> HTTP 200)
+[PASS] report service types (GET /v1/reports/types -> HTTP 200)
+[PASS] report service create report (POST /v1/reports -> HTTP 201)
+Waiting 8s for Kafka projection updates...
+
+Admin public/rejected route contract
+[PASS] admin hello (GET /hello -> HTTP 200)
+[PASS] admin hello envelope status is ok
+[PASS] admin health (GET /health -> HTTP 200)
+[PASS] admin health envelope status is ok
+[PASS] admin health dependency keys are complete
+[PASS] admin docs (GET /docs -> HTTP 200)
+[PASS] admin root rejected (GET / -> HTTP 404)
+[PASS] admin live rejected (GET /live -> HTTP 404)
+[PASS] admin ready rejected (GET /ready -> HTTP 404)
+[PASS] admin healthy rejected (GET /healthy -> HTTP 404)
+[PASS] admin openapi rejected (GET /openapi.json -> HTTP 404)
+[PASS] admin swagger rejected (GET /swagger -> HTTP 404)
+[PASS] admin redoc rejected (GET /redoc -> HTTP 404)
+[PASS] admin swagger index rejected (GET /swagger/index.html -> HTTP 404)
+[PASS] admin swagger json rejected (GET /swagger/v1/swagger.json -> HTTP 404)
+
+Admin auth/authorization contract
+[PASS] admin dashboard without token (GET /v1/admin/dashboard -> HTTP 401)
+[PASS] admin dashboard without token envelope status is error
+[PASS] admin dashboard invalid token (GET /v1/admin/dashboard -> HTTP 401)
+[PASS] admin dashboard invalid token envelope status is error
+[PASS] admin dashboard normal user forbidden (GET /v1/admin/dashboard -> HTTP 403)
+[PASS] admin dashboard normal user forbidden envelope status is error
+[PASS] admin dashboard approved admin (GET /v1/admin/dashboard -> HTTP 200)
+[PASS] admin dashboard approved admin envelope status is ok
+
+Admin projection discovery
+[PASS] admin list users discovery (GET /v1/admin/users?limit=50 -> HTTP 200)
+[PASS] discovered admin user projection id: a6c96f77-7045-41be-8764-deb27e9ff3ee
+[PASS] admin list registrations discovery (GET /v1/admin/registrations?limit=20 -> HTTP 200)
+[SKIP] discovered registration id
+       no registration requests projected
+[PASS] admin list access requests discovery (GET /v1/admin/access-requests?limit=20 -> HTTP 200)
+[PASS] discovered access request id: req-9c259584-de54-4909-910b-28c36edc6c71
+[PASS] admin list access grants discovery (GET /v1/admin/access-grants?limit=20 -> HTTP 200)
+[SKIP] discovered access grant id
+       no access grants projected
+[PASS] admin list calculations discovery (GET /v1/admin/calculations?limit=20 -> HTTP 200)
+[PASS] discovered calculation id: calc-17071c76-fa67-4801-9064-8d7aaf9aae96
+[PASS] admin list todos discovery (GET /v1/admin/todos?limit=20 -> HTTP 200)
+[PASS] discovered todo id: b2049f74-532d-49f5-b97a-2b0db64151b3
+[PASS] admin list reports discovery (GET /v1/admin/reports?limit=20 -> HTTP 200)
+[PASS] discovered report id: evt-f6765bae-4454-4878-a11e-67dd62976d5c
+[PASS] admin list audit discovery (GET /v1/admin/audit?limit=20 -> HTTP 200)
+[PASS] discovered audit event id: evt-84ac21d4b6194cf697ec6a5b4a8a10de
+[PASS] admin report audit discovery (GET /v1/admin/reports/audit?limit=20 -> HTTP 200)
+[PASS] discovered report audit event id: evt-84ac21d4b6194cf697ec6a5b4a8a10de
+
+Admin read API coverage
+[PASS] admin dashboard (GET /v1/admin/dashboard -> HTTP 200)
+[PASS] admin summary (GET /v1/admin/summary -> HTTP 200)
+[PASS] admin registrations list (GET /v1/admin/registrations?limit=10 -> HTTP 200)
+[PASS] admin registration get missing (GET /v1/admin/registrations/missing-registration-ba1d2a15-5b46-47b8-83f4-bd96b348183f -> HTTP 404)
+[PASS] admin access requests list (GET /v1/admin/access-requests?limit=10 -> HTTP 200)
+[PASS] admin access request get (GET /v1/admin/access-requests/req-9c259584-de54-4909-910b-28c36edc6c71 -> HTTP 404)
+[PASS] admin access request missing (GET /v1/admin/access-requests/missing-access-request-50e3d1b4-51cc-48a0-b7ef-a454923e4b2b -> HTTP 404)
+[PASS] admin access grants list (GET /v1/admin/access-grants?limit=10 -> HTTP 200)
+[PASS] admin access grant missing (GET /v1/admin/access-grants/missing-access-grant-beb25a40-7f41-4524-b4c5-5685b5b3407c -> HTTP 404)
+[PASS] admin users list (GET /v1/admin/users?limit=10 -> HTTP 200)
+[PASS] admin user get (GET /v1/admin/users/dd6a2547-4ff1-484e-bd92-b9d55ab31978 -> HTTP 200)
+[PASS] admin user activity (GET /v1/admin/users/dd6a2547-4ff1-484e-bd92-b9d55ab31978/activity -> HTTP 200)
+[PASS] admin user dashboard (GET /v1/admin/users/dd6a2547-4ff1-484e-bd92-b9d55ab31978/dashboard -> HTTP 200)
+[PASS] admin user preferences (GET /v1/admin/users/dd6a2547-4ff1-484e-bd92-b9d55ab31978/preferences -> HTTP 200)
+[PASS] admin user security context (GET /v1/admin/users/dd6a2547-4ff1-484e-bd92-b9d55ab31978/security-context -> HTTP 200)
+[PASS] admin user rbac (GET /v1/admin/users/dd6a2547-4ff1-484e-bd92-b9d55ab31978/rbac -> HTTP 200)
+[PASS] admin user effective permissions (GET /v1/admin/users/dd6a2547-4ff1-484e-bd92-b9d55ab31978/effective-permissions -> HTTP 200)
+[PASS] admin user access requests (GET /v1/admin/users/dd6a2547-4ff1-484e-bd92-b9d55ab31978/access-requests -> HTTP 200)
+[PASS] admin user access grants (GET /v1/admin/users/dd6a2547-4ff1-484e-bd92-b9d55ab31978/access-grants -> HTTP 200)
+[PASS] admin user reports (GET /v1/admin/users/dd6a2547-4ff1-484e-bd92-b9d55ab31978/reports -> HTTP 200)
+[PASS] admin user get missing (GET /v1/admin/users/missing-user-3bbc5ed7-8bbb-4b12-9bd6-08701fd7c0f1 -> HTTP 404)
+[PASS] admin calculations list (GET /v1/admin/calculations?limit=10 -> HTTP 200)
+[PASS] admin calculations summary (GET /v1/admin/calculations/summary -> HTTP 200)
+[PASS] admin calculations failed (GET /v1/admin/calculations/failed -> HTTP 200)
+[FAIL] admin calculations history cleared
+       GET /v1/admin/calculations/history-cleared expected HTTP 200 but got 500; response: {   "status": "error",   "message": "Internal server error",   "error_code": "INTERNAL_SERVER_ERROR",   "details": {},   "path": "/v1/admin/calculations/history-cleared",   "request_id": "req-781e2174-8cb9-4977-b2d7-132683908804",   "trace_id": "bf39d8becff14d5da3937d445e2f261b",   "timestamp": "2026-05-13T12:18:31.5697632+00:00" } 
+[PASS] admin calculations audit (GET /v1/admin/calculations/audit -> HTTP 200)
+[PASS] admin user calculations (GET /v1/admin/calculations/users/dd6a2547-4ff1-484e-bd92-b9d55ab31978 -> HTTP 200)
+[PASS] admin user calculations summary (GET /v1/admin/calculations/users/dd6a2547-4ff1-484e-bd92-b9d55ab31978/summary -> HTTP 200)
+[PASS] admin user failed calculations (GET /v1/admin/calculations/users/dd6a2547-4ff1-484e-bd92-b9d55ab31978/failed -> HTTP 200)
+[PASS] admin user calculations by operation (GET /v1/admin/calculations/users/dd6a2547-4ff1-484e-bd92-b9d55ab31978/operations/ADD -> HTTP 200)
+[PASS] admin calculation get (GET /v1/admin/calculations/calc-17071c76-fa67-4801-9064-8d7aaf9aae96 -> HTTP 200)
+[PASS] admin calculation missing (GET /v1/admin/calculations/missing-calculation-38b6ddc9-bbba-4e6f-8faf-1802f853dd19 -> HTTP 404)
+[PASS] admin todos list (GET /v1/admin/todos?limit=10 -> HTTP 200)
+[PASS] admin todos summary (GET /v1/admin/todos/summary -> HTTP 200)
+[FAIL] admin todos overdue
+       GET /v1/admin/todos/overdue expected HTTP 200 but got 500; response: {   "status": "error",   "message": "Internal server error",   "error_code": "INTERNAL_SERVER_ERROR",   "details": {},   "path": "/v1/admin/todos/overdue",   "request_id": "req-ac85bdd7-00f5-4537-96f8-d2653bb453d3",   "trace_id": "30116c581eac4ab19e34ce4521cc23c0",   "timestamp": "2026-05-13T12:18:32.6625429+00:00" } 
+[PASS] admin todos today (GET /v1/admin/todos/today -> HTTP 200)
+[PASS] admin todos archived (GET /v1/admin/todos/archived -> HTTP 200)
+[PASS] admin todos deleted (GET /v1/admin/todos/deleted -> HTTP 200)
+[PASS] admin todos audit (GET /v1/admin/todos/audit -> HTTP 200)
+[PASS] admin user todos (GET /v1/admin/todos/users/dd6a2547-4ff1-484e-bd92-b9d55ab31978 -> HTTP 200)
+[PASS] admin user todos summary (GET /v1/admin/todos/users/dd6a2547-4ff1-484e-bd92-b9d55ab31978/summary -> HTTP 200)
+[FAIL] admin user todos overdue
+       GET /v1/admin/todos/users/dd6a2547-4ff1-484e-bd92-b9d55ab31978/overdue expected HTTP 200 but got 500; response: {   "status": "error",   "message": "Internal server error",   "error_code": "INTERNAL_SERVER_ERROR",   "details": {},   "path": "/v1/admin/todos/users/dd6a2547-4ff1-484e-bd92-b9d55ab31978/overdue",   "request_id": "req-b569cb5f-4da5-41be-b19a-248581554669",   "trace_id": "b20461d367034e4c9dda83c9c967948f",   "timestamp": "2026-05-13T12:18:33.4595241+00:00" } 
+[PASS] admin user todos today (GET /v1/admin/todos/users/dd6a2547-4ff1-484e-bd92-b9d55ab31978/today -> HTTP 200)
+[PASS] admin user todos activity (GET /v1/admin/todos/users/dd6a2547-4ff1-484e-bd92-b9d55ab31978/activity -> HTTP 200)
+[PASS] admin todo get (GET /v1/admin/todos/b2049f74-532d-49f5-b97a-2b0db64151b3 -> HTTP 404)
+[PASS] admin todo history (GET /v1/admin/todos/b2049f74-532d-49f5-b97a-2b0db64151b3/history -> HTTP 200)
+[PASS] admin todo missing (GET /v1/admin/todos/missing-todo-ec46c356-7146-49a2-b235-0abadcb0f806 -> HTTP 404)
+[PASS] admin reports list (GET /v1/admin/reports?limit=10 -> HTTP 200)
+[PASS] admin reports summary (GET /v1/admin/reports/summary -> HTTP 200)
+[PASS] admin report types (GET /v1/admin/reports/types -> HTTP 200)
+[PASS] admin report type calculator (GET /v1/admin/reports/types/calculator_history_report -> HTTP 200)
+[PASS] admin report templates list (GET /v1/admin/reports/templates -> HTTP 200)
+[PASS] admin report template get (GET /v1/admin/reports/templates/template-disabled -> HTTP 200)
+[PASS] admin report schedules list (GET /v1/admin/reports/schedules -> HTTP 200)
+[PASS] admin report schedule get (GET /v1/admin/reports/schedules/schedule-disabled -> HTTP 200)
+[PASS] admin report queue summary (GET /v1/admin/reports/queue/summary -> HTTP 200)
+[PASS] admin report audit (GET /v1/admin/reports/audit -> HTTP 200)
+[PASS] admin user report projections (GET /v1/admin/reports/users/dd6a2547-4ff1-484e-bd92-b9d55ab31978 -> HTTP 200)
+[PASS] admin report get (GET /v1/admin/reports/evt-f6765bae-4454-4878-a11e-67dd62976d5c -> HTTP 200)
+[PASS] admin report metadata (GET /v1/admin/reports/evt-f6765bae-4454-4878-a11e-67dd62976d5c/metadata -> HTTP 200)
+[PASS] admin report progress (GET /v1/admin/reports/evt-f6765bae-4454-4878-a11e-67dd62976d5c/progress -> HTTP 200)
+[PASS] admin report events (GET /v1/admin/reports/evt-f6765bae-4454-4878-a11e-67dd62976d5c/events -> HTTP 200)
+[PASS] admin report files (GET /v1/admin/reports/evt-f6765bae-4454-4878-a11e-67dd62976d5c/files -> HTTP 200)
+[PASS] admin report preview (GET /v1/admin/reports/evt-f6765bae-4454-4878-a11e-67dd62976d5c/preview -> HTTP 200)
+[PASS] admin report download info (GET /v1/admin/reports/evt-f6765bae-4454-4878-a11e-67dd62976d5c/download-info -> HTTP 200)
+[PASS] admin report missing (GET /v1/admin/reports/missing-report-da1461fc-8369-485b-930a-bf2328f34adf -> HTTP 404)
+[PASS] admin report metadata missing (GET /v1/admin/reports/missing-report-da1461fc-8369-485b-930a-bf2328f34adf/metadata -> HTTP 404)
+[PASS] admin audit list (GET /v1/admin/audit?limit=10 -> HTTP 200)
+[PASS] admin audit get (GET /v1/admin/audit/evt-84ac21d4b6194cf697ec6a5b4a8a10de -> HTTP 200)
+[PASS] admin audit missing (GET /v1/admin/audit/missing-audit-f1415309-02ba-4956-bcc9-1a70bedabd7c -> HTTP 404)
+[PASS] admin report audit event get (GET /v1/admin/reports/audit/evt-84ac21d4b6194cf697ec6a5b4a8a10de -> HTTP 200)
+
+Admin invalid-input and mutation coverage
+[PASS] admin approve registration missing (POST /v1/admin/registrations/missing-registration-60f3f17d-aed9-40b4-9ae4-5068efa13ee0/approve -> HTTP 404)
+[PASS] admin reject registration missing (POST /v1/admin/registrations/missing-registration-60f3f17d-aed9-40b4-9ae4-5068efa13ee0/reject -> HTTP 409)
+[PASS] admin approve registration malformed (POST /v1/admin/registrations/missing-registration-60f3f17d-aed9-40b4-9ae4-5068efa13ee0/approve -> HTTP 400)
+[PASS] admin approve access request missing (POST /v1/admin/access-requests/missing-access-request-543ac7aa-011a-4b72-bcfc-6c9a51392863/approve -> HTTP 404)
+[PASS] admin reject access request missing (POST /v1/admin/access-requests/missing-access-request-543ac7aa-011a-4b72-bcfc-6c9a51392863/reject -> HTTP 409)
+[PASS] admin approve access request malformed (POST /v1/admin/access-requests/missing-access-request-543ac7aa-011a-4b72-bcfc-6c9a51392863/approve -> HTTP 400)
+[PASS] admin revoke access grant missing (POST /v1/admin/access-grants/missing-access-grant-b4e2767a-db39-452a-b362-d36f553bbd4b/revoke -> HTTP 404)
+[PASS] admin suspend missing user (POST /v1/admin/users/missing-user-22f24a0f-ee00-44dc-af3f-f33a8c5a6c8b/suspend -> HTTP 404)
+[PASS] admin activate missing user (POST /v1/admin/users/missing-user-22f24a0f-ee00-44dc-af3f-f33a8c5a6c8b/activate -> HTTP 404)
+[PASS] admin force password reset missing user (POST /v1/admin/users/missing-user-22f24a0f-ee00-44dc-af3f-f33a8c5a6c8b/force-password-reset -> HTTP 404)
+[PASS] admin create report invalid format (POST /v1/admin/reports -> HTTP 400)
+[PASS] admin create report missing type (POST /v1/admin/reports -> HTTP 400)
+[PASS] admin create report malformed (POST /v1/admin/reports -> HTTP 400)
+[PASS] admin create report valid (POST /v1/admin/reports -> HTTP 201)
+[PASS] admin cancel report missing (POST /v1/admin/reports/missing-report-e7f02033-56ea-4dbb-b43d-9c2406341a9d/cancel -> HTTP 404)
+[PASS] admin retry report missing (POST /v1/admin/reports/missing-report-e7f02033-56ea-4dbb-b43d-9c2406341a9d/retry -> HTTP 404)
+[PASS] admin regenerate report missing (POST /v1/admin/reports/missing-report-e7f02033-56ea-4dbb-b43d-9c2406341a9d/regenerate -> HTTP 404)
+[PASS] admin delete report missing (DELETE /v1/admin/reports/missing-report-e7f02033-56ea-4dbb-b43d-9c2406341a9d -> HTTP 404)
+[PASS] admin create template disabled (POST /v1/admin/reports/templates -> HTTP 501)
+[PASS] admin update template disabled (PUT /v1/admin/reports/templates/template-disabled -> HTTP 501)
+[PASS] admin activate template disabled (POST /v1/admin/reports/templates/template-disabled/activate -> HTTP 501)
+[PASS] admin deactivate template disabled (POST /v1/admin/reports/templates/template-disabled/deactivate -> HTTP 501)
+[PASS] admin create schedule disabled (POST /v1/admin/reports/schedules -> HTTP 501)
+[PASS] admin update schedule disabled (PUT /v1/admin/reports/schedules/schedule-disabled -> HTTP 501)
+[PASS] admin pause schedule disabled (POST /v1/admin/reports/schedules/schedule-disabled/pause -> HTTP 501)
+[PASS] admin resume schedule disabled (POST /v1/admin/reports/schedules/schedule-disabled/resume -> HTTP 501)
+[PASS] admin delete schedule disabled (DELETE /v1/admin/reports/schedules/schedule-disabled -> HTTP 501)
+
+Final health check
+[PASS] admin health after all checks (GET /health -> HTTP 200)
+[PASS] admin health after all checks envelope status is ok
+
+Summary: 166 total, 160 passed, 4 failed, 2 skipped
+Admin Base URL:       http://192.168.56.100:1010
+Auth Base URL:        http://192.168.56.100:6060
+Mutation mode:        0
+Discovered user id:   dd6a2547-4ff1-484e-bd92-b9d55ab31978
+Discovered reg id:    <none>
+Discovered access id: req-9c259584-de54-4909-910b-28c36edc6c71
+Discovered grant id:  <none>
+Discovered calc id:   calc-17071c76-fa67-4801-9064-8d7aaf9aae96
+Discovered todo id:   b2049f74-532d-49f5-b97a-2b0db64151b3
+Discovered report id: report-b400241c5db9483da522447634884744
+
+One or more admin service checks failed. Review failed responses above.
+Admin Service Full API Test
+Admin Base URL:        http://192.168.56.100:1011
+Auth Base URL:         http://192.168.56.100:6061
+User Base URL:         http://192.168.56.100:4041
+Calculator Base URL:   http://192.168.56.100:2021
+Todo Base URL:         http://192.168.56.100:3031
+Report Base URL:       http://192.168.56.100:5051
+Mutation mode:         0
+Seed other services:   1
+Admin forwarded proto: https
+Run ID:                1778674828-18360
+
+Auth preparation
+[PASS] auth hello (GET /hello -> HTTP 200)
+[PASS] auth health (GET /health -> HTTP 200)
+[PASS] auth admin signin (POST /v1/signin -> HTTP 200)
+[PASS] admin token extracted
+[PASS] auth admin token belongs to approved admin
+[PASS] auth signup normal user (POST /v1/signup -> HTTP 200)
+[PASS] auth signin normal user (POST /v1/signin -> HTTP 200)
+[PASS] normal user token extracted
+[PASS] normal user id extracted: f933d4ab-1f3b-4b66-86f0-b05ce01cc528
+[PASS] auth signup second user (POST /v1/signup -> HTTP 200)
+[PASS] auth signin second user (POST /v1/signin -> HTTP 200)
+[PASS] second user token extracted
+[PASS] second user id extracted: cfb067e7-27bf-49ec-b2f9-c3462d1fa416
+
+Cross-service seeding for admin projections
+[PASS] user profile me (GET /v1/users/me -> HTTP 200)
+[PASS] user dashboard me (GET /v1/users/me/dashboard -> HTTP 200)
+[FAIL] user create access request
+       POST /v1/users/access-requests expected HTTP 200|201|409 but got 400; response: {   "status": "error",   "message": "expires_at exceeds maximum TTL",   "error_code": "ACCESS_REQUEST_TTL_EXCEEDED",   "details": {},   "path": "/v1/users/access-requests",   "request_id": "req-0355fd84-fa66-4254-9ee6-e305c51608e0",   "trace_id": "9ffcd91168c6404594b85e6010852986",   "timestamp": "2026-05-13T12:20:31.199658419Z" } 
+[PASS] access request id extracted from user_service: req-0355fd84-fa66-4254-9ee6-e305c51608e0
+[PASS] calculator operations (GET /v1/calculator/operations -> HTTP 200)
+[PASS] calculator calculate add (POST /v1/calculator/calculate -> HTTP 200)
+[PASS] calculation id extracted: calc-c8c33a57-9fdb-43db-b12c-c0b29abc8fbc
+[PASS] todo create (POST /v1/todos -> HTTP 201)
+[PASS] todo id extracted: dba632b9-6b5a-4dbc-9da3-3405182f81a3
+[PASS] todo complete (POST /v1/todos/dba632b9-6b5a-4dbc-9da3-3405182f81a3/complete -> HTTP 200)
+[PASS] report service types (GET /v1/reports/types -> HTTP 200)
+[PASS] report service create report (POST /v1/reports -> HTTP 201)
+Waiting 8s for Kafka projection updates...
+
+Admin public/rejected route contract
+[PASS] admin hello (GET /hello -> HTTP 200)
+[PASS] admin hello envelope status is ok
+[PASS] admin health (GET /health -> HTTP 200)
+[PASS] admin health envelope status is ok
+[PASS] admin health dependency keys are complete
+[PASS] admin docs (GET /docs -> HTTP 200)
+[PASS] admin root rejected (GET / -> HTTP 404)
+[PASS] admin live rejected (GET /live -> HTTP 404)
+[PASS] admin ready rejected (GET /ready -> HTTP 404)
+[PASS] admin healthy rejected (GET /healthy -> HTTP 404)
+[PASS] admin openapi rejected (GET /openapi.json -> HTTP 404)
+[PASS] admin swagger rejected (GET /swagger -> HTTP 404)
+[PASS] admin redoc rejected (GET /redoc -> HTTP 404)
+[PASS] admin swagger index rejected (GET /swagger/index.html -> HTTP 404)
+[PASS] admin swagger json rejected (GET /swagger/v1/swagger.json -> HTTP 404)
+
+Admin auth/authorization contract
+[PASS] admin dashboard without token (GET /v1/admin/dashboard -> HTTP 401)
+[PASS] admin dashboard without token envelope status is error
+[PASS] admin dashboard invalid token (GET /v1/admin/dashboard -> HTTP 401)
+[PASS] admin dashboard invalid token envelope status is error
+[PASS] admin dashboard normal user forbidden (GET /v1/admin/dashboard -> HTTP 403)
+[PASS] admin dashboard normal user forbidden envelope status is error
+[PASS] admin dashboard approved admin (GET /v1/admin/dashboard -> HTTP 200)
+[PASS] admin dashboard approved admin envelope status is ok
+
+Admin projection discovery
+[PASS] admin list users discovery (GET /v1/admin/users?limit=50 -> HTTP 200)
+[PASS] discovered admin user projection id: cfb067e7-27bf-49ec-b2f9-c3462d1fa416
+[PASS] admin list registrations discovery (GET /v1/admin/registrations?limit=20 -> HTTP 200)
+[SKIP] discovered registration id
+       no registration requests projected
+[PASS] admin list access requests discovery (GET /v1/admin/access-requests?limit=20 -> HTTP 200)
+[PASS] discovered access request id: req-0355fd84-fa66-4254-9ee6-e305c51608e0
+[PASS] admin list access grants discovery (GET /v1/admin/access-grants?limit=20 -> HTTP 200)
+[SKIP] discovered access grant id
+       no access grants projected
+[PASS] admin list calculations discovery (GET /v1/admin/calculations?limit=20 -> HTTP 200)
+[PASS] discovered calculation id: calc-c8c33a57-9fdb-43db-b12c-c0b29abc8fbc
+[PASS] admin list todos discovery (GET /v1/admin/todos?limit=20 -> HTTP 200)
+[PASS] discovered todo id: dba632b9-6b5a-4dbc-9da3-3405182f81a3
+[PASS] admin list reports discovery (GET /v1/admin/reports?limit=20 -> HTTP 200)
+[PASS] discovered report id: evt-92ed434a-f2c7-4902-ad3f-489b51496c38
+[PASS] admin list audit discovery (GET /v1/admin/audit?limit=20 -> HTTP 200)
+[SKIP] discovered audit event id
+       no audit events found
+[PASS] admin report audit discovery (GET /v1/admin/reports/audit?limit=20 -> HTTP 200)
+[SKIP] discovered report audit event id
+       no report audit events found
+
+Admin read API coverage
+[PASS] admin dashboard (GET /v1/admin/dashboard -> HTTP 200)
+[PASS] admin summary (GET /v1/admin/summary -> HTTP 200)
+[PASS] admin registrations list (GET /v1/admin/registrations?limit=10 -> HTTP 200)
+[PASS] admin registration get missing (GET /v1/admin/registrations/missing-registration-f0a0fc21-178d-4907-94fb-47a70d4b99d4 -> HTTP 404)
+[PASS] admin access requests list (GET /v1/admin/access-requests?limit=10 -> HTTP 200)
+[PASS] admin access request get (GET /v1/admin/access-requests/req-0355fd84-fa66-4254-9ee6-e305c51608e0 -> HTTP 404)
+[PASS] admin access request missing (GET /v1/admin/access-requests/missing-access-request-30fc1d63-78be-4915-af06-3c8def7fb3d4 -> HTTP 404)
+[PASS] admin access grants list (GET /v1/admin/access-grants?limit=10 -> HTTP 200)
+[PASS] admin access grant missing (GET /v1/admin/access-grants/missing-access-grant-c8df0f48-3dd5-45d1-af51-7b6652575f5f -> HTTP 404)
+[PASS] admin users list (GET /v1/admin/users?limit=10 -> HTTP 200)
+[PASS] admin user get (GET /v1/admin/users/f933d4ab-1f3b-4b66-86f0-b05ce01cc528 -> HTTP 200)
+[PASS] admin user activity (GET /v1/admin/users/f933d4ab-1f3b-4b66-86f0-b05ce01cc528/activity -> HTTP 200)
+[PASS] admin user dashboard (GET /v1/admin/users/f933d4ab-1f3b-4b66-86f0-b05ce01cc528/dashboard -> HTTP 200)
+[PASS] admin user preferences (GET /v1/admin/users/f933d4ab-1f3b-4b66-86f0-b05ce01cc528/preferences -> HTTP 200)
+[PASS] admin user security context (GET /v1/admin/users/f933d4ab-1f3b-4b66-86f0-b05ce01cc528/security-context -> HTTP 200)
+[PASS] admin user rbac (GET /v1/admin/users/f933d4ab-1f3b-4b66-86f0-b05ce01cc528/rbac -> HTTP 200)
+[PASS] admin user effective permissions (GET /v1/admin/users/f933d4ab-1f3b-4b66-86f0-b05ce01cc528/effective-permissions -> HTTP 200)
+[PASS] admin user access requests (GET /v1/admin/users/f933d4ab-1f3b-4b66-86f0-b05ce01cc528/access-requests -> HTTP 200)
+[PASS] admin user access grants (GET /v1/admin/users/f933d4ab-1f3b-4b66-86f0-b05ce01cc528/access-grants -> HTTP 200)
+[PASS] admin user reports (GET /v1/admin/users/f933d4ab-1f3b-4b66-86f0-b05ce01cc528/reports -> HTTP 200)
+[PASS] admin user get missing (GET /v1/admin/users/missing-user-6fd937e2-1bae-4ee4-b1ec-c606aecf9227 -> HTTP 404)
+[PASS] admin calculations list (GET /v1/admin/calculations?limit=10 -> HTTP 200)
+[PASS] admin calculations summary (GET /v1/admin/calculations/summary -> HTTP 200)
+[PASS] admin calculations failed (GET /v1/admin/calculations/failed -> HTTP 200)
+[FAIL] admin calculations history cleared
+       GET /v1/admin/calculations/history-cleared expected HTTP 200 but got 500; response: {   "status": "error",   "message": "Internal server error",   "error_code": "INTERNAL_SERVER_ERROR",   "details": {},   "path": "/v1/admin/calculations/history-cleared",   "request_id": "req-6b1450e5-4ddb-4b2c-b418-2038cae33a9a",   "trace_id": "5e1009e1e4fe470394b260cd7d2aa9f7",   "timestamp": "2026-05-13T12:20:53.6364289+00:00" } 
+[PASS] admin calculations audit (GET /v1/admin/calculations/audit -> HTTP 200)
+[PASS] admin user calculations (GET /v1/admin/calculations/users/f933d4ab-1f3b-4b66-86f0-b05ce01cc528 -> HTTP 200)
+[PASS] admin user calculations summary (GET /v1/admin/calculations/users/f933d4ab-1f3b-4b66-86f0-b05ce01cc528/summary -> HTTP 200)
+[PASS] admin user failed calculations (GET /v1/admin/calculations/users/f933d4ab-1f3b-4b66-86f0-b05ce01cc528/failed -> HTTP 200)
+[PASS] admin user calculations by operation (GET /v1/admin/calculations/users/f933d4ab-1f3b-4b66-86f0-b05ce01cc528/operations/ADD -> HTTP 200)
+[PASS] admin calculation get (GET /v1/admin/calculations/calc-c8c33a57-9fdb-43db-b12c-c0b29abc8fbc -> HTTP 200)
+[PASS] admin calculation missing (GET /v1/admin/calculations/missing-calculation-fa15fac8-f590-45af-98a0-3cafaec1e7af -> HTTP 404)
+[PASS] admin todos list (GET /v1/admin/todos?limit=10 -> HTTP 200)
+[PASS] admin todos summary (GET /v1/admin/todos/summary -> HTTP 200)
+[FAIL] admin todos overdue
+       GET /v1/admin/todos/overdue expected HTTP 200 but got 500; response: {   "status": "error",   "message": "Internal server error",   "error_code": "INTERNAL_SERVER_ERROR",   "details": {},   "path": "/v1/admin/todos/overdue",   "request_id": "req-230c15c6-dce6-4b67-af56-f92409c51670",   "trace_id": "3a0bb47d7c5d486a93a81c2fa858e65b",   "timestamp": "2026-05-13T12:20:54.6596433+00:00" } 
+[PASS] admin todos today (GET /v1/admin/todos/today -> HTTP 200)
+[PASS] admin todos archived (GET /v1/admin/todos/archived -> HTTP 200)
+[PASS] admin todos deleted (GET /v1/admin/todos/deleted -> HTTP 200)
+[PASS] admin todos audit (GET /v1/admin/todos/audit -> HTTP 200)
+[PASS] admin user todos (GET /v1/admin/todos/users/f933d4ab-1f3b-4b66-86f0-b05ce01cc528 -> HTTP 200)
+[PASS] admin user todos summary (GET /v1/admin/todos/users/f933d4ab-1f3b-4b66-86f0-b05ce01cc528/summary -> HTTP 200)
+[FAIL] admin user todos overdue
+       GET /v1/admin/todos/users/f933d4ab-1f3b-4b66-86f0-b05ce01cc528/overdue expected HTTP 200 but got 500; response: {   "status": "error",   "message": "Internal server error",   "error_code": "INTERNAL_SERVER_ERROR",   "details": {},   "path": "/v1/admin/todos/users/f933d4ab-1f3b-4b66-86f0-b05ce01cc528/overdue",   "request_id": "req-7feaf337-4c5a-41d7-9886-4998a9b1facd",   "trace_id": "2da5f9209203418d8b85424ccff79954",   "timestamp": "2026-05-13T12:20:55.558963+00:00" } 
+[PASS] admin user todos today (GET /v1/admin/todos/users/f933d4ab-1f3b-4b66-86f0-b05ce01cc528/today -> HTTP 200)
+[PASS] admin user todos activity (GET /v1/admin/todos/users/f933d4ab-1f3b-4b66-86f0-b05ce01cc528/activity -> HTTP 200)
+[PASS] admin todo get (GET /v1/admin/todos/dba632b9-6b5a-4dbc-9da3-3405182f81a3 -> HTTP 404)
+[PASS] admin todo history (GET /v1/admin/todos/dba632b9-6b5a-4dbc-9da3-3405182f81a3/history -> HTTP 200)
+[PASS] admin todo missing (GET /v1/admin/todos/missing-todo-bb7fa17f-a160-481a-9eda-638b07b5078d -> HTTP 404)
+[PASS] admin reports list (GET /v1/admin/reports?limit=10 -> HTTP 200)
+[PASS] admin reports summary (GET /v1/admin/reports/summary -> HTTP 200)
+[PASS] admin report types (GET /v1/admin/reports/types -> HTTP 200)
+[PASS] admin report type calculator (GET /v1/admin/reports/types/calculator_history_report -> HTTP 200)
+[PASS] admin report templates list (GET /v1/admin/reports/templates -> HTTP 200)
+[PASS] admin report template get (GET /v1/admin/reports/templates/template-disabled -> HTTP 200)
+[PASS] admin report schedules list (GET /v1/admin/reports/schedules -> HTTP 200)
+[PASS] admin report schedule get (GET /v1/admin/reports/schedules/schedule-disabled -> HTTP 200)
+[PASS] admin report queue summary (GET /v1/admin/reports/queue/summary -> HTTP 200)
+[PASS] admin report audit (GET /v1/admin/reports/audit -> HTTP 200)
+[PASS] admin user report projections (GET /v1/admin/reports/users/f933d4ab-1f3b-4b66-86f0-b05ce01cc528 -> HTTP 200)
+[PASS] admin report get (GET /v1/admin/reports/evt-92ed434a-f2c7-4902-ad3f-489b51496c38 -> HTTP 200)
+[PASS] admin report metadata (GET /v1/admin/reports/evt-92ed434a-f2c7-4902-ad3f-489b51496c38/metadata -> HTTP 200)
+[PASS] admin report progress (GET /v1/admin/reports/evt-92ed434a-f2c7-4902-ad3f-489b51496c38/progress -> HTTP 200)
+[PASS] admin report events (GET /v1/admin/reports/evt-92ed434a-f2c7-4902-ad3f-489b51496c38/events -> HTTP 200)
+[PASS] admin report files (GET /v1/admin/reports/evt-92ed434a-f2c7-4902-ad3f-489b51496c38/files -> HTTP 200)
+[PASS] admin report preview (GET /v1/admin/reports/evt-92ed434a-f2c7-4902-ad3f-489b51496c38/preview -> HTTP 200)
+[PASS] admin report download info (GET /v1/admin/reports/evt-92ed434a-f2c7-4902-ad3f-489b51496c38/download-info -> HTTP 200)
+[PASS] admin report missing (GET /v1/admin/reports/missing-report-52cc5872-4a96-4e14-9a56-52ea87995ca5 -> HTTP 404)
+[PASS] admin report metadata missing (GET /v1/admin/reports/missing-report-52cc5872-4a96-4e14-9a56-52ea87995ca5/metadata -> HTTP 404)
+[PASS] admin audit list (GET /v1/admin/audit?limit=10 -> HTTP 200)
+[PASS] admin audit missing (GET /v1/admin/audit/missing-audit-d51fd0ea-2cd2-4ba9-8fd6-59cd43e7444d -> HTTP 404)
+
+Admin invalid-input and mutation coverage
+[PASS] admin approve registration missing (POST /v1/admin/registrations/missing-registration-a3e829c4-5e15-4980-a7f7-bf83997a0720/approve -> HTTP 404)
+[PASS] admin reject registration missing (POST /v1/admin/registrations/missing-registration-a3e829c4-5e15-4980-a7f7-bf83997a0720/reject -> HTTP 409)
+[PASS] admin approve registration malformed (POST /v1/admin/registrations/missing-registration-a3e829c4-5e15-4980-a7f7-bf83997a0720/approve -> HTTP 400)
+[PASS] admin approve access request missing (POST /v1/admin/access-requests/missing-access-request-821dfc9d-2fcd-4711-930e-c016ffccdca2/approve -> HTTP 404)
+[PASS] admin reject access request missing (POST /v1/admin/access-requests/missing-access-request-821dfc9d-2fcd-4711-930e-c016ffccdca2/reject -> HTTP 409)
+[PASS] admin approve access request malformed (POST /v1/admin/access-requests/missing-access-request-821dfc9d-2fcd-4711-930e-c016ffccdca2/approve -> HTTP 400)
+[PASS] admin revoke access grant missing (POST /v1/admin/access-grants/missing-access-grant-13dd21f7-6c51-4587-94c8-e42d12cad115/revoke -> HTTP 404)
+[PASS] admin suspend missing user (POST /v1/admin/users/missing-user-832332c7-fa4b-4f0b-994a-4bcd0740d4cc/suspend -> HTTP 404)
+[PASS] admin activate missing user (POST /v1/admin/users/missing-user-832332c7-fa4b-4f0b-994a-4bcd0740d4cc/activate -> HTTP 404)
+[PASS] admin force password reset missing user (POST /v1/admin/users/missing-user-832332c7-fa4b-4f0b-994a-4bcd0740d4cc/force-password-reset -> HTTP 404)
+[PASS] admin create report invalid format (POST /v1/admin/reports -> HTTP 400)
+[PASS] admin create report missing type (POST /v1/admin/reports -> HTTP 400)
+[PASS] admin create report malformed (POST /v1/admin/reports -> HTTP 400)
+[PASS] admin create report valid (POST /v1/admin/reports -> HTTP 201)
+[PASS] admin cancel report missing (POST /v1/admin/reports/missing-report-a94ea8f7-939f-4bf0-bba2-c86b34a693fb/cancel -> HTTP 404)
+[PASS] admin retry report missing (POST /v1/admin/reports/missing-report-a94ea8f7-939f-4bf0-bba2-c86b34a693fb/retry -> HTTP 404)
+[PASS] admin regenerate report missing (POST /v1/admin/reports/missing-report-a94ea8f7-939f-4bf0-bba2-c86b34a693fb/regenerate -> HTTP 404)
+[PASS] admin delete report missing (DELETE /v1/admin/reports/missing-report-a94ea8f7-939f-4bf0-bba2-c86b34a693fb -> HTTP 404)
+[PASS] admin create template disabled (POST /v1/admin/reports/templates -> HTTP 501)
+[PASS] admin update template disabled (PUT /v1/admin/reports/templates/template-disabled -> HTTP 501)
+[PASS] admin activate template disabled (POST /v1/admin/reports/templates/template-disabled/activate -> HTTP 501)
+[PASS] admin deactivate template disabled (POST /v1/admin/reports/templates/template-disabled/deactivate -> HTTP 501)
+[PASS] admin create schedule disabled (POST /v1/admin/reports/schedules -> HTTP 501)
+[PASS] admin update schedule disabled (PUT /v1/admin/reports/schedules/schedule-disabled -> HTTP 501)
+[PASS] admin pause schedule disabled (POST /v1/admin/reports/schedules/schedule-disabled/pause -> HTTP 501)
+[PASS] admin resume schedule disabled (POST /v1/admin/reports/schedules/schedule-disabled/resume -> HTTP 501)
+[PASS] admin delete schedule disabled (DELETE /v1/admin/reports/schedules/schedule-disabled -> HTTP 501)
+
+Final health check
+[PASS] admin health after all checks (GET /health -> HTTP 200)
+[PASS] admin health after all checks envelope status is ok
+
+Summary: 164 total, 156 passed, 4 failed, 4 skipped
+Admin Base URL:       http://192.168.56.100:1011
+Auth Base URL:        http://192.168.56.100:6061
+Mutation mode:        0
+Discovered user id:   f933d4ab-1f3b-4b66-86f0-b05ce01cc528
+Discovered reg id:    <none>
+Discovered access id: req-0355fd84-fa66-4254-9ee6-e305c51608e0
+Discovered grant id:  <none>
+Discovered calc id:   calc-c8c33a57-9fdb-43db-b12c-c0b29abc8fbc
+Discovered todo id:   dba632b9-6b5a-4dbc-9da3-3405182f81a3
+Discovered report id: report-f443e00c7de34f9686d7f176062ae29a
+
+One or more admin service checks failed. Review failed responses above.
+Admin Service Full API Test
+Admin Base URL:        http://192.168.56.100:1011
+Auth Base URL:         http://192.168.56.100:6061
+User Base URL:         http://192.168.56.100:4041
+Calculator Base URL:   http://192.168.56.100:2021
+Todo Base URL:         http://192.168.56.100:3031
+Report Base URL:       http://192.168.56.100:5051
+Mutation mode:         0
+Seed other services:   1
+Admin forwarded proto: https
+Run ID:                1778674876-14397
+
+Auth preparation
+[PASS] auth hello (GET /hello -> HTTP 200)
+[PASS] auth health (GET /health -> HTTP 200)
+[PASS] auth admin signin (POST /v1/signin -> HTTP 200)
+[PASS] admin token extracted
+[PASS] auth admin token belongs to approved admin
+[PASS] auth signup normal user (POST /v1/signup -> HTTP 200)
+[PASS] auth signin normal user (POST /v1/signin -> HTTP 200)
+[PASS] normal user token extracted
+[PASS] normal user id extracted: d17cc215-7bdd-415a-bf09-3cd10af96644
+[PASS] auth signup second user (POST /v1/signup -> HTTP 200)
+[PASS] auth signin second user (POST /v1/signin -> HTTP 200)
+[PASS] second user token extracted
+[PASS] second user id extracted: e94ada80-2ef3-4186-9107-65f6965b434a
+
+Cross-service seeding for admin projections
+[PASS] user profile me (GET /v1/users/me -> HTTP 200)
+[PASS] user dashboard me (GET /v1/users/me/dashboard -> HTTP 200)
+[FAIL] user create access request
+       POST /v1/users/access-requests expected HTTP 200|201|409 but got 400; response: {   "status": "error",   "message": "expires_at exceeds maximum TTL",   "error_code": "ACCESS_REQUEST_TTL_EXCEEDED",   "details": {},   "path": "/v1/users/access-requests",   "request_id": "req-7fcb290e-cfa1-497a-9b16-b4a46500e80e",   "trace_id": "141dc15581a4430aaa90fe66c149cd82",   "timestamp": "2026-05-13T12:21:18.611420116Z" } 
+[PASS] access request id extracted from user_service: req-7fcb290e-cfa1-497a-9b16-b4a46500e80e
+[PASS] calculator operations (GET /v1/calculator/operations -> HTTP 200)
+[PASS] calculator calculate add (POST /v1/calculator/calculate -> HTTP 200)
+[PASS] calculation id extracted: calc-ed7d2463-5dba-4bb4-9290-656aa156f6fc
+[PASS] todo create (POST /v1/todos -> HTTP 201)
+[PASS] todo id extracted: a53b5c22-d4e5-45ed-9fb1-21cc6f4a6011
+[PASS] todo complete (POST /v1/todos/a53b5c22-d4e5-45ed-9fb1-21cc6f4a6011/complete -> HTTP 200)
+[PASS] report service types (GET /v1/reports/types -> HTTP 200)
+[PASS] report service create report (POST /v1/reports -> HTTP 201)
+Waiting 8s for Kafka projection updates...
+
+Admin public/rejected route contract
+[PASS] admin hello (GET /hello -> HTTP 200)
+[PASS] admin hello envelope status is ok
+[PASS] admin health (GET /health -> HTTP 200)
+[PASS] admin health envelope status is ok
+[PASS] admin health dependency keys are complete
+[PASS] admin docs (GET /docs -> HTTP 200)
+[PASS] admin root rejected (GET / -> HTTP 404)
+[PASS] admin live rejected (GET /live -> HTTP 404)
+[PASS] admin ready rejected (GET /ready -> HTTP 404)
+[PASS] admin healthy rejected (GET /healthy -> HTTP 404)
+[PASS] admin openapi rejected (GET /openapi.json -> HTTP 404)
+[PASS] admin swagger rejected (GET /swagger -> HTTP 404)
+[PASS] admin redoc rejected (GET /redoc -> HTTP 404)
+[PASS] admin swagger index rejected (GET /swagger/index.html -> HTTP 404)
+[PASS] admin swagger json rejected (GET /swagger/v1/swagger.json -> HTTP 404)
+
+Admin auth/authorization contract
+[PASS] admin dashboard without token (GET /v1/admin/dashboard -> HTTP 401)
+[PASS] admin dashboard without token envelope status is error
+[PASS] admin dashboard invalid token (GET /v1/admin/dashboard -> HTTP 401)
+[PASS] admin dashboard invalid token envelope status is error
+[PASS] admin dashboard normal user forbidden (GET /v1/admin/dashboard -> HTTP 403)
+[PASS] admin dashboard normal user forbidden envelope status is error
+[PASS] admin dashboard approved admin (GET /v1/admin/dashboard -> HTTP 200)
+[PASS] admin dashboard approved admin envelope status is ok
+
+Admin projection discovery
+[PASS] admin list users discovery (GET /v1/admin/users?limit=50 -> HTTP 200)
+[PASS] discovered admin user projection id: e94ada80-2ef3-4186-9107-65f6965b434a
+[PASS] admin list registrations discovery (GET /v1/admin/registrations?limit=20 -> HTTP 200)
+[SKIP] discovered registration id
+       no registration requests projected
+[PASS] admin list access requests discovery (GET /v1/admin/access-requests?limit=20 -> HTTP 200)
+[PASS] discovered access request id: req-7fcb290e-cfa1-497a-9b16-b4a46500e80e
+[PASS] admin list access grants discovery (GET /v1/admin/access-grants?limit=20 -> HTTP 200)
+[SKIP] discovered access grant id
+       no access grants projected
+[PASS] admin list calculations discovery (GET /v1/admin/calculations?limit=20 -> HTTP 200)
+[PASS] discovered calculation id: calc-ed7d2463-5dba-4bb4-9290-656aa156f6fc
+[PASS] admin list todos discovery (GET /v1/admin/todos?limit=20 -> HTTP 200)
+[PASS] discovered todo id: a53b5c22-d4e5-45ed-9fb1-21cc6f4a6011
+[PASS] admin list reports discovery (GET /v1/admin/reports?limit=20 -> HTTP 200)
+[PASS] discovered report id: evt-bb1fbf36-5ae2-48f0-bb05-cd688b38bd08
+[PASS] admin list audit discovery (GET /v1/admin/audit?limit=20 -> HTTP 200)
+[PASS] discovered audit event id: evt-f25c91df01994a16b8f7c6c14720d084
+[PASS] admin report audit discovery (GET /v1/admin/reports/audit?limit=20 -> HTTP 200)
+[PASS] discovered report audit event id: evt-f25c91df01994a16b8f7c6c14720d084
+
+Admin read API coverage
+[PASS] admin dashboard (GET /v1/admin/dashboard -> HTTP 200)
+[PASS] admin summary (GET /v1/admin/summary -> HTTP 200)
+[PASS] admin registrations list (GET /v1/admin/registrations?limit=10 -> HTTP 200)
+[PASS] admin registration get missing (GET /v1/admin/registrations/missing-registration-95386b99-4199-4ea1-b37f-036a123493af -> HTTP 404)
+[PASS] admin access requests list (GET /v1/admin/access-requests?limit=10 -> HTTP 200)
+[PASS] admin access request get (GET /v1/admin/access-requests/req-7fcb290e-cfa1-497a-9b16-b4a46500e80e -> HTTP 404)
+[PASS] admin access request missing (GET /v1/admin/access-requests/missing-access-request-77dffea6-f702-4af6-b4ab-894cfab6d394 -> HTTP 404)
+[PASS] admin access grants list (GET /v1/admin/access-grants?limit=10 -> HTTP 200)
+[PASS] admin access grant missing (GET /v1/admin/access-grants/missing-access-grant-87a2be86-5b0e-41c3-a4db-8edef0198773 -> HTTP 404)
+[PASS] admin users list (GET /v1/admin/users?limit=10 -> HTTP 200)
+[PASS] admin user get (GET /v1/admin/users/d17cc215-7bdd-415a-bf09-3cd10af96644 -> HTTP 200)
+[PASS] admin user activity (GET /v1/admin/users/d17cc215-7bdd-415a-bf09-3cd10af96644/activity -> HTTP 200)
+[PASS] admin user dashboard (GET /v1/admin/users/d17cc215-7bdd-415a-bf09-3cd10af96644/dashboard -> HTTP 200)
+[PASS] admin user preferences (GET /v1/admin/users/d17cc215-7bdd-415a-bf09-3cd10af96644/preferences -> HTTP 200)
+[PASS] admin user security context (GET /v1/admin/users/d17cc215-7bdd-415a-bf09-3cd10af96644/security-context -> HTTP 200)
+[PASS] admin user rbac (GET /v1/admin/users/d17cc215-7bdd-415a-bf09-3cd10af96644/rbac -> HTTP 200)
+[PASS] admin user effective permissions (GET /v1/admin/users/d17cc215-7bdd-415a-bf09-3cd10af96644/effective-permissions -> HTTP 200)
+[PASS] admin user access requests (GET /v1/admin/users/d17cc215-7bdd-415a-bf09-3cd10af96644/access-requests -> HTTP 200)
+[PASS] admin user access grants (GET /v1/admin/users/d17cc215-7bdd-415a-bf09-3cd10af96644/access-grants -> HTTP 200)
+[PASS] admin user reports (GET /v1/admin/users/d17cc215-7bdd-415a-bf09-3cd10af96644/reports -> HTTP 200)
+[PASS] admin user get missing (GET /v1/admin/users/missing-user-a4e74155-9c31-4e32-b4b5-1a45c689204a -> HTTP 404)
+[PASS] admin calculations list (GET /v1/admin/calculations?limit=10 -> HTTP 200)
+[PASS] admin calculations summary (GET /v1/admin/calculations/summary -> HTTP 200)
+[PASS] admin calculations failed (GET /v1/admin/calculations/failed -> HTTP 200)
+[FAIL] admin calculations history cleared
+       GET /v1/admin/calculations/history-cleared expected HTTP 200 but got 500; response: {   "status": "error",   "message": "Internal server error",   "error_code": "INTERNAL_SERVER_ERROR",   "details": {},   "path": "/v1/admin/calculations/history-cleared",   "request_id": "req-915b3443-79a5-43af-9ebd-6f258f20fb56",   "trace_id": "08ec482843794e32bf4673c9f342a88a",   "timestamp": "2026-05-13T12:21:35.2519868+00:00" } 
+[PASS] admin calculations audit (GET /v1/admin/calculations/audit -> HTTP 200)
+[PASS] admin user calculations (GET /v1/admin/calculations/users/d17cc215-7bdd-415a-bf09-3cd10af96644 -> HTTP 200)
+[PASS] admin user calculations summary (GET /v1/admin/calculations/users/d17cc215-7bdd-415a-bf09-3cd10af96644/summary -> HTTP 200)
+[PASS] admin user failed calculations (GET /v1/admin/calculations/users/d17cc215-7bdd-415a-bf09-3cd10af96644/failed -> HTTP 200)
+[PASS] admin user calculations by operation (GET /v1/admin/calculations/users/d17cc215-7bdd-415a-bf09-3cd10af96644/operations/ADD -> HTTP 200)
+[PASS] admin calculation get (GET /v1/admin/calculations/calc-ed7d2463-5dba-4bb4-9290-656aa156f6fc -> HTTP 200)
+[PASS] admin calculation missing (GET /v1/admin/calculations/missing-calculation-a7c8e59b-fb80-4861-a24b-6ae0ab599602 -> HTTP 404)
+[PASS] admin todos list (GET /v1/admin/todos?limit=10 -> HTTP 200)
+[PASS] admin todos summary (GET /v1/admin/todos/summary -> HTTP 200)
+[FAIL] admin todos overdue
+       GET /v1/admin/todos/overdue expected HTTP 200 but got 500; response: {   "status": "error",   "message": "Internal server error",   "error_code": "INTERNAL_SERVER_ERROR",   "details": {},   "path": "/v1/admin/todos/overdue",   "request_id": "req-a7ff4c16-9f1b-4057-9cdf-587bd00e022e",   "trace_id": "600232db409e44acac3c5d3f2fc82f50",   "timestamp": "2026-05-13T12:21:36.3303623+00:00" } 
+[PASS] admin todos today (GET /v1/admin/todos/today -> HTTP 200)
+[PASS] admin todos archived (GET /v1/admin/todos/archived -> HTTP 200)
+[PASS] admin todos deleted (GET /v1/admin/todos/deleted -> HTTP 200)
+[PASS] admin todos audit (GET /v1/admin/todos/audit -> HTTP 200)
+[PASS] admin user todos (GET /v1/admin/todos/users/d17cc215-7bdd-415a-bf09-3cd10af96644 -> HTTP 200)
+[PASS] admin user todos summary (GET /v1/admin/todos/users/d17cc215-7bdd-415a-bf09-3cd10af96644/summary -> HTTP 200)
+[FAIL] admin user todos overdue
+       GET /v1/admin/todos/users/d17cc215-7bdd-415a-bf09-3cd10af96644/overdue expected HTTP 200 but got 500; response: {   "status": "error",   "message": "Internal server error",   "error_code": "INTERNAL_SERVER_ERROR",   "details": {},   "path": "/v1/admin/todos/users/d17cc215-7bdd-415a-bf09-3cd10af96644/overdue",   "request_id": "req-e85ffcf1-bce6-49d9-954e-6c3797df1a53",   "trace_id": "e85e680d06314ec2ab074b3029b2ca70",   "timestamp": "2026-05-13T12:21:36.985135+00:00" } 
+[PASS] admin user todos today (GET /v1/admin/todos/users/d17cc215-7bdd-415a-bf09-3cd10af96644/today -> HTTP 200)
+[PASS] admin user todos activity (GET /v1/admin/todos/users/d17cc215-7bdd-415a-bf09-3cd10af96644/activity -> HTTP 200)
+[PASS] admin todo get (GET /v1/admin/todos/a53b5c22-d4e5-45ed-9fb1-21cc6f4a6011 -> HTTP 404)
+[PASS] admin todo history (GET /v1/admin/todos/a53b5c22-d4e5-45ed-9fb1-21cc6f4a6011/history -> HTTP 200)
+[PASS] admin todo missing (GET /v1/admin/todos/missing-todo-68780958-756a-4255-8283-45b45b34d094 -> HTTP 404)
+[PASS] admin reports list (GET /v1/admin/reports?limit=10 -> HTTP 200)
+[PASS] admin reports summary (GET /v1/admin/reports/summary -> HTTP 200)
+[PASS] admin report types (GET /v1/admin/reports/types -> HTTP 200)
+[PASS] admin report type calculator (GET /v1/admin/reports/types/calculator_history_report -> HTTP 200)
+[PASS] admin report templates list (GET /v1/admin/reports/templates -> HTTP 200)
+[PASS] admin report template get (GET /v1/admin/reports/templates/template-disabled -> HTTP 200)
+[PASS] admin report schedules list (GET /v1/admin/reports/schedules -> HTTP 200)
+[PASS] admin report schedule get (GET /v1/admin/reports/schedules/schedule-disabled -> HTTP 200)
+[PASS] admin report queue summary (GET /v1/admin/reports/queue/summary -> HTTP 200)
+[PASS] admin report audit (GET /v1/admin/reports/audit -> HTTP 200)
+[PASS] admin user report projections (GET /v1/admin/reports/users/d17cc215-7bdd-415a-bf09-3cd10af96644 -> HTTP 200)
+[PASS] admin report get (GET /v1/admin/reports/evt-bb1fbf36-5ae2-48f0-bb05-cd688b38bd08 -> HTTP 200)
+[PASS] admin report metadata (GET /v1/admin/reports/evt-bb1fbf36-5ae2-48f0-bb05-cd688b38bd08/metadata -> HTTP 200)
+[PASS] admin report progress (GET /v1/admin/reports/evt-bb1fbf36-5ae2-48f0-bb05-cd688b38bd08/progress -> HTTP 200)
+[PASS] admin report events (GET /v1/admin/reports/evt-bb1fbf36-5ae2-48f0-bb05-cd688b38bd08/events -> HTTP 200)
+[PASS] admin report files (GET /v1/admin/reports/evt-bb1fbf36-5ae2-48f0-bb05-cd688b38bd08/files -> HTTP 200)
+[PASS] admin report preview (GET /v1/admin/reports/evt-bb1fbf36-5ae2-48f0-bb05-cd688b38bd08/preview -> HTTP 200)
+[PASS] admin report download info (GET /v1/admin/reports/evt-bb1fbf36-5ae2-48f0-bb05-cd688b38bd08/download-info -> HTTP 200)
+[PASS] admin report missing (GET /v1/admin/reports/missing-report-05a670c2-085f-4111-86bb-1b096f8940ef -> HTTP 404)
+[PASS] admin report metadata missing (GET /v1/admin/reports/missing-report-05a670c2-085f-4111-86bb-1b096f8940ef/metadata -> HTTP 404)
+[PASS] admin audit list (GET /v1/admin/audit?limit=10 -> HTTP 200)
+[PASS] admin audit get (GET /v1/admin/audit/evt-f25c91df01994a16b8f7c6c14720d084 -> HTTP 200)
+[PASS] admin audit missing (GET /v1/admin/audit/missing-audit-e24a65a1-cef6-4a23-ad93-38d7dcbf9368 -> HTTP 404)
+[PASS] admin report audit event get (GET /v1/admin/reports/audit/evt-f25c91df01994a16b8f7c6c14720d084 -> HTTP 200)
+
+Admin invalid-input and mutation coverage
+[PASS] admin approve registration missing (POST /v1/admin/registrations/missing-registration-c2c7602d-5fc9-4bcb-8267-f5d665d6e604/approve -> HTTP 404)
+[PASS] admin reject registration missing (POST /v1/admin/registrations/missing-registration-c2c7602d-5fc9-4bcb-8267-f5d665d6e604/reject -> HTTP 409)
+[PASS] admin approve registration malformed (POST /v1/admin/registrations/missing-registration-c2c7602d-5fc9-4bcb-8267-f5d665d6e604/approve -> HTTP 400)
+[PASS] admin approve access request missing (POST /v1/admin/access-requests/missing-access-request-fd1deec9-80ba-4ea7-b259-74e71c04f7b3/approve -> HTTP 404)
+[PASS] admin reject access request missing (POST /v1/admin/access-requests/missing-access-request-fd1deec9-80ba-4ea7-b259-74e71c04f7b3/reject -> HTTP 409)
+[PASS] admin approve access request malformed (POST /v1/admin/access-requests/missing-access-request-fd1deec9-80ba-4ea7-b259-74e71c04f7b3/approve -> HTTP 400)
+[PASS] admin revoke access grant missing (POST /v1/admin/access-grants/missing-access-grant-aa74b07c-a606-4c1f-b7f3-8d2108cf3c88/revoke -> HTTP 404)
+[PASS] admin suspend missing user (POST /v1/admin/users/missing-user-f9a8b5ad-79ff-422a-ab66-e07e96cf9150/suspend -> HTTP 404)
+[PASS] admin activate missing user (POST /v1/admin/users/missing-user-f9a8b5ad-79ff-422a-ab66-e07e96cf9150/activate -> HTTP 404)
+[PASS] admin force password reset missing user (POST /v1/admin/users/missing-user-f9a8b5ad-79ff-422a-ab66-e07e96cf9150/force-password-reset -> HTTP 404)
+[PASS] admin create report invalid format (POST /v1/admin/reports -> HTTP 400)
+[PASS] admin create report missing type (POST /v1/admin/reports -> HTTP 400)
+[PASS] admin create report malformed (POST /v1/admin/reports -> HTTP 400)
+[PASS] admin create report valid (POST /v1/admin/reports -> HTTP 201)
+[PASS] admin cancel report missing (POST /v1/admin/reports/missing-report-be0427a4-5e4d-461f-88f0-65a6f2d5425b/cancel -> HTTP 404)
+[PASS] admin retry report missing (POST /v1/admin/reports/missing-report-be0427a4-5e4d-461f-88f0-65a6f2d5425b/retry -> HTTP 404)
+[PASS] admin regenerate report missing (POST /v1/admin/reports/missing-report-be0427a4-5e4d-461f-88f0-65a6f2d5425b/regenerate -> HTTP 404)
+[PASS] admin delete report missing (DELETE /v1/admin/reports/missing-report-be0427a4-5e4d-461f-88f0-65a6f2d5425b -> HTTP 404)
+[PASS] admin create template disabled (POST /v1/admin/reports/templates -> HTTP 501)
+[PASS] admin update template disabled (PUT /v1/admin/reports/templates/template-disabled -> HTTP 501)
+[PASS] admin activate template disabled (POST /v1/admin/reports/templates/template-disabled/activate -> HTTP 501)
+[PASS] admin deactivate template disabled (POST /v1/admin/reports/templates/template-disabled/deactivate -> HTTP 501)
+[PASS] admin create schedule disabled (POST /v1/admin/reports/schedules -> HTTP 501)
+[PASS] admin update schedule disabled (PUT /v1/admin/reports/schedules/schedule-disabled -> HTTP 501)
+[PASS] admin pause schedule disabled (POST /v1/admin/reports/schedules/schedule-disabled/pause -> HTTP 501)
+[PASS] admin resume schedule disabled (POST /v1/admin/reports/schedules/schedule-disabled/resume -> HTTP 501)
+[PASS] admin delete schedule disabled (DELETE /v1/admin/reports/schedules/schedule-disabled -> HTTP 501)
+
+Final health check
+[PASS] admin health after all checks (GET /health -> HTTP 200)
+[PASS] admin health after all checks envelope status is ok
+
+Summary: 166 total, 160 passed, 4 failed, 2 skipped
+Admin Base URL:       http://192.168.56.100:1011
+Auth Base URL:        http://192.168.56.100:6061
+Mutation mode:        0
+Discovered user id:   d17cc215-7bdd-415a-bf09-3cd10af96644
+Discovered reg id:    <none>
+Discovered access id: req-7fcb290e-cfa1-497a-9b16-b4a46500e80e
+Discovered grant id:  <none>
+Discovered calc id:   calc-ed7d2463-5dba-4bb4-9290-656aa156f6fc
+Discovered todo id:   a53b5c22-d4e5-45ed-9fb1-21cc6f4a6011
+Discovered report id: report-7008cfc78f5346e3a931b19671282dac
+
+One or more admin service checks failed. Review failed responses above.
+Admin Service Full API Test
+Admin Base URL:        http://192.168.56.100:1011
+Auth Base URL:         http://192.168.56.100:6061
+User Base URL:         http://192.168.56.100:4041
+Calculator Base URL:   http://192.168.56.100:2021
+Todo Base URL:         http://192.168.56.100:3031
+Report Base URL:       http://192.168.56.100:5051
+Mutation mode:         0
+Seed other services:   1
+Admin forwarded proto: https
+Run ID:                1778674912-14672
+
+Auth preparation
+[PASS] auth hello (GET /hello -> HTTP 200)
+[PASS] auth health (GET /health -> HTTP 200)
+[PASS] auth admin signin (POST /v1/signin -> HTTP 200)
+[PASS] admin token extracted
+[PASS] auth admin token belongs to approved admin
+[PASS] auth signup normal user (POST /v1/signup -> HTTP 200)
+[PASS] auth signin normal user (POST /v1/signin -> HTTP 200)
+[PASS] normal user token extracted
+[PASS] normal user id extracted: 9647de91-5727-4574-834f-5385362a38b5
+[PASS] auth signup second user (POST /v1/signup -> HTTP 200)
+[PASS] auth signin second user (POST /v1/signin -> HTTP 200)
+[PASS] second user token extracted
+[PASS] second user id extracted: a00cd552-b789-412f-a16a-974630d5b1e6
+
+Cross-service seeding for admin projections
+[PASS] user profile me (GET /v1/users/me -> HTTP 200)
+[PASS] user dashboard me (GET /v1/users/me/dashboard -> HTTP 200)
+[FAIL] user create access request
+       POST /v1/users/access-requests expected HTTP 200|201|409 but got 400; response: {   "status": "error",   "message": "expires_at exceeds maximum TTL",   "error_code": "ACCESS_REQUEST_TTL_EXCEEDED",   "details": {},   "path": "/v1/users/access-requests",   "request_id": "req-cca8946e-acb9-4f3e-bf65-90e072ef6fac",   "trace_id": "621d87d39d9e43de841e662dd2dc577c",   "timestamp": "2026-05-13T12:21:54.87019224Z" } 
+[PASS] access request id extracted from user_service: req-cca8946e-acb9-4f3e-bf65-90e072ef6fac
+[PASS] calculator operations (GET /v1/calculator/operations -> HTTP 200)
+[PASS] calculator calculate add (POST /v1/calculator/calculate -> HTTP 200)
+[PASS] calculation id extracted: calc-eaf42c89-cb73-4d00-8590-131323f3876e
+[PASS] todo create (POST /v1/todos -> HTTP 201)
+[PASS] todo id extracted: 8de12142-35be-4486-9e95-6bf3c1358855
+[PASS] todo complete (POST /v1/todos/8de12142-35be-4486-9e95-6bf3c1358855/complete -> HTTP 200)
+[PASS] report service types (GET /v1/reports/types -> HTTP 200)
+[PASS] report service create report (POST /v1/reports -> HTTP 201)
+Waiting 8s for Kafka projection updates...
+
+Admin public/rejected route contract
+[PASS] admin hello (GET /hello -> HTTP 200)
+[PASS] admin hello envelope status is ok
+[PASS] admin health (GET /health -> HTTP 200)
+[PASS] admin health envelope status is ok
+[PASS] admin health dependency keys are complete
+[PASS] admin docs (GET /docs -> HTTP 200)
+[PASS] admin root rejected (GET / -> HTTP 404)
+[PASS] admin live rejected (GET /live -> HTTP 404)
+[PASS] admin ready rejected (GET /ready -> HTTP 404)
+[PASS] admin healthy rejected (GET /healthy -> HTTP 404)
+[PASS] admin openapi rejected (GET /openapi.json -> HTTP 404)
+[PASS] admin swagger rejected (GET /swagger -> HTTP 404)
+[PASS] admin redoc rejected (GET /redoc -> HTTP 404)
+[PASS] admin swagger index rejected (GET /swagger/index.html -> HTTP 404)
+[PASS] admin swagger json rejected (GET /swagger/v1/swagger.json -> HTTP 404)
+
+Admin auth/authorization contract
+[PASS] admin dashboard without token (GET /v1/admin/dashboard -> HTTP 401)
+[PASS] admin dashboard without token envelope status is error
+[PASS] admin dashboard invalid token (GET /v1/admin/dashboard -> HTTP 401)
+[PASS] admin dashboard invalid token envelope status is error
+[PASS] admin dashboard normal user forbidden (GET /v1/admin/dashboard -> HTTP 403)
+[PASS] admin dashboard normal user forbidden envelope status is error
+[PASS] admin dashboard approved admin (GET /v1/admin/dashboard -> HTTP 200)
+[PASS] admin dashboard approved admin envelope status is ok
+
+Admin projection discovery
+[PASS] admin list users discovery (GET /v1/admin/users?limit=50 -> HTTP 200)
+[PASS] discovered admin user projection id: a00cd552-b789-412f-a16a-974630d5b1e6
+[PASS] admin list registrations discovery (GET /v1/admin/registrations?limit=20 -> HTTP 200)
+[SKIP] discovered registration id
+       no registration requests projected
+[PASS] admin list access requests discovery (GET /v1/admin/access-requests?limit=20 -> HTTP 200)
+[PASS] discovered access request id: req-cca8946e-acb9-4f3e-bf65-90e072ef6fac
+[PASS] admin list access grants discovery (GET /v1/admin/access-grants?limit=20 -> HTTP 200)
+[SKIP] discovered access grant id
+       no access grants projected
+[PASS] admin list calculations discovery (GET /v1/admin/calculations?limit=20 -> HTTP 200)
+[PASS] discovered calculation id: calc-eaf42c89-cb73-4d00-8590-131323f3876e
+[PASS] admin list todos discovery (GET /v1/admin/todos?limit=20 -> HTTP 200)
+[PASS] discovered todo id: 8de12142-35be-4486-9e95-6bf3c1358855
+[PASS] admin list reports discovery (GET /v1/admin/reports?limit=20 -> HTTP 200)
+[PASS] discovered report id: evt-782f3340-b1c6-4eab-b456-69b46df0c022
+[PASS] admin list audit discovery (GET /v1/admin/audit?limit=20 -> HTTP 200)
+[PASS] discovered audit event id: evt-e466000b445d45fb9ea7af7e63668d4d
+[PASS] admin report audit discovery (GET /v1/admin/reports/audit?limit=20 -> HTTP 200)
+[PASS] discovered report audit event id: evt-e466000b445d45fb9ea7af7e63668d4d
+
+Admin read API coverage
+[PASS] admin dashboard (GET /v1/admin/dashboard -> HTTP 200)
+[PASS] admin summary (GET /v1/admin/summary -> HTTP 200)
+[PASS] admin registrations list (GET /v1/admin/registrations?limit=10 -> HTTP 200)
+[PASS] admin registration get missing (GET /v1/admin/registrations/missing-registration-9c2dcaa1-e36c-4529-81d0-8e6408fe5f14 -> HTTP 404)
+[PASS] admin access requests list (GET /v1/admin/access-requests?limit=10 -> HTTP 200)
+[PASS] admin access request get (GET /v1/admin/access-requests/req-cca8946e-acb9-4f3e-bf65-90e072ef6fac -> HTTP 404)
+[PASS] admin access request missing (GET /v1/admin/access-requests/missing-access-request-de63d063-8acd-454e-b5ad-3b23b23fd582 -> HTTP 404)
+[PASS] admin access grants list (GET /v1/admin/access-grants?limit=10 -> HTTP 200)
+[PASS] admin access grant missing (GET /v1/admin/access-grants/missing-access-grant-ac392e69-e1b9-4121-a959-4c6d405b61cb -> HTTP 404)
+[PASS] admin users list (GET /v1/admin/users?limit=10 -> HTTP 200)
+[PASS] admin user get (GET /v1/admin/users/9647de91-5727-4574-834f-5385362a38b5 -> HTTP 200)
+[PASS] admin user activity (GET /v1/admin/users/9647de91-5727-4574-834f-5385362a38b5/activity -> HTTP 200)
+[PASS] admin user dashboard (GET /v1/admin/users/9647de91-5727-4574-834f-5385362a38b5/dashboard -> HTTP 200)
+[PASS] admin user preferences (GET /v1/admin/users/9647de91-5727-4574-834f-5385362a38b5/preferences -> HTTP 200)
+[PASS] admin user security context (GET /v1/admin/users/9647de91-5727-4574-834f-5385362a38b5/security-context -> HTTP 200)
+[PASS] admin user rbac (GET /v1/admin/users/9647de91-5727-4574-834f-5385362a38b5/rbac -> HTTP 200)
+[PASS] admin user effective permissions (GET /v1/admin/users/9647de91-5727-4574-834f-5385362a38b5/effective-permissions -> HTTP 200)
+[PASS] admin user access requests (GET /v1/admin/users/9647de91-5727-4574-834f-5385362a38b5/access-requests -> HTTP 200)
+[PASS] admin user access grants (GET /v1/admin/users/9647de91-5727-4574-834f-5385362a38b5/access-grants -> HTTP 200)
+[PASS] admin user reports (GET /v1/admin/users/9647de91-5727-4574-834f-5385362a38b5/reports -> HTTP 200)
+[PASS] admin user get missing (GET /v1/admin/users/missing-user-2ee85035-14c1-4e6f-a26e-21d3b01adae6 -> HTTP 404)
+[PASS] admin calculations list (GET /v1/admin/calculations?limit=10 -> HTTP 200)
+[PASS] admin calculations summary (GET /v1/admin/calculations/summary -> HTTP 200)
+[PASS] admin calculations failed (GET /v1/admin/calculations/failed -> HTTP 200)
+[FAIL] admin calculations history cleared
+       GET /v1/admin/calculations/history-cleared expected HTTP 200 but got 500; response: {   "status": "error",   "message": "Internal server error",   "error_code": "INTERNAL_SERVER_ERROR",   "details": {},   "path": "/v1/admin/calculations/history-cleared",   "request_id": "req-f0959eb9-be7e-4b04-ab35-9d4f8de5dbfe",   "trace_id": "6fb4620204644522a308ef4ada054aad",   "timestamp": "2026-05-13T12:22:10.6009256+00:00" } 
+[PASS] admin calculations audit (GET /v1/admin/calculations/audit -> HTTP 200)
+[PASS] admin user calculations (GET /v1/admin/calculations/users/9647de91-5727-4574-834f-5385362a38b5 -> HTTP 200)
+[PASS] admin user calculations summary (GET /v1/admin/calculations/users/9647de91-5727-4574-834f-5385362a38b5/summary -> HTTP 200)
+[PASS] admin user failed calculations (GET /v1/admin/calculations/users/9647de91-5727-4574-834f-5385362a38b5/failed -> HTTP 200)
+[PASS] admin user calculations by operation (GET /v1/admin/calculations/users/9647de91-5727-4574-834f-5385362a38b5/operations/ADD -> HTTP 200)
+[PASS] admin calculation get (GET /v1/admin/calculations/calc-eaf42c89-cb73-4d00-8590-131323f3876e -> HTTP 200)
+[PASS] admin calculation missing (GET /v1/admin/calculations/missing-calculation-acbcddaf-00d4-4ae7-9da0-a871c4a07f4a -> HTTP 404)
+[PASS] admin todos list (GET /v1/admin/todos?limit=10 -> HTTP 200)
+[PASS] admin todos summary (GET /v1/admin/todos/summary -> HTTP 200)
+[FAIL] admin todos overdue
+       GET /v1/admin/todos/overdue expected HTTP 200 but got 500; response: {   "status": "error",   "message": "Internal server error",   "error_code": "INTERNAL_SERVER_ERROR",   "details": {},   "path": "/v1/admin/todos/overdue",   "request_id": "req-87b07167-364f-4c07-bd6a-fd828e03892b",   "trace_id": "07be48159124423c8a872921a162dd20",   "timestamp": "2026-05-13T12:22:11.6668728+00:00" } 
+[PASS] admin todos today (GET /v1/admin/todos/today -> HTTP 200)
+[PASS] admin todos archived (GET /v1/admin/todos/archived -> HTTP 200)
+[PASS] admin todos deleted (GET /v1/admin/todos/deleted -> HTTP 200)
+[PASS] admin todos audit (GET /v1/admin/todos/audit -> HTTP 200)
+[PASS] admin user todos (GET /v1/admin/todos/users/9647de91-5727-4574-834f-5385362a38b5 -> HTTP 200)
+[PASS] admin user todos summary (GET /v1/admin/todos/users/9647de91-5727-4574-834f-5385362a38b5/summary -> HTTP 200)
+[FAIL] admin user todos overdue
+       GET /v1/admin/todos/users/9647de91-5727-4574-834f-5385362a38b5/overdue expected HTTP 200 but got 500; response: {   "status": "error",   "message": "Internal server error",   "error_code": "INTERNAL_SERVER_ERROR",   "details": {},   "path": "/v1/admin/todos/users/9647de91-5727-4574-834f-5385362a38b5/overdue",   "request_id": "req-d676e044-f9f5-439c-9206-9457765ac13d",   "trace_id": "bb7398d4500846fdbece9657c214d457",   "timestamp": "2026-05-13T12:22:12.4194595+00:00" } 
+[PASS] admin user todos today (GET /v1/admin/todos/users/9647de91-5727-4574-834f-5385362a38b5/today -> HTTP 200)
+[PASS] admin user todos activity (GET /v1/admin/todos/users/9647de91-5727-4574-834f-5385362a38b5/activity -> HTTP 200)
+[PASS] admin todo get (GET /v1/admin/todos/8de12142-35be-4486-9e95-6bf3c1358855 -> HTTP 404)
+[PASS] admin todo history (GET /v1/admin/todos/8de12142-35be-4486-9e95-6bf3c1358855/history -> HTTP 200)
+[PASS] admin todo missing (GET /v1/admin/todos/missing-todo-57e358e7-f731-413d-9bb4-d62ba89ba982 -> HTTP 404)
+[PASS] admin reports list (GET /v1/admin/reports?limit=10 -> HTTP 200)
+[PASS] admin reports summary (GET /v1/admin/reports/summary -> HTTP 200)
+[PASS] admin report types (GET /v1/admin/reports/types -> HTTP 200)
+[PASS] admin report type calculator (GET /v1/admin/reports/types/calculator_history_report -> HTTP 200)
+[PASS] admin report templates list (GET /v1/admin/reports/templates -> HTTP 200)
+[PASS] admin report template get (GET /v1/admin/reports/templates/template-disabled -> HTTP 200)
+[PASS] admin report schedules list (GET /v1/admin/reports/schedules -> HTTP 200)
+[PASS] admin report schedule get (GET /v1/admin/reports/schedules/schedule-disabled -> HTTP 200)
+[PASS] admin report queue summary (GET /v1/admin/reports/queue/summary -> HTTP 200)
+[PASS] admin report audit (GET /v1/admin/reports/audit -> HTTP 200)
+[PASS] admin user report projections (GET /v1/admin/reports/users/9647de91-5727-4574-834f-5385362a38b5 -> HTTP 200)
+[PASS] admin report get (GET /v1/admin/reports/evt-782f3340-b1c6-4eab-b456-69b46df0c022 -> HTTP 200)
+[PASS] admin report metadata (GET /v1/admin/reports/evt-782f3340-b1c6-4eab-b456-69b46df0c022/metadata -> HTTP 200)
+[PASS] admin report progress (GET /v1/admin/reports/evt-782f3340-b1c6-4eab-b456-69b46df0c022/progress -> HTTP 200)
+[PASS] admin report events (GET /v1/admin/reports/evt-782f3340-b1c6-4eab-b456-69b46df0c022/events -> HTTP 200)
+[PASS] admin report files (GET /v1/admin/reports/evt-782f3340-b1c6-4eab-b456-69b46df0c022/files -> HTTP 200)
+[PASS] admin report preview (GET /v1/admin/reports/evt-782f3340-b1c6-4eab-b456-69b46df0c022/preview -> HTTP 200)
+[PASS] admin report download info (GET /v1/admin/reports/evt-782f3340-b1c6-4eab-b456-69b46df0c022/download-info -> HTTP 200)
+[PASS] admin report missing (GET /v1/admin/reports/missing-report-8a74b0e7-f8b2-4b4e-b2c7-901fc08b5ef4 -> HTTP 404)
+[PASS] admin report metadata missing (GET /v1/admin/reports/missing-report-8a74b0e7-f8b2-4b4e-b2c7-901fc08b5ef4/metadata -> HTTP 404)
+[PASS] admin audit list (GET /v1/admin/audit?limit=10 -> HTTP 200)
+[PASS] admin audit get (GET /v1/admin/audit/evt-e466000b445d45fb9ea7af7e63668d4d -> HTTP 200)
+[PASS] admin audit missing (GET /v1/admin/audit/missing-audit-52630e68-b387-4f68-89d9-3739c3c38b50 -> HTTP 404)
+[PASS] admin report audit event get (GET /v1/admin/reports/audit/evt-e466000b445d45fb9ea7af7e63668d4d -> HTTP 200)
+
+Admin invalid-input and mutation coverage
+[PASS] admin approve registration missing (POST /v1/admin/registrations/missing-registration-437d09a8-b68a-4c53-a12e-7f6db2e3926f/approve -> HTTP 404)
+[PASS] admin reject registration missing (POST /v1/admin/registrations/missing-registration-437d09a8-b68a-4c53-a12e-7f6db2e3926f/reject -> HTTP 409)
+[PASS] admin approve registration malformed (POST /v1/admin/registrations/missing-registration-437d09a8-b68a-4c53-a12e-7f6db2e3926f/approve -> HTTP 400)
+[PASS] admin approve access request missing (POST /v1/admin/access-requests/missing-access-request-f71776d7-b0a6-4dbe-af0b-aee06861d2b2/approve -> HTTP 404)
+[PASS] admin reject access request missing (POST /v1/admin/access-requests/missing-access-request-f71776d7-b0a6-4dbe-af0b-aee06861d2b2/reject -> HTTP 409)
+[PASS] admin approve access request malformed (POST /v1/admin/access-requests/missing-access-request-f71776d7-b0a6-4dbe-af0b-aee06861d2b2/approve -> HTTP 400)
+[PASS] admin revoke access grant missing (POST /v1/admin/access-grants/missing-access-grant-48ba74d0-bccb-461d-b5e2-40a56c71b03f/revoke -> HTTP 404)
+[PASS] admin suspend missing user (POST /v1/admin/users/missing-user-85e32a0e-7400-4ac7-99e7-553c11939e7e/suspend -> HTTP 404)
+[PASS] admin activate missing user (POST /v1/admin/users/missing-user-85e32a0e-7400-4ac7-99e7-553c11939e7e/activate -> HTTP 404)
+[PASS] admin force password reset missing user (POST /v1/admin/users/missing-user-85e32a0e-7400-4ac7-99e7-553c11939e7e/force-password-reset -> HTTP 404)
+[PASS] admin create report invalid format (POST /v1/admin/reports -> HTTP 400)
+[PASS] admin create report missing type (POST /v1/admin/reports -> HTTP 400)
+[PASS] admin create report malformed (POST /v1/admin/reports -> HTTP 400)
+[PASS] admin create report valid (POST /v1/admin/reports -> HTTP 201)
+[PASS] admin cancel report missing (POST /v1/admin/reports/missing-report-d664e27e-f5e0-4c21-8ecf-242ce59e9995/cancel -> HTTP 404)
+[PASS] admin retry report missing (POST /v1/admin/reports/missing-report-d664e27e-f5e0-4c21-8ecf-242ce59e9995/retry -> HTTP 404)
+[PASS] admin regenerate report missing (POST /v1/admin/reports/missing-report-d664e27e-f5e0-4c21-8ecf-242ce59e9995/regenerate -> HTTP 404)
+[PASS] admin delete report missing (DELETE /v1/admin/reports/missing-report-d664e27e-f5e0-4c21-8ecf-242ce59e9995 -> HTTP 404)
+[PASS] admin create template disabled (POST /v1/admin/reports/templates -> HTTP 501)
+[PASS] admin update template disabled (PUT /v1/admin/reports/templates/template-disabled -> HTTP 501)
+[PASS] admin activate template disabled (POST /v1/admin/reports/templates/template-disabled/activate -> HTTP 501)
+[PASS] admin deactivate template disabled (POST /v1/admin/reports/templates/template-disabled/deactivate -> HTTP 501)
+[PASS] admin create schedule disabled (POST /v1/admin/reports/schedules -> HTTP 501)
+[PASS] admin update schedule disabled (PUT /v1/admin/reports/schedules/schedule-disabled -> HTTP 501)
+[PASS] admin pause schedule disabled (POST /v1/admin/reports/schedules/schedule-disabled/pause -> HTTP 501)
+[PASS] admin resume schedule disabled (POST /v1/admin/reports/schedules/schedule-disabled/resume -> HTTP 501)
+[PASS] admin delete schedule disabled (DELETE /v1/admin/reports/schedules/schedule-disabled -> HTTP 501)
+
+Final health check
+[PASS] admin health after all checks (GET /health -> HTTP 200)
+[PASS] admin health after all checks envelope status is ok
+
+Summary: 166 total, 160 passed, 4 failed, 2 skipped
+Admin Base URL:       http://192.168.56.100:1011
+Auth Base URL:        http://192.168.56.100:6061
+Mutation mode:        0
+Discovered user id:   9647de91-5727-4574-834f-5385362a38b5
+Discovered reg id:    <none>
+Discovered access id: req-cca8946e-acb9-4f3e-bf65-90e072ef6fac
+Discovered grant id:  <none>
+Discovered calc id:   calc-eaf42c89-cb73-4d00-8590-131323f3876e
+Discovered todo id:   8de12142-35be-4486-9e95-6bf3c1358855
+Discovered report id: report-a553384025ff41f08c9238d77105814f
+
+One or more admin service checks failed. Review failed responses above.
+Admin Service Full API Test
+Admin Base URL:        http://192.168.56.100:1012
+Auth Base URL:         http://192.168.56.100:6062
+User Base URL:         http://192.168.56.100:4042
+Calculator Base URL:   http://192.168.56.100:2022
+Todo Base URL:         http://192.168.56.100:3032
+Report Base URL:       http://192.168.56.100:5052
+Mutation mode:         0
+Seed other services:   1
+Admin forwarded proto: https
+Run ID:                1778675024-31
+
+Auth preparation
+[PASS] auth hello (GET /hello -> HTTP 200)
+[PASS] auth health (GET /health -> HTTP 200)
+[PASS] auth admin signin (POST /v1/signin -> HTTP 200)
+[PASS] admin token extracted
+[PASS] auth admin token belongs to approved admin
+[PASS] auth signup normal user (POST /v1/signup -> HTTP 200)
+[PASS] auth signin normal user (POST /v1/signin -> HTTP 200)
+[PASS] normal user token extracted
+[PASS] normal user id extracted: bafec55b-045b-4035-ae16-983132eb252a
+[PASS] auth signup second user (POST /v1/signup -> HTTP 200)
+[PASS] auth signin second user (POST /v1/signin -> HTTP 200)
+[PASS] second user token extracted
+[PASS] second user id extracted: df314634-7ded-4beb-b01e-9a4f275bf73b
+
+Cross-service seeding for admin projections
+[PASS] user profile me (GET /v1/users/me -> HTTP 200)
+[PASS] user dashboard me (GET /v1/users/me/dashboard -> HTTP 200)
+[FAIL] user create access request
+       POST /v1/users/access-requests expected HTTP 200|201|409 but got 400; response: {   "status": "error",   "message": "expires_at exceeds maximum TTL",   "error_code": "ACCESS_REQUEST_TTL_EXCEEDED",   "details": {},   "path": "/v1/users/access-requests",   "request_id": "req-5cbc0029-c737-4031-9424-6811aad062fa",   "trace_id": "42f36fa21215406294549dfd5bfd3b1c",   "timestamp": "2026-05-13T12:23:47.122310156Z" } 
+[PASS] access request id extracted from user_service: req-5cbc0029-c737-4031-9424-6811aad062fa
+[PASS] calculator operations (GET /v1/calculator/operations -> HTTP 200)
+[PASS] calculator calculate add (POST /v1/calculator/calculate -> HTTP 200)
+[PASS] calculation id extracted: calc-deb466e2-2c3d-4551-bcb3-9c2378ee534e
+[PASS] todo create (POST /v1/todos -> HTTP 201)
+[PASS] todo id extracted: 31f94736-6874-47eb-b050-8af2ff1b15d9
+[PASS] todo complete (POST /v1/todos/31f94736-6874-47eb-b050-8af2ff1b15d9/complete -> HTTP 200)
+[PASS] report service types (GET /v1/reports/types -> HTTP 200)
+[PASS] report service create report (POST /v1/reports -> HTTP 201)
+Waiting 8s for Kafka projection updates...
+
+Admin public/rejected route contract
+[PASS] admin hello (GET /hello -> HTTP 200)
+[PASS] admin hello envelope status is ok
+[PASS] admin health (GET /health -> HTTP 200)
+[PASS] admin health envelope status is ok
+[PASS] admin health dependency keys are complete
+[PASS] admin docs (GET /docs -> HTTP 200)
+[PASS] admin root rejected (GET / -> HTTP 404)
+[PASS] admin live rejected (GET /live -> HTTP 404)
+[PASS] admin ready rejected (GET /ready -> HTTP 404)
+[PASS] admin healthy rejected (GET /healthy -> HTTP 404)
+[PASS] admin openapi rejected (GET /openapi.json -> HTTP 404)
+[PASS] admin swagger rejected (GET /swagger -> HTTP 404)
+[PASS] admin redoc rejected (GET /redoc -> HTTP 404)
+[PASS] admin swagger index rejected (GET /swagger/index.html -> HTTP 404)
+[PASS] admin swagger json rejected (GET /swagger/v1/swagger.json -> HTTP 404)
+
+Admin auth/authorization contract
+[PASS] admin dashboard without token (GET /v1/admin/dashboard -> HTTP 401)
+[PASS] admin dashboard without token envelope status is error
+[PASS] admin dashboard invalid token (GET /v1/admin/dashboard -> HTTP 401)
+[PASS] admin dashboard invalid token envelope status is error
+[PASS] admin dashboard normal user forbidden (GET /v1/admin/dashboard -> HTTP 403)
+[PASS] admin dashboard normal user forbidden envelope status is error
+[PASS] admin dashboard approved admin (GET /v1/admin/dashboard -> HTTP 200)
+[PASS] admin dashboard approved admin envelope status is ok
+
+Admin projection discovery
+[PASS] admin list users discovery (GET /v1/admin/users?limit=50 -> HTTP 200)
+[PASS] discovered admin user projection id: df314634-7ded-4beb-b01e-9a4f275bf73b
+[PASS] admin list registrations discovery (GET /v1/admin/registrations?limit=20 -> HTTP 200)
+[SKIP] discovered registration id
+       no registration requests projected
+[PASS] admin list access requests discovery (GET /v1/admin/access-requests?limit=20 -> HTTP 200)
+[PASS] discovered access request id: req-5cbc0029-c737-4031-9424-6811aad062fa
+[PASS] admin list access grants discovery (GET /v1/admin/access-grants?limit=20 -> HTTP 200)
+[SKIP] discovered access grant id
+       no access grants projected
+[PASS] admin list calculations discovery (GET /v1/admin/calculations?limit=20 -> HTTP 200)
+[PASS] discovered calculation id: calc-deb466e2-2c3d-4551-bcb3-9c2378ee534e
+[PASS] admin list todos discovery (GET /v1/admin/todos?limit=20 -> HTTP 200)
+[PASS] discovered todo id: 31f94736-6874-47eb-b050-8af2ff1b15d9
+[PASS] admin list reports discovery (GET /v1/admin/reports?limit=20 -> HTTP 200)
+[PASS] discovered report id: evt-c15b8964-c1b6-4585-aff6-bc3dacc80dd5
+[PASS] admin list audit discovery (GET /v1/admin/audit?limit=20 -> HTTP 200)
+[SKIP] discovered audit event id
+       no audit events found
+[PASS] admin report audit discovery (GET /v1/admin/reports/audit?limit=20 -> HTTP 200)
+[SKIP] discovered report audit event id
+       no report audit events found
+
+Admin read API coverage
+[PASS] admin dashboard (GET /v1/admin/dashboard -> HTTP 200)
+[PASS] admin summary (GET /v1/admin/summary -> HTTP 200)
+[PASS] admin registrations list (GET /v1/admin/registrations?limit=10 -> HTTP 200)
+[PASS] admin registration get missing (GET /v1/admin/registrations/missing-registration-1b00e503-f9fe-467c-8307-4470e004d6ca -> HTTP 404)
+[PASS] admin access requests list (GET /v1/admin/access-requests?limit=10 -> HTTP 200)
+[PASS] admin access request get (GET /v1/admin/access-requests/req-5cbc0029-c737-4031-9424-6811aad062fa -> HTTP 404)
+[PASS] admin access request missing (GET /v1/admin/access-requests/missing-access-request-7673fd0c-2b5e-4083-8181-ea2ca5b527c4 -> HTTP 404)
+[PASS] admin access grants list (GET /v1/admin/access-grants?limit=10 -> HTTP 200)
+[PASS] admin access grant missing (GET /v1/admin/access-grants/missing-access-grant-1fca0b2d-cac0-446c-8699-cfe64c205234 -> HTTP 404)
+[PASS] admin users list (GET /v1/admin/users?limit=10 -> HTTP 200)
+[PASS] admin user get (GET /v1/admin/users/bafec55b-045b-4035-ae16-983132eb252a -> HTTP 200)
+[PASS] admin user activity (GET /v1/admin/users/bafec55b-045b-4035-ae16-983132eb252a/activity -> HTTP 200)
+[PASS] admin user dashboard (GET /v1/admin/users/bafec55b-045b-4035-ae16-983132eb252a/dashboard -> HTTP 200)
+[PASS] admin user preferences (GET /v1/admin/users/bafec55b-045b-4035-ae16-983132eb252a/preferences -> HTTP 200)
+[PASS] admin user security context (GET /v1/admin/users/bafec55b-045b-4035-ae16-983132eb252a/security-context -> HTTP 200)
+[PASS] admin user rbac (GET /v1/admin/users/bafec55b-045b-4035-ae16-983132eb252a/rbac -> HTTP 200)
+[PASS] admin user effective permissions (GET /v1/admin/users/bafec55b-045b-4035-ae16-983132eb252a/effective-permissions -> HTTP 200)
+[PASS] admin user access requests (GET /v1/admin/users/bafec55b-045b-4035-ae16-983132eb252a/access-requests -> HTTP 200)
+[PASS] admin user access grants (GET /v1/admin/users/bafec55b-045b-4035-ae16-983132eb252a/access-grants -> HTTP 200)
+[PASS] admin user reports (GET /v1/admin/users/bafec55b-045b-4035-ae16-983132eb252a/reports -> HTTP 200)
+[PASS] admin user get missing (GET /v1/admin/users/missing-user-eec9276b-d932-48d9-9a05-e20a44801fb4 -> HTTP 404)
+[PASS] admin calculations list (GET /v1/admin/calculations?limit=10 -> HTTP 200)
+[PASS] admin calculations summary (GET /v1/admin/calculations/summary -> HTTP 200)
+[PASS] admin calculations failed (GET /v1/admin/calculations/failed -> HTTP 200)
+[FAIL] admin calculations history cleared
+       GET /v1/admin/calculations/history-cleared expected HTTP 200 but got 500; response: {   "status": "error",   "message": "Internal server error",   "error_code": "INTERNAL_SERVER_ERROR",   "details": {},   "path": "/v1/admin/calculations/history-cleared",   "request_id": "req-a16db847-2682-4e06-80ae-d1387ede8842",   "trace_id": "12b58362421049fe981ef216c5aa792a",   "timestamp": "2026-05-13T12:24:16.8592269+00:00" } 
+[PASS] admin calculations audit (GET /v1/admin/calculations/audit -> HTTP 200)
+[PASS] admin user calculations (GET /v1/admin/calculations/users/bafec55b-045b-4035-ae16-983132eb252a -> HTTP 200)
+[PASS] admin user calculations summary (GET /v1/admin/calculations/users/bafec55b-045b-4035-ae16-983132eb252a/summary -> HTTP 200)
+[PASS] admin user failed calculations (GET /v1/admin/calculations/users/bafec55b-045b-4035-ae16-983132eb252a/failed -> HTTP 200)
+[PASS] admin user calculations by operation (GET /v1/admin/calculations/users/bafec55b-045b-4035-ae16-983132eb252a/operations/ADD -> HTTP 200)
+[PASS] admin calculation get (GET /v1/admin/calculations/calc-deb466e2-2c3d-4551-bcb3-9c2378ee534e -> HTTP 200)
+[PASS] admin calculation missing (GET /v1/admin/calculations/missing-calculation-886bf8e7-e5fc-443c-8143-3895742ca761 -> HTTP 404)
+[PASS] admin todos list (GET /v1/admin/todos?limit=10 -> HTTP 200)
+[PASS] admin todos summary (GET /v1/admin/todos/summary -> HTTP 200)
+[FAIL] admin todos overdue
+       GET /v1/admin/todos/overdue expected HTTP 200 but got 500; response: {   "status": "error",   "message": "Internal server error",   "error_code": "INTERNAL_SERVER_ERROR",   "details": {},   "path": "/v1/admin/todos/overdue",   "request_id": "req-1ca60472-6f4a-4ac2-bbe6-4c691a0e717a",   "trace_id": "31dc12f8cea14263bc797924549b69d7",   "timestamp": "2026-05-13T12:24:18.2264131+00:00" } 
+[PASS] admin todos today (GET /v1/admin/todos/today -> HTTP 200)
+[PASS] admin todos archived (GET /v1/admin/todos/archived -> HTTP 200)
+[PASS] admin todos deleted (GET /v1/admin/todos/deleted -> HTTP 200)
+[PASS] admin todos audit (GET /v1/admin/todos/audit -> HTTP 200)
+[PASS] admin user todos (GET /v1/admin/todos/users/bafec55b-045b-4035-ae16-983132eb252a -> HTTP 200)
+[PASS] admin user todos summary (GET /v1/admin/todos/users/bafec55b-045b-4035-ae16-983132eb252a/summary -> HTTP 200)
+[FAIL] admin user todos overdue
+       GET /v1/admin/todos/users/bafec55b-045b-4035-ae16-983132eb252a/overdue expected HTTP 200 but got 500; response: {   "status": "error",   "message": "Internal server error",   "error_code": "INTERNAL_SERVER_ERROR",   "details": {},   "path": "/v1/admin/todos/users/bafec55b-045b-4035-ae16-983132eb252a/overdue",   "request_id": "req-a4c95e12-a419-4206-92af-419039cf9b5c",   "trace_id": "f9c2077ee4e34e9ea314a4ff0635fdda",   "timestamp": "2026-05-13T12:24:19.1938075+00:00" } 
+[PASS] admin user todos today (GET /v1/admin/todos/users/bafec55b-045b-4035-ae16-983132eb252a/today -> HTTP 200)
+[PASS] admin user todos activity (GET /v1/admin/todos/users/bafec55b-045b-4035-ae16-983132eb252a/activity -> HTTP 200)
+[PASS] admin todo get (GET /v1/admin/todos/31f94736-6874-47eb-b050-8af2ff1b15d9 -> HTTP 404)
+[PASS] admin todo history (GET /v1/admin/todos/31f94736-6874-47eb-b050-8af2ff1b15d9/history -> HTTP 200)
+[PASS] admin todo missing (GET /v1/admin/todos/missing-todo-e5a80b0d-7983-4045-a373-ec0b4aaa13a2 -> HTTP 404)
+[PASS] admin reports list (GET /v1/admin/reports?limit=10 -> HTTP 200)
+[PASS] admin reports summary (GET /v1/admin/reports/summary -> HTTP 200)
+[PASS] admin report types (GET /v1/admin/reports/types -> HTTP 200)
+[PASS] admin report type calculator (GET /v1/admin/reports/types/calculator_history_report -> HTTP 200)
+[PASS] admin report templates list (GET /v1/admin/reports/templates -> HTTP 200)
+[PASS] admin report template get (GET /v1/admin/reports/templates/template-disabled -> HTTP 200)
+[PASS] admin report schedules list (GET /v1/admin/reports/schedules -> HTTP 200)
+[PASS] admin report schedule get (GET /v1/admin/reports/schedules/schedule-disabled -> HTTP 200)
+[PASS] admin report queue summary (GET /v1/admin/reports/queue/summary -> HTTP 200)
+[PASS] admin report audit (GET /v1/admin/reports/audit -> HTTP 200)
+[PASS] admin user report projections (GET /v1/admin/reports/users/bafec55b-045b-4035-ae16-983132eb252a -> HTTP 200)
+[PASS] admin report get (GET /v1/admin/reports/evt-c15b8964-c1b6-4585-aff6-bc3dacc80dd5 -> HTTP 200)
+[PASS] admin report metadata (GET /v1/admin/reports/evt-c15b8964-c1b6-4585-aff6-bc3dacc80dd5/metadata -> HTTP 200)
+[PASS] admin report progress (GET /v1/admin/reports/evt-c15b8964-c1b6-4585-aff6-bc3dacc80dd5/progress -> HTTP 200)
+[PASS] admin report events (GET /v1/admin/reports/evt-c15b8964-c1b6-4585-aff6-bc3dacc80dd5/events -> HTTP 200)
+[PASS] admin report files (GET /v1/admin/reports/evt-c15b8964-c1b6-4585-aff6-bc3dacc80dd5/files -> HTTP 200)
+[PASS] admin report preview (GET /v1/admin/reports/evt-c15b8964-c1b6-4585-aff6-bc3dacc80dd5/preview -> HTTP 200)
+[PASS] admin report download info (GET /v1/admin/reports/evt-c15b8964-c1b6-4585-aff6-bc3dacc80dd5/download-info -> HTTP 200)
+[PASS] admin report missing (GET /v1/admin/reports/missing-report-9d9d7d64-0f76-4d4f-9da9-7d2a6f8987e7 -> HTTP 404)
+[PASS] admin report metadata missing (GET /v1/admin/reports/missing-report-9d9d7d64-0f76-4d4f-9da9-7d2a6f8987e7/metadata -> HTTP 404)
+[PASS] admin audit list (GET /v1/admin/audit?limit=10 -> HTTP 200)
+[PASS] admin audit missing (GET /v1/admin/audit/missing-audit-87f1586a-2630-444d-bbd1-b4a04fc6062d -> HTTP 404)
+
+Admin invalid-input and mutation coverage
+[PASS] admin approve registration missing (POST /v1/admin/registrations/missing-registration-212f95e5-32b7-4096-98d1-953d5880d227/approve -> HTTP 404)
+[PASS] admin reject registration missing (POST /v1/admin/registrations/missing-registration-212f95e5-32b7-4096-98d1-953d5880d227/reject -> HTTP 409)
+[PASS] admin approve registration malformed (POST /v1/admin/registrations/missing-registration-212f95e5-32b7-4096-98d1-953d5880d227/approve -> HTTP 400)
+[PASS] admin approve access request missing (POST /v1/admin/access-requests/missing-access-request-33b753d0-d38b-4c54-8c7a-554c6e894126/approve -> HTTP 404)
+[PASS] admin reject access request missing (POST /v1/admin/access-requests/missing-access-request-33b753d0-d38b-4c54-8c7a-554c6e894126/reject -> HTTP 409)
+[PASS] admin approve access request malformed (POST /v1/admin/access-requests/missing-access-request-33b753d0-d38b-4c54-8c7a-554c6e894126/approve -> HTTP 400)
+[PASS] admin revoke access grant missing (POST /v1/admin/access-grants/missing-access-grant-d52d5b81-b044-4e85-8609-4994f3b7ab25/revoke -> HTTP 404)
+[PASS] admin suspend missing user (POST /v1/admin/users/missing-user-53346475-d51a-474e-9f0c-0c2645b789b9/suspend -> HTTP 404)
+[PASS] admin activate missing user (POST /v1/admin/users/missing-user-53346475-d51a-474e-9f0c-0c2645b789b9/activate -> HTTP 404)
+[PASS] admin force password reset missing user (POST /v1/admin/users/missing-user-53346475-d51a-474e-9f0c-0c2645b789b9/force-password-reset -> HTTP 404)
+[PASS] admin create report invalid format (POST /v1/admin/reports -> HTTP 400)
+[PASS] admin create report missing type (POST /v1/admin/reports -> HTTP 400)
+[PASS] admin create report malformed (POST /v1/admin/reports -> HTTP 400)
+[PASS] admin create report valid (POST /v1/admin/reports -> HTTP 201)
+[PASS] admin cancel report missing (POST /v1/admin/reports/missing-report-d1271219-ce59-4c67-b438-0f773f2c086f/cancel -> HTTP 404)
+[PASS] admin retry report missing (POST /v1/admin/reports/missing-report-d1271219-ce59-4c67-b438-0f773f2c086f/retry -> HTTP 404)
+[PASS] admin regenerate report missing (POST /v1/admin/reports/missing-report-d1271219-ce59-4c67-b438-0f773f2c086f/regenerate -> HTTP 404)
+[PASS] admin delete report missing (DELETE /v1/admin/reports/missing-report-d1271219-ce59-4c67-b438-0f773f2c086f -> HTTP 404)
+[PASS] admin create template disabled (POST /v1/admin/reports/templates -> HTTP 501)
+[PASS] admin update template disabled (PUT /v1/admin/reports/templates/template-disabled -> HTTP 501)
+[PASS] admin activate template disabled (POST /v1/admin/reports/templates/template-disabled/activate -> HTTP 501)
+[PASS] admin deactivate template disabled (POST /v1/admin/reports/templates/template-disabled/deactivate -> HTTP 501)
+[PASS] admin create schedule disabled (POST /v1/admin/reports/schedules -> HTTP 501)
+[PASS] admin update schedule disabled (PUT /v1/admin/reports/schedules/schedule-disabled -> HTTP 501)
+[PASS] admin pause schedule disabled (POST /v1/admin/reports/schedules/schedule-disabled/pause -> HTTP 501)
+[PASS] admin resume schedule disabled (POST /v1/admin/reports/schedules/schedule-disabled/resume -> HTTP 501)
+[PASS] admin delete schedule disabled (DELETE /v1/admin/reports/schedules/schedule-disabled -> HTTP 501)
+
+Final health check
+[PASS] admin health after all checks (GET /health -> HTTP 200)
+[PASS] admin health after all checks envelope status is ok
+
+Summary: 164 total, 156 passed, 4 failed, 4 skipped
+Admin Base URL:       http://192.168.56.100:1012
+Auth Base URL:        http://192.168.56.100:6062
+Mutation mode:        0
+Discovered user id:   bafec55b-045b-4035-ae16-983132eb252a
+Discovered reg id:    <none>
+Discovered access id: req-5cbc0029-c737-4031-9424-6811aad062fa
+Discovered grant id:  <none>
+Discovered calc id:   calc-deb466e2-2c3d-4551-bcb3-9c2378ee534e
+Discovered todo id:   31f94736-6874-47eb-b050-8af2ff1b15d9
+Discovered report id: report-bd16a52f08434416ba14d3ab533d59cb
+
+One or more admin service checks failed. Review failed responses above.
+Admin Service Full API Test
+Admin Base URL:        http://192.168.56.100:1012
+Auth Base URL:         http://192.168.56.100:6062
+User Base URL:         http://192.168.56.100:4042
+Calculator Base URL:   http://192.168.56.100:2022
+Todo Base URL:         http://192.168.56.100:3032
+Report Base URL:       http://192.168.56.100:5052
+Mutation mode:         0
+Seed other services:   1
+Admin forwarded proto: https
+Run ID:                1778675066-7102
+
+Auth preparation
+[PASS] auth hello (GET /hello -> HTTP 200)
+[PASS] auth health (GET /health -> HTTP 200)
+[PASS] auth admin signin (POST /v1/signin -> HTTP 200)
+[PASS] admin token extracted
+[PASS] auth admin token belongs to approved admin
+[PASS] auth signup normal user (POST /v1/signup -> HTTP 200)
+[PASS] auth signin normal user (POST /v1/signin -> HTTP 200)
+[PASS] normal user token extracted
+[PASS] normal user id extracted: 6d77e5d0-260c-4f55-9d98-f6896ee68dab
+[PASS] auth signup second user (POST /v1/signup -> HTTP 200)
+[PASS] auth signin second user (POST /v1/signin -> HTTP 200)
+[PASS] second user token extracted
+[PASS] second user id extracted: 6317c360-908e-42cd-97e2-2b5780847b38
+
+Cross-service seeding for admin projections
+[PASS] user profile me (GET /v1/users/me -> HTTP 200)
+[PASS] user dashboard me (GET /v1/users/me/dashboard -> HTTP 200)
+[FAIL] user create access request
+       POST /v1/users/access-requests expected HTTP 200|201|409 but got 400; response: {   "status": "error",   "message": "expires_at exceeds maximum TTL",   "error_code": "ACCESS_REQUEST_TTL_EXCEEDED",   "details": {},   "path": "/v1/users/access-requests",   "request_id": "req-09e28ba8-1d89-4381-8082-db6619a3a0aa",   "trace_id": "87964bf6afef4740a1dc205e396fa306",   "timestamp": "2026-05-13T12:24:28.624117421Z" } 
+[PASS] access request id extracted from user_service: req-09e28ba8-1d89-4381-8082-db6619a3a0aa
+[PASS] calculator operations (GET /v1/calculator/operations -> HTTP 200)
+[PASS] calculator calculate add (POST /v1/calculator/calculate -> HTTP 200)
+[PASS] calculation id extracted: calc-2011e619-1a64-4d7c-9a4c-bbd94969825b
+[PASS] todo create (POST /v1/todos -> HTTP 201)
+[PASS] todo id extracted: 66da6e23-b42f-474c-82f9-ad8135366014
+[PASS] todo complete (POST /v1/todos/66da6e23-b42f-474c-82f9-ad8135366014/complete -> HTTP 200)
+[PASS] report service types (GET /v1/reports/types -> HTTP 200)
+[PASS] report service create report (POST /v1/reports -> HTTP 201)
+Waiting 8s for Kafka projection updates...
+
+Admin public/rejected route contract
+[PASS] admin hello (GET /hello -> HTTP 200)
+[PASS] admin hello envelope status is ok
+[PASS] admin health (GET /health -> HTTP 200)
+[PASS] admin health envelope status is ok
+[PASS] admin health dependency keys are complete
+[PASS] admin docs (GET /docs -> HTTP 200)
+[PASS] admin root rejected (GET / -> HTTP 404)
+[PASS] admin live rejected (GET /live -> HTTP 404)
+[PASS] admin ready rejected (GET /ready -> HTTP 404)
+[PASS] admin healthy rejected (GET /healthy -> HTTP 404)
+[PASS] admin openapi rejected (GET /openapi.json -> HTTP 404)
+[PASS] admin swagger rejected (GET /swagger -> HTTP 404)
+[PASS] admin redoc rejected (GET /redoc -> HTTP 404)
+[PASS] admin swagger index rejected (GET /swagger/index.html -> HTTP 404)
+[PASS] admin swagger json rejected (GET /swagger/v1/swagger.json -> HTTP 404)
+
+Admin auth/authorization contract
+[PASS] admin dashboard without token (GET /v1/admin/dashboard -> HTTP 401)
+[PASS] admin dashboard without token envelope status is error
+[PASS] admin dashboard invalid token (GET /v1/admin/dashboard -> HTTP 401)
+[PASS] admin dashboard invalid token envelope status is error
+[PASS] admin dashboard normal user forbidden (GET /v1/admin/dashboard -> HTTP 403)
+[PASS] admin dashboard normal user forbidden envelope status is error
+[PASS] admin dashboard approved admin (GET /v1/admin/dashboard -> HTTP 200)
+[PASS] admin dashboard approved admin envelope status is ok
+
+Admin projection discovery
+[PASS] admin list users discovery (GET /v1/admin/users?limit=50 -> HTTP 200)
+[PASS] discovered admin user projection id: 6317c360-908e-42cd-97e2-2b5780847b38
+[PASS] admin list registrations discovery (GET /v1/admin/registrations?limit=20 -> HTTP 200)
+[SKIP] discovered registration id
+       no registration requests projected
+[PASS] admin list access requests discovery (GET /v1/admin/access-requests?limit=20 -> HTTP 200)
+[PASS] discovered access request id: req-09e28ba8-1d89-4381-8082-db6619a3a0aa
+[PASS] admin list access grants discovery (GET /v1/admin/access-grants?limit=20 -> HTTP 200)
+[SKIP] discovered access grant id
+       no access grants projected
+[PASS] admin list calculations discovery (GET /v1/admin/calculations?limit=20 -> HTTP 200)
+[PASS] discovered calculation id: calc-2011e619-1a64-4d7c-9a4c-bbd94969825b
+[PASS] admin list todos discovery (GET /v1/admin/todos?limit=20 -> HTTP 200)
+[PASS] discovered todo id: 66da6e23-b42f-474c-82f9-ad8135366014
+[PASS] admin list reports discovery (GET /v1/admin/reports?limit=20 -> HTTP 200)
+[PASS] discovered report id: evt-353a5a8f-00af-48a0-8572-14bd92c3c33f
+[PASS] admin list audit discovery (GET /v1/admin/audit?limit=20 -> HTTP 200)
+[PASS] discovered audit event id: evt-22445afd6903416aa4bdc362e016da30
+[PASS] admin report audit discovery (GET /v1/admin/reports/audit?limit=20 -> HTTP 200)
+[PASS] discovered report audit event id: evt-22445afd6903416aa4bdc362e016da30
+
+Admin read API coverage
+[PASS] admin dashboard (GET /v1/admin/dashboard -> HTTP 200)
+[PASS] admin summary (GET /v1/admin/summary -> HTTP 200)
+[PASS] admin registrations list (GET /v1/admin/registrations?limit=10 -> HTTP 200)
+[PASS] admin registration get missing (GET /v1/admin/registrations/missing-registration-cf9cc48e-227b-4e5d-a269-5ccc08eb0d05 -> HTTP 404)
+[PASS] admin access requests list (GET /v1/admin/access-requests?limit=10 -> HTTP 200)
+[PASS] admin access request get (GET /v1/admin/access-requests/req-09e28ba8-1d89-4381-8082-db6619a3a0aa -> HTTP 404)
+[PASS] admin access request missing (GET /v1/admin/access-requests/missing-access-request-e243c1ad-7f89-47a0-ae6e-1e6dd1eeab0b -> HTTP 404)
+[PASS] admin access grants list (GET /v1/admin/access-grants?limit=10 -> HTTP 200)
+[PASS] admin access grant missing (GET /v1/admin/access-grants/missing-access-grant-841b8284-862d-41f4-9806-59cab545be26 -> HTTP 404)
+[PASS] admin users list (GET /v1/admin/users?limit=10 -> HTTP 200)
+[PASS] admin user get (GET /v1/admin/users/6d77e5d0-260c-4f55-9d98-f6896ee68dab -> HTTP 200)
+[PASS] admin user activity (GET /v1/admin/users/6d77e5d0-260c-4f55-9d98-f6896ee68dab/activity -> HTTP 200)
+[PASS] admin user dashboard (GET /v1/admin/users/6d77e5d0-260c-4f55-9d98-f6896ee68dab/dashboard -> HTTP 200)
+[PASS] admin user preferences (GET /v1/admin/users/6d77e5d0-260c-4f55-9d98-f6896ee68dab/preferences -> HTTP 200)
+[PASS] admin user security context (GET /v1/admin/users/6d77e5d0-260c-4f55-9d98-f6896ee68dab/security-context -> HTTP 200)
+[PASS] admin user rbac (GET /v1/admin/users/6d77e5d0-260c-4f55-9d98-f6896ee68dab/rbac -> HTTP 200)
+[PASS] admin user effective permissions (GET /v1/admin/users/6d77e5d0-260c-4f55-9d98-f6896ee68dab/effective-permissions -> HTTP 200)
+[PASS] admin user access requests (GET /v1/admin/users/6d77e5d0-260c-4f55-9d98-f6896ee68dab/access-requests -> HTTP 200)
+[PASS] admin user access grants (GET /v1/admin/users/6d77e5d0-260c-4f55-9d98-f6896ee68dab/access-grants -> HTTP 200)
+[PASS] admin user reports (GET /v1/admin/users/6d77e5d0-260c-4f55-9d98-f6896ee68dab/reports -> HTTP 200)
+[PASS] admin user get missing (GET /v1/admin/users/missing-user-43f98403-4a1f-4836-afae-8affdf63ffb4 -> HTTP 404)
+[PASS] admin calculations list (GET /v1/admin/calculations?limit=10 -> HTTP 200)
+[PASS] admin calculations summary (GET /v1/admin/calculations/summary -> HTTP 200)
+[PASS] admin calculations failed (GET /v1/admin/calculations/failed -> HTTP 200)
+[FAIL] admin calculations history cleared
+       GET /v1/admin/calculations/history-cleared expected HTTP 200 but got 500; response: {   "status": "error",   "message": "Internal server error",   "error_code": "INTERNAL_SERVER_ERROR",   "details": {},   "path": "/v1/admin/calculations/history-cleared",   "request_id": "req-dd28ffb5-db08-48ce-bfab-1aeaccf57ca3",   "trace_id": "0511c670c420431d93579c367fc29b69",   "timestamp": "2026-05-13T12:24:50.5445318+00:00" } 
+[PASS] admin calculations audit (GET /v1/admin/calculations/audit -> HTTP 200)
+[PASS] admin user calculations (GET /v1/admin/calculations/users/6d77e5d0-260c-4f55-9d98-f6896ee68dab -> HTTP 200)
+[PASS] admin user calculations summary (GET /v1/admin/calculations/users/6d77e5d0-260c-4f55-9d98-f6896ee68dab/summary -> HTTP 200)
+[PASS] admin user failed calculations (GET /v1/admin/calculations/users/6d77e5d0-260c-4f55-9d98-f6896ee68dab/failed -> HTTP 200)
+[PASS] admin user calculations by operation (GET /v1/admin/calculations/users/6d77e5d0-260c-4f55-9d98-f6896ee68dab/operations/ADD -> HTTP 200)
+[PASS] admin calculation get (GET /v1/admin/calculations/calc-2011e619-1a64-4d7c-9a4c-bbd94969825b -> HTTP 200)
+[PASS] admin calculation missing (GET /v1/admin/calculations/missing-calculation-08038c4a-893f-413d-a9b8-affb4590cd7f -> HTTP 404)
+[PASS] admin todos list (GET /v1/admin/todos?limit=10 -> HTTP 200)
+[PASS] admin todos summary (GET /v1/admin/todos/summary -> HTTP 200)
+[FAIL] admin todos overdue
+       GET /v1/admin/todos/overdue expected HTTP 200 but got 500; response: {   "status": "error",   "message": "Internal server error",   "error_code": "INTERNAL_SERVER_ERROR",   "details": {},   "path": "/v1/admin/todos/overdue",   "request_id": "req-6cf3ba99-09e9-434c-b056-9c0639655182",   "trace_id": "665c97fd12c7454e82c56fbc822a2d6c",   "timestamp": "2026-05-13T12:24:51.5435442+00:00" } 
+[PASS] admin todos today (GET /v1/admin/todos/today -> HTTP 200)
+[PASS] admin todos archived (GET /v1/admin/todos/archived -> HTTP 200)
+[PASS] admin todos deleted (GET /v1/admin/todos/deleted -> HTTP 200)
+[PASS] admin todos audit (GET /v1/admin/todos/audit -> HTTP 200)
+[PASS] admin user todos (GET /v1/admin/todos/users/6d77e5d0-260c-4f55-9d98-f6896ee68dab -> HTTP 200)
+[PASS] admin user todos summary (GET /v1/admin/todos/users/6d77e5d0-260c-4f55-9d98-f6896ee68dab/summary -> HTTP 200)
+[FAIL] admin user todos overdue
+       GET /v1/admin/todos/users/6d77e5d0-260c-4f55-9d98-f6896ee68dab/overdue expected HTTP 200 but got 500; response: {   "status": "error",   "message": "Internal server error",   "error_code": "INTERNAL_SERVER_ERROR",   "details": {},   "path": "/v1/admin/todos/users/6d77e5d0-260c-4f55-9d98-f6896ee68dab/overdue",   "request_id": "req-062b54ab-18fb-44f5-b983-df3fcc4e891a",   "trace_id": "3697ad4fd75d4907907e3788752234cf",   "timestamp": "2026-05-13T12:24:52.3276017+00:00" } 
+[PASS] admin user todos today (GET /v1/admin/todos/users/6d77e5d0-260c-4f55-9d98-f6896ee68dab/today -> HTTP 200)
+[PASS] admin user todos activity (GET /v1/admin/todos/users/6d77e5d0-260c-4f55-9d98-f6896ee68dab/activity -> HTTP 200)
+[PASS] admin todo get (GET /v1/admin/todos/66da6e23-b42f-474c-82f9-ad8135366014 -> HTTP 404)
+[PASS] admin todo history (GET /v1/admin/todos/66da6e23-b42f-474c-82f9-ad8135366014/history -> HTTP 200)
+[PASS] admin todo missing (GET /v1/admin/todos/missing-todo-4ee2d7ea-fdb7-40f2-9196-689cfb09e567 -> HTTP 404)
+[PASS] admin reports list (GET /v1/admin/reports?limit=10 -> HTTP 200)
+[PASS] admin reports summary (GET /v1/admin/reports/summary -> HTTP 200)
+[PASS] admin report types (GET /v1/admin/reports/types -> HTTP 200)
+[PASS] admin report type calculator (GET /v1/admin/reports/types/calculator_history_report -> HTTP 200)
+[PASS] admin report templates list (GET /v1/admin/reports/templates -> HTTP 200)
+[PASS] admin report template get (GET /v1/admin/reports/templates/template-disabled -> HTTP 200)
+[PASS] admin report schedules list (GET /v1/admin/reports/schedules -> HTTP 200)
+[PASS] admin report schedule get (GET /v1/admin/reports/schedules/schedule-disabled -> HTTP 200)
+[PASS] admin report queue summary (GET /v1/admin/reports/queue/summary -> HTTP 200)
+[PASS] admin report audit (GET /v1/admin/reports/audit -> HTTP 200)
+[PASS] admin user report projections (GET /v1/admin/reports/users/6d77e5d0-260c-4f55-9d98-f6896ee68dab -> HTTP 200)
+[PASS] admin report get (GET /v1/admin/reports/evt-353a5a8f-00af-48a0-8572-14bd92c3c33f -> HTTP 200)
+[PASS] admin report metadata (GET /v1/admin/reports/evt-353a5a8f-00af-48a0-8572-14bd92c3c33f/metadata -> HTTP 200)
+[PASS] admin report progress (GET /v1/admin/reports/evt-353a5a8f-00af-48a0-8572-14bd92c3c33f/progress -> HTTP 200)
+[PASS] admin report events (GET /v1/admin/reports/evt-353a5a8f-00af-48a0-8572-14bd92c3c33f/events -> HTTP 200)
+[PASS] admin report files (GET /v1/admin/reports/evt-353a5a8f-00af-48a0-8572-14bd92c3c33f/files -> HTTP 200)
+[PASS] admin report preview (GET /v1/admin/reports/evt-353a5a8f-00af-48a0-8572-14bd92c3c33f/preview -> HTTP 200)
+[PASS] admin report download info (GET /v1/admin/reports/evt-353a5a8f-00af-48a0-8572-14bd92c3c33f/download-info -> HTTP 200)
+[PASS] admin report missing (GET /v1/admin/reports/missing-report-a24f5b01-4157-4162-8b14-9dc5ae70256a -> HTTP 404)
+[PASS] admin report metadata missing (GET /v1/admin/reports/missing-report-a24f5b01-4157-4162-8b14-9dc5ae70256a/metadata -> HTTP 404)
+[PASS] admin audit list (GET /v1/admin/audit?limit=10 -> HTTP 200)
+[PASS] admin audit get (GET /v1/admin/audit/evt-22445afd6903416aa4bdc362e016da30 -> HTTP 200)
+[PASS] admin audit missing (GET /v1/admin/audit/missing-audit-fbf1f317-8316-46a3-93e7-529744b83d2d -> HTTP 404)
+[PASS] admin report audit event get (GET /v1/admin/reports/audit/evt-22445afd6903416aa4bdc362e016da30 -> HTTP 200)
+
+Admin invalid-input and mutation coverage
+[PASS] admin approve registration missing (POST /v1/admin/registrations/missing-registration-02fd1296-71c8-45e9-9778-bcf04268025f/approve -> HTTP 404)
+[PASS] admin reject registration missing (POST /v1/admin/registrations/missing-registration-02fd1296-71c8-45e9-9778-bcf04268025f/reject -> HTTP 409)
+[PASS] admin approve registration malformed (POST /v1/admin/registrations/missing-registration-02fd1296-71c8-45e9-9778-bcf04268025f/approve -> HTTP 400)
+[PASS] admin approve access request missing (POST /v1/admin/access-requests/missing-access-request-1a5dc40f-aa2e-4691-b717-38faf0931214/approve -> HTTP 404)
+[PASS] admin reject access request missing (POST /v1/admin/access-requests/missing-access-request-1a5dc40f-aa2e-4691-b717-38faf0931214/reject -> HTTP 409)
+[PASS] admin approve access request malformed (POST /v1/admin/access-requests/missing-access-request-1a5dc40f-aa2e-4691-b717-38faf0931214/approve -> HTTP 400)
+[PASS] admin revoke access grant missing (POST /v1/admin/access-grants/missing-access-grant-9b4c68ac-c449-4ae1-87b7-96d8293db5ef/revoke -> HTTP 404)
+[PASS] admin suspend missing user (POST /v1/admin/users/missing-user-57af1978-37a9-4e46-be0b-4113d0b3c732/suspend -> HTTP 404)
+[PASS] admin activate missing user (POST /v1/admin/users/missing-user-57af1978-37a9-4e46-be0b-4113d0b3c732/activate -> HTTP 404)
+[PASS] admin force password reset missing user (POST /v1/admin/users/missing-user-57af1978-37a9-4e46-be0b-4113d0b3c732/force-password-reset -> HTTP 404)
+[PASS] admin create report invalid format (POST /v1/admin/reports -> HTTP 400)
+[PASS] admin create report missing type (POST /v1/admin/reports -> HTTP 400)
+[PASS] admin create report malformed (POST /v1/admin/reports -> HTTP 400)
+[PASS] admin create report valid (POST /v1/admin/reports -> HTTP 201)
+[PASS] admin cancel report missing (POST /v1/admin/reports/missing-report-c0fd7a4c-05d2-476d-93ac-5c2c5c2ed7ea/cancel -> HTTP 404)
+[PASS] admin retry report missing (POST /v1/admin/reports/missing-report-c0fd7a4c-05d2-476d-93ac-5c2c5c2ed7ea/retry -> HTTP 404)
+[PASS] admin regenerate report missing (POST /v1/admin/reports/missing-report-c0fd7a4c-05d2-476d-93ac-5c2c5c2ed7ea/regenerate -> HTTP 404)
+[PASS] admin delete report missing (DELETE /v1/admin/reports/missing-report-c0fd7a4c-05d2-476d-93ac-5c2c5c2ed7ea -> HTTP 404)
+[PASS] admin create template disabled (POST /v1/admin/reports/templates -> HTTP 501)
+[PASS] admin update template disabled (PUT /v1/admin/reports/templates/template-disabled -> HTTP 501)
+[PASS] admin activate template disabled (POST /v1/admin/reports/templates/template-disabled/activate -> HTTP 501)
+[PASS] admin deactivate template disabled (POST /v1/admin/reports/templates/template-disabled/deactivate -> HTTP 501)
+[PASS] admin create schedule disabled (POST /v1/admin/reports/schedules -> HTTP 501)
+[PASS] admin update schedule disabled (PUT /v1/admin/reports/schedules/schedule-disabled -> HTTP 501)
+[PASS] admin pause schedule disabled (POST /v1/admin/reports/schedules/schedule-disabled/pause -> HTTP 501)
+[PASS] admin resume schedule disabled (POST /v1/admin/reports/schedules/schedule-disabled/resume -> HTTP 501)
+[PASS] admin delete schedule disabled (DELETE /v1/admin/reports/schedules/schedule-disabled -> HTTP 501)
+
+Final health check
+[PASS] admin health after all checks (GET /health -> HTTP 200)
+[PASS] admin health after all checks envelope status is ok
+
+Summary: 166 total, 160 passed, 4 failed, 2 skipped
+Admin Base URL:       http://192.168.56.100:1012
+Auth Base URL:        http://192.168.56.100:6062
+Mutation mode:        0
+Discovered user id:   6d77e5d0-260c-4f55-9d98-f6896ee68dab
+Discovered reg id:    <none>
+Discovered access id: req-09e28ba8-1d89-4381-8082-db6619a3a0aa
+Discovered grant id:  <none>
+Discovered calc id:   calc-2011e619-1a64-4d7c-9a4c-bbd94969825b
+Discovered todo id:   66da6e23-b42f-474c-82f9-ad8135366014
+Discovered report id: report-fa1ab3fce1474543b86c2789526bd114
+
+One or more admin service checks failed. Review failed responses above.
+Admin Service Full API Test
+Admin Base URL:        http://192.168.56.100:1012
+Auth Base URL:         http://192.168.56.100:6062
+User Base URL:         http://192.168.56.100:4042
+Calculator Base URL:   http://192.168.56.100:2022
+Todo Base URL:         http://192.168.56.100:3032
+Report Base URL:       http://192.168.56.100:5052
+Mutation mode:         0
+Seed other services:   1
+Admin forwarded proto: https
+Run ID:                1778675098-2908
+
+Auth preparation
+[PASS] auth hello (GET /hello -> HTTP 200)
+[PASS] auth health (GET /health -> HTTP 200)
+[PASS] auth admin signin (POST /v1/signin -> HTTP 200)
+[PASS] admin token extracted
+[PASS] auth admin token belongs to approved admin
+[PASS] auth signup normal user (POST /v1/signup -> HTTP 200)
+[PASS] auth signin normal user (POST /v1/signin -> HTTP 200)
+[PASS] normal user token extracted
+[PASS] normal user id extracted: 34c96266-5c38-4035-99e8-b810f16a9ded
+[PASS] auth signup second user (POST /v1/signup -> HTTP 200)
+[PASS] auth signin second user (POST /v1/signin -> HTTP 200)
+[PASS] second user token extracted
+[PASS] second user id extracted: 78e5f53e-0ae8-469a-b225-cff5275ee73c
+
+Cross-service seeding for admin projections
+[PASS] user profile me (GET /v1/users/me -> HTTP 200)
+[PASS] user dashboard me (GET /v1/users/me/dashboard -> HTTP 200)
+[FAIL] user create access request
+       POST /v1/users/access-requests expected HTTP 200|201|409 but got 400; response: {   "status": "error",   "message": "expires_at exceeds maximum TTL",   "error_code": "ACCESS_REQUEST_TTL_EXCEEDED",   "details": {},   "path": "/v1/users/access-requests",   "request_id": "req-30917a47-c083-4e99-92f7-335524fd5243",   "trace_id": "9f16603e42044ab8aa83f0e6aa202ec6",   "timestamp": "2026-05-13T12:25:01.12287445Z" } 
+[PASS] access request id extracted from user_service: req-30917a47-c083-4e99-92f7-335524fd5243
+[PASS] calculator operations (GET /v1/calculator/operations -> HTTP 200)
+[PASS] calculator calculate add (POST /v1/calculator/calculate -> HTTP 200)
+[PASS] calculation id extracted: calc-f0bef416-d9f2-4649-b440-1b15a1dca739
+[PASS] todo create (POST /v1/todos -> HTTP 201)
+[PASS] todo id extracted: 6f1de2f2-5ede-484c-a1b9-15b143d58622
+[PASS] todo complete (POST /v1/todos/6f1de2f2-5ede-484c-a1b9-15b143d58622/complete -> HTTP 200)
+[PASS] report service types (GET /v1/reports/types -> HTTP 200)
+[PASS] report service create report (POST /v1/reports -> HTTP 201)
+Waiting 8s for Kafka projection updates...
+
+Admin public/rejected route contract
+[PASS] admin hello (GET /hello -> HTTP 200)
+[PASS] admin hello envelope status is ok
+[PASS] admin health (GET /health -> HTTP 200)
+[PASS] admin health envelope status is ok
+[PASS] admin health dependency keys are complete
+[PASS] admin docs (GET /docs -> HTTP 200)
+[PASS] admin root rejected (GET / -> HTTP 404)
+[PASS] admin live rejected (GET /live -> HTTP 404)
+[PASS] admin ready rejected (GET /ready -> HTTP 404)
+[PASS] admin healthy rejected (GET /healthy -> HTTP 404)
+[PASS] admin openapi rejected (GET /openapi.json -> HTTP 404)
+[PASS] admin swagger rejected (GET /swagger -> HTTP 404)
+[PASS] admin redoc rejected (GET /redoc -> HTTP 404)
+[PASS] admin swagger index rejected (GET /swagger/index.html -> HTTP 404)
+[PASS] admin swagger json rejected (GET /swagger/v1/swagger.json -> HTTP 404)
+
+Admin auth/authorization contract
+[PASS] admin dashboard without token (GET /v1/admin/dashboard -> HTTP 401)
+[PASS] admin dashboard without token envelope status is error
+[PASS] admin dashboard invalid token (GET /v1/admin/dashboard -> HTTP 401)
+[PASS] admin dashboard invalid token envelope status is error
+[PASS] admin dashboard normal user forbidden (GET /v1/admin/dashboard -> HTTP 403)
+[PASS] admin dashboard normal user forbidden envelope status is error
+[PASS] admin dashboard approved admin (GET /v1/admin/dashboard -> HTTP 200)
+[PASS] admin dashboard approved admin envelope status is ok
+
+Admin projection discovery
+[PASS] admin list users discovery (GET /v1/admin/users?limit=50 -> HTTP 200)
+[PASS] discovered admin user projection id: 78e5f53e-0ae8-469a-b225-cff5275ee73c
+[PASS] admin list registrations discovery (GET /v1/admin/registrations?limit=20 -> HTTP 200)
+[SKIP] discovered registration id
+       no registration requests projected
+[PASS] admin list access requests discovery (GET /v1/admin/access-requests?limit=20 -> HTTP 200)
+[PASS] discovered access request id: req-30917a47-c083-4e99-92f7-335524fd5243
+[PASS] admin list access grants discovery (GET /v1/admin/access-grants?limit=20 -> HTTP 200)
+[SKIP] discovered access grant id
+       no access grants projected
+[PASS] admin list calculations discovery (GET /v1/admin/calculations?limit=20 -> HTTP 200)
+[PASS] discovered calculation id: calc-f0bef416-d9f2-4649-b440-1b15a1dca739
+[PASS] admin list todos discovery (GET /v1/admin/todos?limit=20 -> HTTP 200)
+[PASS] discovered todo id: 6f1de2f2-5ede-484c-a1b9-15b143d58622
+[PASS] admin list reports discovery (GET /v1/admin/reports?limit=20 -> HTTP 200)
+[PASS] discovered report id: evt-40cffc86-6d5b-43c3-982c-39179c83b3c3
+[PASS] admin list audit discovery (GET /v1/admin/audit?limit=20 -> HTTP 200)
+[PASS] discovered audit event id: evt-05661c548d07426a93e81f82ee658555
+[PASS] admin report audit discovery (GET /v1/admin/reports/audit?limit=20 -> HTTP 200)
+[PASS] discovered report audit event id: evt-05661c548d07426a93e81f82ee658555
+
+Admin read API coverage
+[PASS] admin dashboard (GET /v1/admin/dashboard -> HTTP 200)
+[PASS] admin summary (GET /v1/admin/summary -> HTTP 200)
+[PASS] admin registrations list (GET /v1/admin/registrations?limit=10 -> HTTP 200)
+[PASS] admin registration get missing (GET /v1/admin/registrations/missing-registration-894ed4a7-c466-45fe-96c0-c6e76497e57c -> HTTP 404)
+[PASS] admin access requests list (GET /v1/admin/access-requests?limit=10 -> HTTP 200)
+[PASS] admin access request get (GET /v1/admin/access-requests/req-30917a47-c083-4e99-92f7-335524fd5243 -> HTTP 404)
+[PASS] admin access request missing (GET /v1/admin/access-requests/missing-access-request-99478908-cd25-4935-8c2a-a86bcfed22c2 -> HTTP 404)
+[PASS] admin access grants list (GET /v1/admin/access-grants?limit=10 -> HTTP 200)
+[PASS] admin access grant missing (GET /v1/admin/access-grants/missing-access-grant-3a6fe56e-3ea1-49f7-90d9-a508cb2d7a1b -> HTTP 404)
+[PASS] admin users list (GET /v1/admin/users?limit=10 -> HTTP 200)
+[PASS] admin user get (GET /v1/admin/users/34c96266-5c38-4035-99e8-b810f16a9ded -> HTTP 200)
+[PASS] admin user activity (GET /v1/admin/users/34c96266-5c38-4035-99e8-b810f16a9ded/activity -> HTTP 200)
+[PASS] admin user dashboard (GET /v1/admin/users/34c96266-5c38-4035-99e8-b810f16a9ded/dashboard -> HTTP 200)
+[PASS] admin user preferences (GET /v1/admin/users/34c96266-5c38-4035-99e8-b810f16a9ded/preferences -> HTTP 200)
+[PASS] admin user security context (GET /v1/admin/users/34c96266-5c38-4035-99e8-b810f16a9ded/security-context -> HTTP 200)
+[PASS] admin user rbac (GET /v1/admin/users/34c96266-5c38-4035-99e8-b810f16a9ded/rbac -> HTTP 200)
+[PASS] admin user effective permissions (GET /v1/admin/users/34c96266-5c38-4035-99e8-b810f16a9ded/effective-permissions -> HTTP 200)
+[PASS] admin user access requests (GET /v1/admin/users/34c96266-5c38-4035-99e8-b810f16a9ded/access-requests -> HTTP 200)
+[PASS] admin user access grants (GET /v1/admin/users/34c96266-5c38-4035-99e8-b810f16a9ded/access-grants -> HTTP 200)
+[PASS] admin user reports (GET /v1/admin/users/34c96266-5c38-4035-99e8-b810f16a9ded/reports -> HTTP 200)
+[PASS] admin user get missing (GET /v1/admin/users/missing-user-590c7e84-e0b7-4f76-a600-3820f0900d7a -> HTTP 404)
+[PASS] admin calculations list (GET /v1/admin/calculations?limit=10 -> HTTP 200)
+[PASS] admin calculations summary (GET /v1/admin/calculations/summary -> HTTP 200)
+[PASS] admin calculations failed (GET /v1/admin/calculations/failed -> HTTP 200)
+[FAIL] admin calculations history cleared
+       GET /v1/admin/calculations/history-cleared expected HTTP 200 but got 500; response: {   "status": "error",   "message": "Internal server error",   "error_code": "INTERNAL_SERVER_ERROR",   "details": {},   "path": "/v1/admin/calculations/history-cleared",   "request_id": "req-35ed681a-efad-4462-b740-74aae8e48d71",   "trace_id": "c30e3adaf88148b3908ace49a5d8820f",   "timestamp": "2026-05-13T12:25:23.0884918+00:00" } 
+[PASS] admin calculations audit (GET /v1/admin/calculations/audit -> HTTP 200)
+[PASS] admin user calculations (GET /v1/admin/calculations/users/34c96266-5c38-4035-99e8-b810f16a9ded -> HTTP 200)
+[PASS] admin user calculations summary (GET /v1/admin/calculations/users/34c96266-5c38-4035-99e8-b810f16a9ded/summary -> HTTP 200)
+[PASS] admin user failed calculations (GET /v1/admin/calculations/users/34c96266-5c38-4035-99e8-b810f16a9ded/failed -> HTTP 200)
+[PASS] admin user calculations by operation (GET /v1/admin/calculations/users/34c96266-5c38-4035-99e8-b810f16a9ded/operations/ADD -> HTTP 200)
+[PASS] admin calculation get (GET /v1/admin/calculations/calc-f0bef416-d9f2-4649-b440-1b15a1dca739 -> HTTP 200)
+[PASS] admin calculation missing (GET /v1/admin/calculations/missing-calculation-3c48a37e-e8b6-427c-94da-be692751256d -> HTTP 404)
+[PASS] admin todos list (GET /v1/admin/todos?limit=10 -> HTTP 200)
+[PASS] admin todos summary (GET /v1/admin/todos/summary -> HTTP 200)
+[FAIL] admin todos overdue
+       GET /v1/admin/todos/overdue expected HTTP 200 but got 500; response: {   "status": "error",   "message": "Internal server error",   "error_code": "INTERNAL_SERVER_ERROR",   "details": {},   "path": "/v1/admin/todos/overdue",   "request_id": "req-f911eba8-75de-4080-b701-75316d10bf3b",   "trace_id": "d7291774d0f44d109bc53c3071f38a86",   "timestamp": "2026-05-13T12:25:24.2057457+00:00" } 
+[PASS] admin todos today (GET /v1/admin/todos/today -> HTTP 200)
+[PASS] admin todos archived (GET /v1/admin/todos/archived -> HTTP 200)
+[PASS] admin todos deleted (GET /v1/admin/todos/deleted -> HTTP 200)
+[PASS] admin todos audit (GET /v1/admin/todos/audit -> HTTP 200)
+[PASS] admin user todos (GET /v1/admin/todos/users/34c96266-5c38-4035-99e8-b810f16a9ded -> HTTP 200)
+[PASS] admin user todos summary (GET /v1/admin/todos/users/34c96266-5c38-4035-99e8-b810f16a9ded/summary -> HTTP 200)
+[FAIL] admin user todos overdue
+       GET /v1/admin/todos/users/34c96266-5c38-4035-99e8-b810f16a9ded/overdue expected HTTP 200 but got 500; response: {   "status": "error",   "message": "Internal server error",   "error_code": "INTERNAL_SERVER_ERROR",   "details": {},   "path": "/v1/admin/todos/users/34c96266-5c38-4035-99e8-b810f16a9ded/overdue",   "request_id": "req-252dd7b7-a2a9-4804-8eec-d928eb7417e9",   "trace_id": "f89192873f3346efade5eec51f632d14",   "timestamp": "2026-05-13T12:25:24.9403667+00:00" } 
+[PASS] admin user todos today (GET /v1/admin/todos/users/34c96266-5c38-4035-99e8-b810f16a9ded/today -> HTTP 200)
+[PASS] admin user todos activity (GET /v1/admin/todos/users/34c96266-5c38-4035-99e8-b810f16a9ded/activity -> HTTP 200)
+[PASS] admin todo get (GET /v1/admin/todos/6f1de2f2-5ede-484c-a1b9-15b143d58622 -> HTTP 404)
+[PASS] admin todo history (GET /v1/admin/todos/6f1de2f2-5ede-484c-a1b9-15b143d58622/history -> HTTP 200)
+[PASS] admin todo missing (GET /v1/admin/todos/missing-todo-e50552b8-9535-4407-b82e-e0e4bfeb7971 -> HTTP 404)
+[PASS] admin reports list (GET /v1/admin/reports?limit=10 -> HTTP 200)
+[PASS] admin reports summary (GET /v1/admin/reports/summary -> HTTP 200)
+[PASS] admin report types (GET /v1/admin/reports/types -> HTTP 200)
+[PASS] admin report type calculator (GET /v1/admin/reports/types/calculator_history_report -> HTTP 200)
+[PASS] admin report templates list (GET /v1/admin/reports/templates -> HTTP 200)
+[PASS] admin report template get (GET /v1/admin/reports/templates/template-disabled -> HTTP 200)
+[PASS] admin report schedules list (GET /v1/admin/reports/schedules -> HTTP 200)
+[PASS] admin report schedule get (GET /v1/admin/reports/schedules/schedule-disabled -> HTTP 200)
+[PASS] admin report queue summary (GET /v1/admin/reports/queue/summary -> HTTP 200)
+[PASS] admin report audit (GET /v1/admin/reports/audit -> HTTP 200)
+[PASS] admin user report projections (GET /v1/admin/reports/users/34c96266-5c38-4035-99e8-b810f16a9ded -> HTTP 200)
+[PASS] admin report get (GET /v1/admin/reports/evt-40cffc86-6d5b-43c3-982c-39179c83b3c3 -> HTTP 200)
+[PASS] admin report metadata (GET /v1/admin/reports/evt-40cffc86-6d5b-43c3-982c-39179c83b3c3/metadata -> HTTP 200)
+[PASS] admin report progress (GET /v1/admin/reports/evt-40cffc86-6d5b-43c3-982c-39179c83b3c3/progress -> HTTP 200)
+[PASS] admin report events (GET /v1/admin/reports/evt-40cffc86-6d5b-43c3-982c-39179c83b3c3/events -> HTTP 200)
+[PASS] admin report files (GET /v1/admin/reports/evt-40cffc86-6d5b-43c3-982c-39179c83b3c3/files -> HTTP 200)
+[PASS] admin report preview (GET /v1/admin/reports/evt-40cffc86-6d5b-43c3-982c-39179c83b3c3/preview -> HTTP 200)
+[PASS] admin report download info (GET /v1/admin/reports/evt-40cffc86-6d5b-43c3-982c-39179c83b3c3/download-info -> HTTP 200)
+[PASS] admin report missing (GET /v1/admin/reports/missing-report-41c43ac0-4993-492c-81d7-6459f2ed9fda -> HTTP 404)
+[PASS] admin report metadata missing (GET /v1/admin/reports/missing-report-41c43ac0-4993-492c-81d7-6459f2ed9fda/metadata -> HTTP 404)
+[PASS] admin audit list (GET /v1/admin/audit?limit=10 -> HTTP 200)
+[PASS] admin audit get (GET /v1/admin/audit/evt-05661c548d07426a93e81f82ee658555 -> HTTP 200)
+[PASS] admin audit missing (GET /v1/admin/audit/missing-audit-68342d84-4713-4f74-b453-845193ab6818 -> HTTP 404)
+[PASS] admin report audit event get (GET /v1/admin/reports/audit/evt-05661c548d07426a93e81f82ee658555 -> HTTP 200)
+
+Admin invalid-input and mutation coverage
+[PASS] admin approve registration missing (POST /v1/admin/registrations/missing-registration-d9a629b8-b2f7-4217-a4f2-100d7d4a223f/approve -> HTTP 404)
+[PASS] admin reject registration missing (POST /v1/admin/registrations/missing-registration-d9a629b8-b2f7-4217-a4f2-100d7d4a223f/reject -> HTTP 409)
+[PASS] admin approve registration malformed (POST /v1/admin/registrations/missing-registration-d9a629b8-b2f7-4217-a4f2-100d7d4a223f/approve -> HTTP 400)
+[PASS] admin approve access request missing (POST /v1/admin/access-requests/missing-access-request-b83b4da3-1650-4de7-ba69-360883ef1ec5/approve -> HTTP 404)
+[PASS] admin reject access request missing (POST /v1/admin/access-requests/missing-access-request-b83b4da3-1650-4de7-ba69-360883ef1ec5/reject -> HTTP 409)
+[PASS] admin approve access request malformed (POST /v1/admin/access-requests/missing-access-request-b83b4da3-1650-4de7-ba69-360883ef1ec5/approve -> HTTP 400)
+[PASS] admin revoke access grant missing (POST /v1/admin/access-grants/missing-access-grant-61327bbb-ed7a-4517-92f8-9636054eb6ce/revoke -> HTTP 404)
+[PASS] admin suspend missing user (POST /v1/admin/users/missing-user-e77f6910-d5da-43e5-97fc-ee6a88e859bd/suspend -> HTTP 404)
+[PASS] admin activate missing user (POST /v1/admin/users/missing-user-e77f6910-d5da-43e5-97fc-ee6a88e859bd/activate -> HTTP 404)
+[PASS] admin force password reset missing user (POST /v1/admin/users/missing-user-e77f6910-d5da-43e5-97fc-ee6a88e859bd/force-password-reset -> HTTP 404)
+[PASS] admin create report invalid format (POST /v1/admin/reports -> HTTP 400)
+[PASS] admin create report missing type (POST /v1/admin/reports -> HTTP 400)
+[PASS] admin create report malformed (POST /v1/admin/reports -> HTTP 400)
+[PASS] admin create report valid (POST /v1/admin/reports -> HTTP 201)
+[PASS] admin cancel report missing (POST /v1/admin/reports/missing-report-e2f7a33c-1ddc-451a-be0c-acb8a7e65659/cancel -> HTTP 404)
+[PASS] admin retry report missing (POST /v1/admin/reports/missing-report-e2f7a33c-1ddc-451a-be0c-acb8a7e65659/retry -> HTTP 404)
+[PASS] admin regenerate report missing (POST /v1/admin/reports/missing-report-e2f7a33c-1ddc-451a-be0c-acb8a7e65659/regenerate -> HTTP 404)
+[PASS] admin delete report missing (DELETE /v1/admin/reports/missing-report-e2f7a33c-1ddc-451a-be0c-acb8a7e65659 -> HTTP 404)
+[PASS] admin create template disabled (POST /v1/admin/reports/templates -> HTTP 501)
+[PASS] admin update template disabled (PUT /v1/admin/reports/templates/template-disabled -> HTTP 501)
+[PASS] admin activate template disabled (POST /v1/admin/reports/templates/template-disabled/activate -> HTTP 501)
+[PASS] admin deactivate template disabled (POST /v1/admin/reports/templates/template-disabled/deactivate -> HTTP 501)
+[PASS] admin create schedule disabled (POST /v1/admin/reports/schedules -> HTTP 501)
+[PASS] admin update schedule disabled (PUT /v1/admin/reports/schedules/schedule-disabled -> HTTP 501)
+[PASS] admin pause schedule disabled (POST /v1/admin/reports/schedules/schedule-disabled/pause -> HTTP 501)
+[PASS] admin resume schedule disabled (POST /v1/admin/reports/schedules/schedule-disabled/resume -> HTTP 501)
+[PASS] admin delete schedule disabled (DELETE /v1/admin/reports/schedules/schedule-disabled -> HTTP 501)
+
+Final health check
+[PASS] admin health after all checks (GET /health -> HTTP 200)
+[PASS] admin health after all checks envelope status is ok
+
+Summary: 166 total, 160 passed, 4 failed, 2 skipped
+Admin Base URL:       http://192.168.56.100:1012
+Auth Base URL:        http://192.168.56.100:6062
+Mutation mode:        0
+Discovered user id:   34c96266-5c38-4035-99e8-b810f16a9ded
+Discovered reg id:    <none>
+Discovered access id: req-30917a47-c083-4e99-92f7-335524fd5243
+Discovered grant id:  <none>
+Discovered calc id:   calc-f0bef416-d9f2-4649-b440-1b15a1dca739
+Discovered todo id:   6f1de2f2-5ede-484c-a1b9-15b143d58622
+Discovered report id: report-367f48e7bfab480d9cb4909d34bc6e18
+
+One or more admin service checks failed. Review failed responses above.

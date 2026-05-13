@@ -1,6 +1,8 @@
 using AdminService.Api.Configuration;
 using AdminService.Api.Http;
+using Elastic.Apm;
 using System.Net;
+using System.Diagnostics;
 using System.Text.Json;
 
 namespace AdminService.Api.Infrastructure.Logging;
@@ -30,6 +32,12 @@ public sealed class AppLogger
     {
         RequestContext? ctx = http is null ? null : RequestContext.From(http);
         var redactedExtra = extra is null ? new Dictionary<string, object?>() : SecretRedactor.RedactDictionary(extra);
+        var activity = Activity.Current;
+        var currentTransaction = Agent.Tracer.CurrentTransaction;
+        var currentSpan = Agent.Tracer.CurrentSpan;
+        var elasticTraceId = activity?.TraceId.ToString() ?? StringProperty(currentTransaction, "TraceId") ?? StringProperty(currentSpan, "TraceId");
+        var elasticTransactionId = StringProperty(currentTransaction, "Id") ?? activity?.SpanId.ToString();
+        var elasticSpanId = StringProperty(currentSpan, "Id") ?? activity?.SpanId.ToString();
         var document = new Dictionary<string, object?>
         {
             ["timestamp"] = DateTimeOffset.UtcNow,
@@ -44,6 +52,9 @@ public sealed class AppLogger
             ["request_id"] = ctx?.RequestId,
             ["trace_id"] = ctx?.TraceId,
             ["correlation_id"] = ctx?.CorrelationId,
+            ["elastic_trace_id"] = elasticTraceId,
+            ["elastic_transaction_id"] = elasticTransactionId,
+            ["elastic_span_id"] = elasticSpanId,
             ["user_id"] = ctx?.UserId,
             ["actor_id"] = ctx?.UserId,
             ["method"] = http?.Request.Method,
@@ -61,7 +72,19 @@ public sealed class AppLogger
             ["extra"] = redactedExtra
         };
 
-        var line = JsonSerializer.Serialize(document, JsonOptionsFactory.Options);
+        var stdoutDocument = new Dictionary<string, object?>(document)
+        {
+            ["service.name"] = _settings.ServiceName,
+            ["service.version"] = _settings.Version,
+            ["service.environment"] = _settings.EnvironmentName,
+            ["service.node.name"] = _hostName,
+            ["event.dataset"] = $"{_settings.ServiceName}.{document["logger"]}",
+            ["trace.id"] = elasticTraceId,
+            ["transaction.id"] = elasticTransactionId,
+            ["span.id"] = elasticSpanId
+        };
+
+        var line = JsonSerializer.Serialize(stdoutDocument, JsonOptionsFactory.Options);
         Console.WriteLine(line);
 
         if (_mongoLogWriter is not null)
@@ -82,6 +105,18 @@ public sealed class AppLogger
                 };
                 Console.WriteLine(JsonSerializer.Serialize(fallback, JsonOptionsFactory.Options));
             }
+        }
+    }
+
+    private static string? StringProperty(object? source, string propertyName)
+    {
+        try
+        {
+            return source?.GetType().GetProperty(propertyName)?.GetValue(source)?.ToString();
+        }
+        catch
+        {
+            return null;
         }
     }
 }

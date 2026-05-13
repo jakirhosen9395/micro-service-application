@@ -1,0 +1,10 @@
+{
+  "status": "error",
+  "message": "Authentication required",
+  "error_code": "UNAUTHORIZED",
+  "details": {},
+  "path": "/v1/verify",
+  "request_id": "req-7509c51e-9b0c-494a-b477-47726c5ef9ae",
+  "trace_id": "3a19ae9f299f4affaeffada829720b58",
+  "timestamp": "2026-05-13T13:18:47.130Z"
+}

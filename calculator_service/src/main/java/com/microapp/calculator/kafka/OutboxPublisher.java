@@ -7,6 +7,7 @@ import com.microapp.calculator.logging.MongoStructuredLogger;
 import com.microapp.calculator.persistence.OutboxEventRow;
 import com.microapp.calculator.persistence.OutboxRepository;
 import com.microapp.calculator.util.SecretRedactor;
+import co.elastic.apm.api.CaptureTransaction;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.header.internals.RecordHeader;
 import org.slf4j.Logger;
@@ -53,6 +54,7 @@ public class OutboxPublisher {
     }
 
     @Scheduled(fixedDelay = 3000, initialDelay = 5000)
+    @CaptureTransaction(value = "calculator.outbox.publish_pending", type = "messaging")
     public void publishPending() {
         final List<OutboxEventRow> rows;
 

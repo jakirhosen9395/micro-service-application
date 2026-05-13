@@ -55,6 +55,13 @@ public sealed class DatabaseMigrator
                 var sql = await File.ReadAllTextAsync(file, cancellationToken);
                 sql = sql.Replace("{{schema}}", _settings.PostgresSchema, StringComparison.Ordinal);
 
+                // Ensure PostgreSQL always has a selected schema before executing migrations.
+                // This prevents CREATE EXTENSION from failing with SQLSTATE 3F000 when the
+                // database/user search_path does not include a creatable schema.
+                sql = $"create schema if not exists {_settings.PostgresSchema};\n" +
+                      $"set search_path to {_settings.PostgresSchema}, public;\n" +
+                      sql;
+
                 await using var command = db.Database.GetDbConnection().CreateCommand();
                 command.Transaction = transaction.GetDbTransaction();
                 command.CommandText = sql;

@@ -1,5 +1,6 @@
 package com.microapp.calculator.http;
 
+import com.microapp.calculator.observability.ApmTraceContext;
 import com.microapp.calculator.util.RequestContext;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -28,12 +29,14 @@ public class RequestContextFilter extends OncePerRequestFilter {
         MDC.put("request_id", context.requestId());
         MDC.put("trace_id", context.traceId());
         MDC.put("correlation_id", context.correlationId());
+        ApmTraceContext.putMdc();
         response.setHeader("X-Request-ID", context.requestId());
         response.setHeader("X-Trace-ID", context.traceId());
         response.setHeader("X-Correlation-ID", context.correlationId());
         try {
             filterChain.doFilter(request, response);
         } finally {
+            ApmTraceContext.putMdc();
             MDC.clear();
             RequestContext.clear();
         }

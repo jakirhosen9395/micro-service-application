@@ -1,0 +1,28 @@
+{
+  "status": "ok",
+  "message": "current user loaded",
+  "data": {
+    "id": "5b96a939-038c-4959-a387-2d362f34dded",
+    "username": "authuser_1778678325-32580",
+    "email": "authuser_1778678325-32580@example.com",
+    "full_name": "Auth Full Test User",
+    "birthdate": "1998-05-20",
+    "gender": "male",
+    "role": "user",
+    "admin_status": "not_requested",
+    "tenant": "dev",
+    "status": "active",
+    "email_verified": false,
+    "created_at": "2026-05-13T13:18:48.739437+00:00",
+    "updated_at": "2026-05-13T13:18:50.147597+00:00",
+    "last_login_at": "2026-05-13T13:18:50.147597+00:00",
+    "admin_requested_at": null,
+    "admin_reviewed_at": null,
+    "admin_reviewed_by": null,
+    "admin_request_reason": null,
+    "admin_decision_reason": null
+  },
+  "request_id": "req-f23f15af-6ead-4a3e-b283-d9c70b953bed",
+  "trace_id": "39747b4a4b4145c289ded568a36c3b11",
+  "timestamp": "2026-05-13T13:18:50.606Z"
+}

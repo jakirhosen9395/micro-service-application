@@ -2,16 +2,15 @@
 set -eu
 
 
+docker rm -f admin_service_dev 2>/dev/null || true
+docker rm -f admin_service_stage 2>/dev/null || true
+docker rm -f admin_service_prod 2>/dev/null || true
 
-docker rm -f admin_service_dev
-docker rm -f admin_service_stage
-docker rm -f admin_service_prod  
+docker rmi admin_service:dev 2>/dev/null || true
+docker rmi admin_service:stage 2>/dev/null || true
+docker rmi admin_service:prod 2>/dev/null || true
 
-docker rmi admin_service:dev
-docker rmi admin_service:stage
-docker rmi admin_service:prod    
-
-docker rmi admin_service:latest
+docker rmi admin_service:latest 2>/dev/null || true
 docker build --no-cache -t admin_service:latest .
 
 # DEV

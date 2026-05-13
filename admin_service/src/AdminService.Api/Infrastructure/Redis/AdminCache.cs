@@ -1,4 +1,5 @@
 using AdminService.Api.Configuration;
+using AdminService.Api.Http;
 using StackExchange.Redis;
 using System.Text.Json;
 
@@ -11,33 +12,85 @@ public sealed class AdminCache
 
     public AdminCache(IConnectionMultiplexer redis, AdminSettings settings)
     {
-        _redis = redis;
-        _settings = settings;
+        _redis = redis ?? throw new ArgumentNullException(nameof(redis));
+        _settings = settings ?? throw new ArgumentNullException(nameof(settings));
     }
 
-    public string Key(string suffix) => $"{_settings.EnvironmentName}:{_settings.ServiceName}:{suffix}";
+    public string Key(string suffix)
+    {
+        if (string.IsNullOrWhiteSpace(suffix))
+        {
+            throw new ArgumentException("Redis key suffix is required.", nameof(suffix));
+        }
+
+        var normalizedSuffix = suffix.Trim().TrimStart(':');
+        return $"{_settings.EnvironmentName}:{_settings.ServiceName}:{normalizedSuffix}";
+    }
 
     public async Task<T?> GetAsync<T>(string suffix)
     {
-        var value = await _redis.GetDatabase(_settings.RedisDb).StringGetAsync(Key(suffix));
-        if (value.IsNullOrEmpty) return default;
-        return JsonSerializer.Deserialize<T>(value.ToString(), AdminService.Api.Http.JsonOptionsFactory.Options);
+        var database = _redis.GetDatabase(_settings.RedisDb);
+        var value = await database.StringGetAsync(Key(suffix));
+
+        if (value.IsNullOrEmpty)
+        {
+            return default;
+        }
+
+        var json = value.ToString();
+        if (string.IsNullOrWhiteSpace(json))
+        {
+            return default;
+        }
+
+        return JsonSerializer.Deserialize<T>(json, JsonOptionsFactory.Options);
     }
 
     public async Task SetAsync<T>(string suffix, T value)
     {
-        var json = JsonSerializer.Serialize(value, AdminService.Api.Http.JsonOptionsFactory.Options);
-        await _redis.GetDatabase(_settings.RedisDb).StringSetAsync(Key(suffix), json, TimeSpan.FromSeconds(_settings.RedisCacheTtlSeconds));
+        var database = _redis.GetDatabase(_settings.RedisDb);
+        var json = JsonSerializer.Serialize(value, JsonOptionsFactory.Options);
+        var ttl = TimeSpan.FromSeconds(Math.Max(1, _settings.RedisCacheTtlSeconds));
+
+        await database.StringSetAsync(Key(suffix), json, ttl);
     }
 
-    public Task DeleteAsync(params string[] suffixes)
+    public async Task DeleteAsync(params string[] suffixes)
     {
-        var keys = suffixes.Select(s => (RedisKey)Key(s)).ToArray();
-        return _redis.GetDatabase(_settings.RedisDb).KeyDeleteAsync(keys);
+        if (suffixes.Length == 0)
+        {
+            return;
+        }
+
+        var keys = suffixes
+            .Where(suffix => !string.IsNullOrWhiteSpace(suffix))
+            .Select(suffix => (RedisKey)Key(suffix))
+            .ToArray();
+
+        if (keys.Length == 0)
+        {
+            return;
+        }
+
+        var database = _redis.GetDatabase(_settings.RedisDb);
+        await database.KeyDeleteAsync(keys);
     }
 
     public async Task<bool> AcquireLockAsync(string suffix, TimeSpan ttl)
     {
-        return await _redis.GetDatabase(_settings.RedisDb).StringSetAsync(Key($"lock:{suffix}"), "1", ttl, When.NotExists);
+        var database = _redis.GetDatabase(_settings.RedisDb);
+        var lockTtl = ttl <= TimeSpan.Zero ? TimeSpan.FromSeconds(30) : ttl;
+
+        return await database.StringSetAsync(
+            Key($"lock:{suffix}"),
+            "1",
+            lockTtl,
+            When.NotExists);
+    }
+
+    public async Task ReleaseLockAsync(string suffix)
+    {
+        var database = _redis.GetDatabase(_settings.RedisDb);
+        await database.KeyDeleteAsync(Key($"lock:{suffix}"));
     }
 }
