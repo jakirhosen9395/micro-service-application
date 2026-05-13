@@ -1,7 +1,0 @@
-<configuration scan="false">
-    <springProperty name="logLevel" source="CALC_LOG_LEVEL" defaultValue="info" />
-    <appender name="PRETTY_JSON" class="com.microapp.calculator.logging.PrettyJsonConsoleAppender" />
-    <root level="${logLevel}">
-        <appender-ref ref="PRETTY_JSON" />
-    </root>
-</configuration>
