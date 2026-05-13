@@ -1,7 +1,7 @@
 ###############################################################################################################################################
 # ADMIN SERVICE
 ###############################################################################################################################################
-cd /home/vagrant/dokandar/admin_service
+cd ./admin_service
 docker rm -f admin_service_dev 2>/dev/null || true
 docker rm -f admin_service_stage 2>/dev/null || true
 docker rm -f admin_service_prod 2>/dev/null || true
@@ -34,7 +34,7 @@ docker ps -a
 ##############################################################################################################################################
 # CALCULATOR SERVICE
 ###############################################################################################################################################
-cd /home/vagrant/dokandar/calculator_service
+cd ./calculator_service
 docker rm -f calculator_service_dev 2>/dev/null || true
 docker rm -f calculator_service_stage 2>/dev/null || true
 docker rm -f calculator_service_prod 2>/dev/null || true
@@ -64,7 +64,7 @@ docker ps -a
 ###############################################################################################################################################
 # TODO LIST SERVICE
 ###############################################################################################################################################
-cd /home/vagrant/dokandar/todo_list_service
+cd ./todo_list_service
 docker rm -f todo_list_service_dev 2>/dev/null || true
 docker rm -f todo_list_service_stage 2>/dev/null || true
 docker rm -f todo_list_service_prod 2>/dev/null || true
@@ -97,7 +97,7 @@ docker ps -a
 ###############################################################################################################################################
 # USER SERVICE
 ###############################################################################################################################################
-cd /home/vagrant/dokandar/user_service
+cd ./user_service
 docker rm -f user_service_dev 2>/dev/null || true
 docker rm -f user_service_stage 2>/dev/null || true
 docker rm -f user_service_prod 2>/dev/null || true
@@ -127,7 +127,7 @@ docker ps -a
 ###############################################################################################################################################
 # REPORT SERVICE
 ###############################################################################################################################################
-cd /home/vagrant/dokandar/report_service
+cd ./report_service
 # Idempotent cleanup. Missing containers/images must not fail the whole script.
 docker rm -f report_service_dev 2>/dev/null || true
 docker rm -f report_service_stage 2>/dev/null || true
@@ -158,7 +158,7 @@ docker ps -a
 #############################################################################################################################################
 #  AUTH SERVICE 
 #############################################################################################################################################
-cd /home/vagrant/dokandar/auth_service
+cd ./auth_service
 docker rm -f auth_service_dev
 docker rm -f auth_service_stage
 docker rm -f auth_service_prod  
