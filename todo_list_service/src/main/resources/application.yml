@@ -25,7 +25,7 @@ spring:
 
   datasource:
     url: "jdbc:postgresql://${TODO_POSTGRES_HOST:localhost}:${TODO_POSTGRES_PORT:5432}/${TODO_POSTGRES_DB:db_micro_services}?currentSchema=${TODO_POSTGRES_SCHEMA:todo}"
-    username: "${TODO_POSTGRES_USER:user_micro_services}"
+    username: "${TODO_POSTGRES_USER:postgress_username}"
     password: "${TODO_POSTGRES_PASSWORD:}"
     hikari:
       pool-name: todo-postgres-pool
@@ -173,9 +173,9 @@ todo:
   postgres:
     host: "${TODO_POSTGRES_HOST:localhost}"
     port: ${TODO_POSTGRES_PORT:5432}
-    user: "${TODO_POSTGRES_USER:user_micro_services}"
+    user: "${TODO_POSTGRES_USER:postgress_username}"
     password: "${TODO_POSTGRES_PASSWORD:}"
-    db: "${TODO_POSTGRES_DB:db_micro_services}"
+    db: "${TODO_POSTGRES_DB:postgress_database_name}"
     schema: "${TODO_POSTGRES_SCHEMA:todo}"
     pool-size: ${TODO_POSTGRES_POOL_SIZE:10}
     max-overflow: ${TODO_POSTGRES_MAX_OVERFLOW:10}

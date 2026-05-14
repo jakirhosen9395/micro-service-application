@@ -1,9 +1,0 @@
-{
-  "status": "ok",
-  "message": "auth_service is running",
-  "service": {
-    "name": "auth_service",
-    "env": "development",
-    "version": "v1.0.0"
-  }
-}

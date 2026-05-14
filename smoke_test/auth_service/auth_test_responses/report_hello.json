@@ -1,9 +1,0 @@
-{
-  "status": "ok",
-  "message": "report_service is running",
-  "service": {
-    "name": "report_service",
-    "env": "development",
-    "version": "v1.0.0"
-  }
-}

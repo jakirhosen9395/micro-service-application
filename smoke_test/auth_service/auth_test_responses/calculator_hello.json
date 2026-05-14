@@ -1,9 +1,0 @@
-{
-  "service" : {
-    "env" : "development",
-    "name" : "calculator_service",
-    "version" : "v1.0.0"
-  },
-  "message" : "calculator_service is running",
-  "status" : "ok"
-}

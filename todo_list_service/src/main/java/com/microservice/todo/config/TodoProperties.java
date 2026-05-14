@@ -125,9 +125,9 @@ public class TodoProperties {
     public static class Postgres {
         private String host = "localhost";
         private int port = 5432;
-        private String user = "user_micro_services";
+        private String user = "postgress_username";
         private String password = "";
-        private String db = "db_micro_services";
+        private String db = "postgress_database name";
         private String schema = "todo";
         private int poolSize = 10;
         private int maxOverflow = 10;
@@ -233,7 +233,7 @@ public class TodoProperties {
         private int port = 27017;
         private String username = "";
         private String password = "";
-        private String database = "db_micro_services";
+        private String database = "mongodb_database_name";
         private String authSource = "admin";
         private String logCollection = "todo_list_service_development_logs";
         public String getHost() { return host; }
