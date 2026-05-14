@@ -1,5 +1,6 @@
 using AdminService.Api.Configuration;
 using AdminService.Api.Http;
+using AdminService.Api.Infrastructure.Observability;
 using StackExchange.Redis;
 using System.Text.Json;
 
@@ -29,8 +30,18 @@ public sealed class AdminCache
 
     public async Task<T?> GetAsync<T>(string suffix)
     {
-        var database = _redis.GetDatabase(_settings.RedisDb);
-        var value = await database.StringGetAsync(Key(suffix));
+        var key = Key(suffix);
+        var value = await ApmTelemetry.CaptureSpanAsync(
+            "Redis GET",
+            "cache",
+            "redis",
+            "get",
+            async () =>
+            {
+                var database = _redis.GetDatabase(_settings.RedisDb);
+                return await database.StringGetAsync(key);
+            },
+            RedisLabels("get", key));
 
         if (value.IsNullOrEmpty)
         {
@@ -48,11 +59,25 @@ public sealed class AdminCache
 
     public async Task SetAsync<T>(string suffix, T value)
     {
-        var database = _redis.GetDatabase(_settings.RedisDb);
+        var key = Key(suffix);
         var json = JsonSerializer.Serialize(value, JsonOptionsFactory.Options);
         var ttl = TimeSpan.FromSeconds(Math.Max(1, _settings.RedisCacheTtlSeconds));
 
-        await database.StringSetAsync(Key(suffix), json, ttl);
+        await ApmTelemetry.CaptureSpanAsync(
+            "Redis SET",
+            "cache",
+            "redis",
+            "set",
+            async () =>
+            {
+                var database = _redis.GetDatabase(_settings.RedisDb);
+                await database.StringSetAsync(key, json, ttl);
+            },
+            RedisLabels("set", key, new Dictionary<string, object?>
+            {
+                ["cache_ttl_seconds"] = ttl.TotalSeconds,
+                ["payload_bytes"] = json.Length
+            }));
     }
 
     public async Task DeleteAsync(params string[] suffixes)
@@ -72,25 +97,82 @@ public sealed class AdminCache
             return;
         }
 
-        var database = _redis.GetDatabase(_settings.RedisDb);
-        await database.KeyDeleteAsync(keys);
+        await ApmTelemetry.CaptureSpanAsync(
+            "Redis DEL",
+            "cache",
+            "redis",
+            "delete",
+            async () =>
+            {
+                var database = _redis.GetDatabase(_settings.RedisDb);
+                await database.KeyDeleteAsync(keys);
+            },
+            RedisLabels("delete", keys.Length == 1 ? keys[0].ToString() : "multiple", new Dictionary<string, object?>
+            {
+                ["key_count"] = keys.Length
+            }));
     }
 
     public async Task<bool> AcquireLockAsync(string suffix, TimeSpan ttl)
     {
-        var database = _redis.GetDatabase(_settings.RedisDb);
+        var key = Key($"lock:{suffix}");
         var lockTtl = ttl <= TimeSpan.Zero ? TimeSpan.FromSeconds(30) : ttl;
 
-        return await database.StringSetAsync(
-            Key($"lock:{suffix}"),
-            "1",
-            lockTtl,
-            When.NotExists);
+        return await ApmTelemetry.CaptureSpanAsync(
+            "Redis LOCK acquire",
+            "cache",
+            "redis",
+            "lock",
+            async () =>
+            {
+                var database = _redis.GetDatabase(_settings.RedisDb);
+                return await database.StringSetAsync(
+                    key,
+                    "1",
+                    lockTtl,
+                    When.NotExists);
+            },
+            RedisLabels("lock_acquire", key, new Dictionary<string, object?>
+            {
+                ["cache_ttl_seconds"] = lockTtl.TotalSeconds
+            }));
     }
 
     public async Task ReleaseLockAsync(string suffix)
     {
-        var database = _redis.GetDatabase(_settings.RedisDb);
-        await database.KeyDeleteAsync(Key($"lock:{suffix}"));
+        var key = Key($"lock:{suffix}");
+        await ApmTelemetry.CaptureSpanAsync(
+            "Redis LOCK release",
+            "cache",
+            "redis",
+            "unlock",
+            async () =>
+            {
+                var database = _redis.GetDatabase(_settings.RedisDb);
+                await database.KeyDeleteAsync(key);
+            },
+            RedisLabels("lock_release", key));
+    }
+
+    private Dictionary<string, object?> RedisLabels(string operation, string key, IDictionary<string, object?>? extra = null)
+    {
+        var labels = new Dictionary<string, object?>
+        {
+            ["dependency"] = "redis",
+            ["db_system"] = "redis",
+            ["db_operation"] = operation,
+            ["redis_database"] = _settings.RedisDb,
+            ["redis_key"] = key
+        };
+
+        if (extra is not null)
+        {
+            foreach (var item in extra)
+            {
+                labels[item.Key] = item.Value;
+            }
+        }
+
+        return labels;
     }
 }

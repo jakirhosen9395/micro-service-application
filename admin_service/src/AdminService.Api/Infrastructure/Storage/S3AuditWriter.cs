@@ -2,6 +2,7 @@ using Amazon.S3;
 using Amazon.S3.Model;
 using AdminService.Api.Configuration;
 using AdminService.Api.Http;
+using AdminService.Api.Infrastructure.Observability;
 using System.Text.Json;
 
 namespace AdminService.Api.Infrastructure.Storage;
@@ -25,13 +26,32 @@ public sealed class S3AuditWriter
         var prefix = _settings.S3AuditPrefix.Trim('/');
         var key = $"{prefix}/tenant/{_settings.Tenant}/users/{actor}/events/{now:yyyy}/{now:MM}/{now:dd}/{now:HHmmss}_{slug}_{eventId}.json";
         var json = JsonSerializer.Serialize(body, JsonOptionsFactory.Options);
-        await _s3.PutObjectAsync(new PutObjectRequest
-        {
-            BucketName = _settings.S3Bucket,
-            Key = key,
-            ContentBody = json,
-            ContentType = "application/json"
-        }, cancellationToken);
+        await ApmTelemetry.CaptureSpanAsync(
+            "S3 put audit object",
+            "storage",
+            "s3",
+            "put_object",
+            async () =>
+            {
+                await _s3.PutObjectAsync(new PutObjectRequest
+                {
+                    BucketName = _settings.S3Bucket,
+                    Key = key,
+                    ContentBody = json,
+                    ContentType = "application/json"
+                }, cancellationToken);
+            },
+            new Dictionary<string, object?>
+            {
+                ["dependency"] = "s3",
+                ["cloud_service"] = "s3",
+                ["s3_bucket"] = _settings.S3Bucket,
+                ["s3_key"] = key,
+                ["event_type"] = eventType,
+                ["event_id"] = eventId,
+                ["actor_id"] = actor,
+                ["payload_bytes"] = json.Length
+            });
         return key;
     }
 }

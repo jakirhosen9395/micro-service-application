@@ -3,6 +3,7 @@ using AdminService.Api.Contracts;
 using AdminService.Api.Domain;
 using AdminService.Api.Http;
 using AdminService.Api.Infrastructure.Logging;
+using AdminService.Api.Infrastructure.Observability;
 using AdminService.Api.Persistence;
 using Confluent.Kafka;
 using Elastic.Apm;
@@ -52,9 +53,26 @@ public sealed class KafkaConsumerBackgroundService : BackgroundService
                     transaction.SetLabel("topic", result.Topic);
                     transaction.SetLabel("partition", result.Partition.Value);
                     transaction.SetLabel("offset", result.Offset.Value);
+                    transaction.SetLabel("consumer_group", _settings.KafkaConsumerGroup);
+                    ApmTelemetry.SetLabel(transaction, "traceparent", HeaderValue(result.Message.Headers, "traceparent"));
                     await ProcessMessageAsync(result, stoppingToken);
+                    ApmTelemetry.CaptureSpan(
+                        $"Kafka commit {result.Topic}",
+                        "messaging",
+                        "kafka",
+                        "commit",
+                        () => consumer.Commit(result),
+                        new Dictionary<string, object?>
+                        {
+                            ["dependency"] = "kafka",
+                            ["messaging_system"] = "kafka",
+                            ["messaging_operation"] = "commit",
+                            ["topic"] = result.Topic,
+                            ["partition"] = result.Partition.Value,
+                            ["offset"] = result.Offset.Value,
+                            ["consumer_group"] = _settings.KafkaConsumerGroup
+                        });
                 });
-                consumer.Commit(result);
             }
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
             {
@@ -76,7 +94,20 @@ public sealed class KafkaConsumerBackgroundService : BackgroundService
         EventEnvelope? envelope;
         try
         {
-            envelope = JsonSerializer.Deserialize<EventEnvelope>(result.Message.Value, JsonOptionsFactory.Options);
+            envelope = await ApmTelemetry.CaptureSpanAsync(
+                "Kafka deserialize envelope",
+                "app",
+                "json",
+                "deserialize",
+                () => Task.FromResult(JsonSerializer.Deserialize<EventEnvelope>(result.Message.Value, JsonOptionsFactory.Options)),
+                new Dictionary<string, object?>
+                {
+                    ["dependency"] = "kafka",
+                    ["topic"] = result.Topic,
+                    ["partition"] = result.Partition.Value,
+                    ["offset"] = result.Offset.Value,
+                    ["payload_bytes"] = result.Message.Value.Length
+                });
         }
         catch (JsonException)
         {
@@ -94,6 +125,17 @@ public sealed class KafkaConsumerBackgroundService : BackgroundService
         {
             envelope.Tenant = _settings.Tenant;
         }
+
+        var transaction = Agent.Tracer.CurrentTransaction;
+        ApmTelemetry.SetLabel(transaction, "event_id", envelope.EventId);
+        ApmTelemetry.SetLabel(transaction, "event_type", envelope.EventType);
+        ApmTelemetry.SetLabel(transaction, "source_service", envelope.Service);
+        ApmTelemetry.SetLabel(transaction, "tenant", envelope.Tenant);
+        ApmTelemetry.SetLabel(transaction, "aggregate_type", envelope.AggregateType);
+        ApmTelemetry.SetLabel(transaction, "aggregate_id", envelope.AggregateId);
+        ApmTelemetry.SetLabel(transaction, "user_id", envelope.UserId);
+        ApmTelemetry.SetLabel(transaction, "request_id", envelope.RequestId);
+        ApmTelemetry.SetLabel(transaction, "correlation_id", envelope.CorrelationId);
 
         if (!string.Equals(envelope.Tenant, _settings.Tenant, StringComparison.Ordinal))
         {
@@ -152,7 +194,22 @@ public sealed class KafkaConsumerBackgroundService : BackgroundService
             }
             else
             {
-                await ApplyProjectionAsync(db, envelope, result.Topic, cancellationToken);
+                await ApmTelemetry.CaptureSpanAsync(
+                    $"Projection {envelope.EventType}",
+                    "app",
+                    "projection",
+                    "upsert",
+                    async () => await ApplyProjectionAsync(db, envelope, result.Topic, cancellationToken),
+                    new Dictionary<string, object?>
+                    {
+                        ["event_id"] = envelope.EventId,
+                        ["event_type"] = envelope.EventType,
+                        ["topic"] = result.Topic,
+                        ["tenant"] = envelope.Tenant,
+                        ["source_service"] = envelope.Service,
+                        ["aggregate_type"] = envelope.AggregateType,
+                        ["aggregate_id"] = envelope.AggregateId
+                    });
                 inbox.Status = InboxStatuses.Processed;
                 inbox.ProcessedAt = DateTimeOffset.UtcNow;
             }
@@ -175,31 +232,64 @@ public sealed class KafkaConsumerBackgroundService : BackgroundService
 
     private async Task StoreInvalidMessageAsync(ConsumeResult<string, string> result, string reason, CancellationToken cancellationToken)
     {
-        await using var db = await _dbFactory.CreateDbContextAsync(cancellationToken);
-        var eventId = $"invalid-{result.Topic}-{result.Partition.Value}-{result.Offset.Value}";
-        if (await db.KafkaInboxEvents.AnyAsync(x => x.EventId == eventId, cancellationToken)) return;
-        db.KafkaInboxEvents.Add(new KafkaInboxEvent
-        {
-            EventId = eventId,
-            Tenant = _settings.Tenant,
-            Topic = result.Topic,
-            Partition = result.Partition.Value,
-            OffsetValue = result.Offset.Value,
-            EventType = "invalid",
-            SourceService = null,
-            Payload = null,
-            Status = InboxStatuses.Ignored,
-            ErrorMessage = reason,
-            ProcessedAt = DateTimeOffset.UtcNow
-        });
+        await ApmTelemetry.CaptureSpanAsync(
+            "Kafka store invalid message",
+            "db",
+            "postgresql",
+            "insert",
+            async () =>
+            {
+                await using var db = await _dbFactory.CreateDbContextAsync(cancellationToken);
+                var eventId = $"invalid-{result.Topic}-{result.Partition.Value}-{result.Offset.Value}";
+                if (await db.KafkaInboxEvents.AnyAsync(x => x.EventId == eventId, cancellationToken)) return;
+                db.KafkaInboxEvents.Add(new KafkaInboxEvent
+                {
+                    EventId = eventId,
+                    Tenant = _settings.Tenant,
+                    Topic = result.Topic,
+                    Partition = result.Partition.Value,
+                    OffsetValue = result.Offset.Value,
+                    EventType = "invalid",
+                    SourceService = null,
+                    Payload = null,
+                    Status = InboxStatuses.Ignored,
+                    ErrorMessage = reason,
+                    ProcessedAt = DateTimeOffset.UtcNow
+                });
 
+                try
+                {
+                    await db.SaveChangesAsync(cancellationToken);
+                }
+                catch (DbUpdateException ex) when (IsUniqueConstraintViolation(ex))
+                {
+                    // Another service instance or retry already recorded this malformed message.
+                }
+            },
+            new Dictionary<string, object?>
+            {
+                ["dependency"] = "postgresql",
+                ["db_system"] = "postgresql",
+                ["db_operation"] = "insert",
+                ["table"] = "kafka_inbox_events",
+                ["topic"] = result.Topic,
+                ["partition"] = result.Partition.Value,
+                ["offset"] = result.Offset.Value,
+                ["reason"] = reason
+            });
+    }
+
+    private static string? HeaderValue(Headers? headers, string key)
+    {
+        if (headers is null) return null;
         try
         {
-            await db.SaveChangesAsync(cancellationToken);
+            var bytes = headers.GetLastBytes(key);
+            return bytes is null ? null : System.Text.Encoding.UTF8.GetString(bytes);
         }
-        catch (DbUpdateException ex) when (IsUniqueConstraintViolation(ex))
+        catch
         {
-            // Another service instance or retry already recorded this malformed message.
+            return null;
         }
     }
 

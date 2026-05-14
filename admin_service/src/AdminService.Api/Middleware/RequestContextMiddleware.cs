@@ -1,5 +1,6 @@
 using AdminService.Api.Configuration;
 using AdminService.Api.Http;
+using AdminService.Api.Infrastructure.Observability;
 using AdminService.Api.Security;
 using System.Diagnostics;
 
@@ -48,6 +49,7 @@ public sealed class RequestContextMiddleware
         http.Response.Headers["X-Request-ID"] = requestId;
         http.Response.Headers["X-Trace-ID"] = traceId;
         http.Response.Headers["X-Correlation-ID"] = correlationId;
+        ApmTelemetry.EnrichHttpTransaction(http, _settings);
         await _next(http);
     }
 

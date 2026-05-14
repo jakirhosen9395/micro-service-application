@@ -3,7 +3,9 @@ using Amazon.S3.Model;
 using AdminService.Api.Configuration;
 using AdminService.Api.Infrastructure.Kafka;
 using AdminService.Api.Infrastructure.Logging;
+using AdminService.Api.Infrastructure.Observability;
 using AdminService.Api.Persistence;
+using Elastic.Apm;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using StackExchange.Redis;
@@ -39,12 +41,53 @@ public sealed class StartupInitializer
 
     public async Task InitializeAsync(CancellationToken cancellationToken)
     {
+        await Agent.Tracer.CaptureTransaction("admin.startup.initialize", "app", async transaction =>
+        {
+            transaction.SetLabel("service", _settings.ServiceName);
+            transaction.SetLabel("environment", _settings.EnvironmentName);
+            transaction.SetLabel("tenant", _settings.Tenant);
+            await InitializeCoreAsync(cancellationToken);
+        });
+    }
+
+    private async Task InitializeCoreAsync(CancellationToken cancellationToken)
+    {
         await _logger.InfoAsync("application.starting", "admin_service startup sequence started", cancellationToken: cancellationToken);
-        await _migrator.MigrateAsync(cancellationToken);
-        await _redis.GetDatabase(_settings.RedisDb).PingAsync();
-        await _kafkaTopics.EnsureTopicsAsync(cancellationToken);
+        await ApmTelemetry.CaptureSpanAsync(
+            "Startup PostgreSQL migration",
+            "db",
+            "postgresql",
+            "migration",
+            async () => await _migrator.MigrateAsync(cancellationToken),
+            StartupLabels("postgresql", "migration"));
+        await ApmTelemetry.CaptureSpanAsync(
+            "Startup Redis ping",
+            "cache",
+            "redis",
+            "ping",
+            async () =>
+            {
+                await _redis.GetDatabase(_settings.RedisDb).PingAsync();
+            },
+            StartupLabels("redis", "ping"));
+        await ApmTelemetry.CaptureSpanAsync(
+            "Startup Kafka topics",
+            "messaging",
+            "kafka",
+            "admin",
+            async () => await _kafkaTopics.EnsureTopicsAsync(cancellationToken),
+            StartupLabels("kafka", "topics"));
         await EnsureS3BucketAsync(cancellationToken);
-        await _mongo.GetDatabase(_settings.MongoDatabase).RunCommandAsync<BsonDocument>(new BsonDocument("ping", 1), cancellationToken: cancellationToken);
+        await ApmTelemetry.CaptureSpanAsync(
+            "Startup MongoDB ping",
+            "db",
+            "mongodb",
+            "ping",
+            async () =>
+            {
+                await _mongo.GetDatabase(_settings.MongoDatabase).RunCommandAsync<BsonDocument>(new BsonDocument("ping", 1), cancellationToken: cancellationToken);
+            },
+            StartupLabels("mongodb", "ping"));
         await _mongoLogWriter.EnsureIndexesAsync(cancellationToken);
         await CheckOptionalObservabilityAsync(cancellationToken);
         await _logger.InfoAsync("apm.agent.configured", "Elastic APM agent configured", extra: new Dictionary<string, object?>
@@ -64,14 +107,26 @@ public sealed class StartupInitializer
 
     private async Task EnsureS3BucketAsync(CancellationToken cancellationToken)
     {
-        try
-        {
-            await _s3.ListObjectsV2Async(new ListObjectsV2Request { BucketName = _settings.S3Bucket, MaxKeys = 1 }, cancellationToken);
-        }
-        catch (AmazonS3Exception ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound || ex.ErrorCode == "NoSuchBucket")
-        {
-            await _s3.PutBucketAsync(new PutBucketRequest { BucketName = _settings.S3Bucket }, cancellationToken);
-        }
+        await ApmTelemetry.CaptureSpanAsync(
+            "Startup S3 bucket check",
+            "storage",
+            "s3",
+            "bucket_check",
+            async () =>
+            {
+                try
+                {
+                    await _s3.ListObjectsV2Async(new ListObjectsV2Request { BucketName = _settings.S3Bucket, MaxKeys = 1 }, cancellationToken);
+                }
+                catch (AmazonS3Exception ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound || ex.ErrorCode == "NoSuchBucket")
+                {
+                    await _s3.PutBucketAsync(new PutBucketRequest { BucketName = _settings.S3Bucket }, cancellationToken);
+                }
+            },
+            StartupLabels("s3", "bucket_check", new Dictionary<string, object?>
+            {
+                ["s3_bucket"] = _settings.S3Bucket
+            }));
     }
 
     private async Task CheckOptionalObservabilityAsync(CancellationToken cancellationToken)
@@ -79,7 +134,13 @@ public sealed class StartupInitializer
         try
         {
             var client = _httpClientFactory.CreateClient("startup-observability");
-            using var apmResponse = await client.GetAsync(_settings.ApmServerUrl, cancellationToken);
+            using var apmResponse = await ApmTelemetry.CaptureSpanAsync(
+                "Startup APM health",
+                "external",
+                "apm-server",
+                "health",
+                async () => await client.GetAsync(_settings.ApmServerUrl, cancellationToken),
+                StartupLabels("apm", "health"));
             if ((int)apmResponse.StatusCode >= 500)
             {
                 await _logger.WarnAsync("apm.health.down", "APM server returned an unhealthy status", errorCode: "APM_UNAVAILABLE", cancellationToken: cancellationToken);
@@ -96,7 +157,13 @@ public sealed class StartupInitializer
             using var request = new HttpRequestMessage(HttpMethod.Get, $"{_settings.ElasticsearchUrl.TrimEnd('/')}/_cluster/health");
             var token = Convert.ToBase64String(Encoding.UTF8.GetBytes($"{_settings.ElasticsearchUsername}:{_settings.ElasticsearchPassword}"));
             request.Headers.Authorization = new AuthenticationHeaderValue("Basic", token);
-            using var response = await client.SendAsync(request, cancellationToken);
+            using var response = await ApmTelemetry.CaptureSpanAsync(
+                "Startup Elasticsearch health",
+                "external",
+                "elasticsearch",
+                "health",
+                async () => await client.SendAsync(request, cancellationToken),
+                StartupLabels("elasticsearch", "health"));
             if (!response.IsSuccessStatusCode)
             {
                 await _logger.WarnAsync("elasticsearch.health.down", "Elasticsearch returned an unhealthy status", errorCode: "ELASTICSEARCH_UNAVAILABLE", cancellationToken: cancellationToken);
@@ -106,5 +173,28 @@ public sealed class StartupInitializer
         {
             await _logger.WarnAsync("elasticsearch.health.down", "Elasticsearch unavailable during startup", errorCode: "ELASTICSEARCH_UNAVAILABLE", extra: new Dictionary<string, object?> { ["message"] = ex.GetType().Name }, cancellationToken: cancellationToken);
         }
+    }
+
+    private Dictionary<string, object?> StartupLabels(string dependency, string operation, IDictionary<string, object?>? extra = null)
+    {
+        var labels = new Dictionary<string, object?>
+        {
+            ["startup"] = true,
+            ["dependency"] = dependency,
+            ["operation"] = operation,
+            ["service"] = _settings.ServiceName,
+            ["environment"] = _settings.EnvironmentName,
+            ["tenant"] = _settings.Tenant
+        };
+
+        if (extra is not null)
+        {
+            foreach (var item in extra)
+            {
+                labels[item.Key] = item.Value;
+            }
+        }
+
+        return labels;
     }
 }

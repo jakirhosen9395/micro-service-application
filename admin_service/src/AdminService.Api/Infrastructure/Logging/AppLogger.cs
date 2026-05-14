@@ -1,5 +1,6 @@
 using AdminService.Api.Configuration;
 using AdminService.Api.Http;
+using AdminService.Api.Infrastructure.Observability;
 using Elastic.Apm;
 using System.Net;
 using System.Diagnostics;
@@ -25,11 +26,23 @@ public sealed class AppLogger
     public Task WarnAsync(string evt, string message, HttpContext? http = null, string? errorCode = null, IDictionary<string, object?>? extra = null, CancellationToken cancellationToken = default)
         => LogAsync("WARN", evt, message, http, null, errorCode, extra, cancellationToken);
 
+    public Task ErrorAsync(string evt, string message, HttpContext? http = null, string? errorCode = null, IDictionary<string, object?>? extra = null, CancellationToken cancellationToken = default)
+        => LogAsync("ERROR", evt, message, http, null, errorCode, extra, cancellationToken);
+
     public Task ErrorAsync(string evt, string message, Exception exception, HttpContext? http = null, string? errorCode = null, IDictionary<string, object?>? extra = null, CancellationToken cancellationToken = default)
         => LogAsync("ERROR", evt, message, http, exception, errorCode, extra, cancellationToken);
 
     private async Task LogAsync(string level, string evt, string message, HttpContext? http, Exception? exception, string? errorCode, IDictionary<string, object?>? extra, CancellationToken cancellationToken)
     {
+        if (exception is not null)
+        {
+            ApmTelemetry.CaptureException(exception);
+        }
+        else if (level == "ERROR")
+        {
+            ApmTelemetry.CaptureError(message, evt);
+        }
+
         RequestContext? ctx = http is null ? null : RequestContext.From(http);
         var redactedExtra = extra is null ? new Dictionary<string, object?>() : SecretRedactor.RedactDictionary(extra);
         var activity = Activity.Current;
@@ -74,14 +87,29 @@ public sealed class AppLogger
 
         var stdoutDocument = new Dictionary<string, object?>(document)
         {
+            ["ecs.version"] = "8.11.0",
+            ["log.level"] = level.ToLowerInvariant(),
             ["service.name"] = _settings.ServiceName,
             ["service.version"] = _settings.Version,
             ["service.environment"] = _settings.EnvironmentName,
             ["service.node.name"] = _hostName,
+            ["host.name"] = _hostName,
             ["event.dataset"] = $"{_settings.ServiceName}.{document["logger"]}",
+            ["event.action"] = evt,
+            ["event.kind"] = level == "ERROR" ? "error" : "event",
+            ["event.outcome"] = level == "INFO" ? "success" : "failure",
             ["trace.id"] = elasticTraceId,
             ["transaction.id"] = elasticTransactionId,
-            ["span.id"] = elasticSpanId
+            ["span.id"] = elasticSpanId,
+            ["http.request.method"] = http?.Request.Method,
+            ["url.path"] = http?.Request.Path.Value,
+            ["http.response.status_code"] = http?.Response.StatusCode,
+            ["client.ip"] = ctx?.ClientIp,
+            ["user.id"] = ctx?.UserId,
+            ["user_agent.original"] = ctx?.UserAgent,
+            ["error.type"] = exception?.GetType().FullName,
+            ["error.message"] = exception is null ? null : SecretRedactor.SafeExceptionMessage(exception),
+            ["error.stack_trace"] = level == "ERROR" && exception is not null ? exception.StackTrace : null
         };
 
         var line = JsonSerializer.Serialize(stdoutDocument, JsonOptionsFactory.Options);

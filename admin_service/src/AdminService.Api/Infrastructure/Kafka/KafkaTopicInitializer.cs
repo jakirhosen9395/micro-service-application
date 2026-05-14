@@ -1,5 +1,6 @@
 using AdminService.Api.Configuration;
 using AdminService.Api.Infrastructure.Logging;
+using AdminService.Api.Infrastructure.Observability;
 using Confluent.Kafka;
 using Confluent.Kafka.Admin;
 
@@ -30,7 +31,13 @@ public sealed class KafkaTopicInitializer
         {
             try
             {
-                await admin.CreateTopicsAsync(topics);
+                await ApmTelemetry.CaptureSpanAsync(
+                    "Kafka create topics",
+                    "messaging",
+                    "kafka",
+                    "admin",
+                    async () => await admin.CreateTopicsAsync(topics),
+                    KafkaLabels("create_topics", topics.Length));
             }
             catch (CreateTopicsException ex) when (ex.Results.All(r => r.Error.Code is ErrorCode.TopicAlreadyExists or ErrorCode.NoError))
             {
@@ -38,7 +45,25 @@ public sealed class KafkaTopicInitializer
             }
         }
 
-        _ = admin.GetMetadata(TimeSpan.FromSeconds(5));
+        ApmTelemetry.CaptureSpan(
+            "Kafka metadata",
+            "messaging",
+            "kafka",
+            "metadata",
+            () => _ = admin.GetMetadata(TimeSpan.FromSeconds(5)),
+            KafkaLabels("metadata", topics.Length));
         await _logger.InfoAsync("kafka.topics.ready", "Kafka topics verified", extra: new Dictionary<string, object?> { ["topic_count"] = topics.Length }, cancellationToken: cancellationToken);
+    }
+
+    private Dictionary<string, object?> KafkaLabels(string operation, int topicCount)
+    {
+        return new Dictionary<string, object?>
+        {
+            ["dependency"] = "kafka",
+            ["messaging_system"] = "kafka",
+            ["messaging_operation"] = operation,
+            ["kafka_bootstrap_servers"] = _settings.KafkaBootstrapServers,
+            ["topic_count"] = topicCount
+        };
     }
 }

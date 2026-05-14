@@ -1,6 +1,7 @@
 using AdminService.Api.Configuration;
 using AdminService.Api.Domain;
 using AdminService.Api.Infrastructure.Logging;
+using AdminService.Api.Infrastructure.Observability;
 using AdminService.Api.Persistence;
 using Confluent.Kafka;
 using Elastic.Apm;
@@ -79,14 +80,28 @@ public sealed class OutboxPublisherBackgroundService : BackgroundService
                     Value = row.Payload,
                     Headers = BuildHeaders(row)
                 };
-                var span = Agent.Tracer.CurrentTransaction?.StartSpan($"Kafka produce {row.Topic}", "messaging", "kafka", "send");
+                var span = ApmTelemetry.StartSpan($"Kafka produce {row.Topic}", "messaging", "kafka", "send", new Dictionary<string, object?>
+                {
+                    ["dependency"] = "kafka",
+                    ["messaging_system"] = "kafka",
+                    ["messaging_operation"] = "send",
+                    ["topic"] = row.Topic,
+                    ["event_id"] = row.EventId,
+                    ["event_type"] = row.EventType,
+                    ["tenant"] = row.Tenant,
+                    ["aggregate_type"] = row.AggregateType,
+                    ["aggregate_id"] = row.AggregateId,
+                    ["attempt_count"] = row.AttemptCount
+                });
                 try
                 {
-                    await _producer.ProduceAsync(row.Topic, message, cancellationToken);
+                    var result = await _producer.ProduceAsync(row.Topic, message, cancellationToken);
+                    ApmTelemetry.SetLabel(span, "partition", result.Partition.Value);
+                    ApmTelemetry.SetLabel(span, "offset", result.Offset.Value);
                 }
                 catch (Exception ex)
                 {
-                    span?.CaptureException(ex);
+                    ApmTelemetry.CaptureException(ex);
                     throw;
                 }
                 finally
@@ -133,6 +148,7 @@ public sealed class OutboxPublisherBackgroundService : BackgroundService
         };
         if (!string.IsNullOrWhiteSpace(row.TraceId)) headers.Add("trace_id", Encoding.UTF8.GetBytes(row.TraceId));
         if (!string.IsNullOrWhiteSpace(row.CorrelationId)) headers.Add("correlation_id", Encoding.UTF8.GetBytes(row.CorrelationId));
+        ApmTelemetry.InjectTraceHeaders(headers);
         return headers;
     }
 

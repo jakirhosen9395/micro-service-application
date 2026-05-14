@@ -12,8 +12,16 @@ The service follows the same infrastructure style as the working `auth_service`:
 - Kafka via Confluent.Kafka
 - S3 / MinIO via AWSSDK.S3
 - MongoDB structured logging via MongoDB.Driver
-- Elastic APM and Elasticsearch health checks
+- Elastic APM with detailed HTTP/background transactions, dependency spans, errors, metrics, correlated logs, and Elasticsearch health checks
 - Docker container port `8080`
+
+## Elastic APM coverage
+
+The service sends 100% sampled APM telemetry to `ADMIN_APM_SERVER_URL` using Elastic APM. Each HTTP transaction is enriched with request, tenant, user, route, status, duration, trace, and correlation identifiers. Background Kafka consumption, outbox publishing, and startup initialization are captured as APM transactions too.
+
+Dependency visibility is emitted with named spans for PostgreSQL/EF, Redis, Kafka, S3/MinIO, MongoDB, APM Server, and Elasticsearch health checks. Errors are captured into APM and written as structured ECS-style JSON logs with `trace.id`, `transaction.id`, `span.id`, `error.*`, request metadata, user metadata, and redacted custom fields.
+
+`ADMIN_APM_CAPTURE_BODY=all` is enabled in the environment files so transaction request bodies are available in APM. Elastic Agent or another log shipper should collect container stdout for the Kibana Logs, Infrastructure, Alerts, and Dashboard views.
 
 ## Public routes
 

@@ -2,6 +2,7 @@ using Amazon.S3;
 using Amazon.S3.Model;
 using AdminService.Api.Configuration;
 using AdminService.Api.Http;
+using AdminService.Api.Infrastructure.Observability;
 using AdminService.Api.Persistence;
 using Confluent.Kafka;
 using Microsoft.EntityFrameworkCore;
@@ -37,14 +38,14 @@ public sealed class DependencyHealthService
     {
         var dependencies = new Dictionary<string, HealthDependency>
         {
-            ["jwt"] = await CheckAsync("JWT_INVALID", _ => Task.CompletedTask, http.RequestAborted),
-            ["postgres"] = await CheckAsync("POSTGRES_UNAVAILABLE", CheckPostgresAsync, http.RequestAborted),
-            ["redis"] = await CheckAsync("REDIS_UNAVAILABLE", CheckRedisAsync, http.RequestAborted),
-            ["kafka"] = await CheckAsync("KAFKA_UNAVAILABLE", CheckKafkaAsync, http.RequestAborted),
-            ["s3"] = await CheckAsync("S3_UNAVAILABLE", CheckS3Async, http.RequestAborted),
-            ["mongodb"] = await CheckAsync("MONGODB_UNAVAILABLE", CheckMongoAsync, http.RequestAborted),
-            ["apm"] = await CheckAsync("APM_UNAVAILABLE", CheckApmAsync, http.RequestAborted),
-            ["elasticsearch"] = await CheckAsync("ELASTICSEARCH_UNAVAILABLE", CheckElasticsearchAsync, http.RequestAborted)
+            ["jwt"] = await CheckAsync("jwt", "JWT_INVALID", _ => Task.CompletedTask, http.RequestAborted),
+            ["postgres"] = await CheckAsync("postgres", "POSTGRES_UNAVAILABLE", CheckPostgresAsync, http.RequestAborted),
+            ["redis"] = await CheckAsync("redis", "REDIS_UNAVAILABLE", CheckRedisAsync, http.RequestAborted),
+            ["kafka"] = await CheckAsync("kafka", "KAFKA_UNAVAILABLE", CheckKafkaAsync, http.RequestAborted),
+            ["s3"] = await CheckAsync("s3", "S3_UNAVAILABLE", CheckS3Async, http.RequestAborted),
+            ["mongodb"] = await CheckAsync("mongodb", "MONGODB_UNAVAILABLE", CheckMongoAsync, http.RequestAborted),
+            ["apm"] = await CheckAsync("apm", "APM_UNAVAILABLE", CheckApmAsync, http.RequestAborted),
+            ["elasticsearch"] = await CheckAsync("elasticsearch", "ELASTICSEARCH_UNAVAILABLE", CheckElasticsearchAsync, http.RequestAborted)
         };
 
         var status = dependencies.Values.Any(x => x.Status == "down") ? "down" : "ok";
@@ -60,12 +61,22 @@ public sealed class DependencyHealthService
         return Results.Json(body, JsonOptionsFactory.Options, statusCode: status == "ok" ? StatusCodes.Status200OK : StatusCodes.Status503ServiceUnavailable);
     }
 
-    private static async Task<HealthDependency> CheckAsync(string errorCode, Func<CancellationToken, Task> operation, CancellationToken cancellationToken)
+    private static async Task<HealthDependency> CheckAsync(string dependency, string errorCode, Func<CancellationToken, Task> operation, CancellationToken cancellationToken)
     {
         var stopwatch = Stopwatch.StartNew();
         try
         {
-            await operation(cancellationToken);
+            await ApmTelemetry.CaptureSpanAsync(
+                $"Health check {dependency}",
+                DependencyType(dependency),
+                dependency,
+                "health",
+                async () => await operation(cancellationToken),
+                new Dictionary<string, object?>
+                {
+                    ["dependency"] = dependency,
+                    ["health_check"] = true
+                });
             stopwatch.Stop();
             return new HealthDependency("ok", Math.Round(stopwatch.Elapsed.TotalMilliseconds, 3), null);
         }
@@ -74,6 +85,19 @@ public sealed class DependencyHealthService
             stopwatch.Stop();
             return new HealthDependency("down", Math.Round(stopwatch.Elapsed.TotalMilliseconds, 3), errorCode);
         }
+    }
+
+    private static string DependencyType(string dependency)
+    {
+        return dependency switch
+        {
+            "postgres" or "mongodb" => "db",
+            "redis" => "cache",
+            "kafka" => "messaging",
+            "s3" => "storage",
+            "apm" or "elasticsearch" => "external",
+            _ => "app"
+        };
     }
 
     private async Task CheckPostgresAsync(CancellationToken ct)
