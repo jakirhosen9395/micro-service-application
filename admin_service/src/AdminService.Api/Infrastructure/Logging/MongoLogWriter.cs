@@ -89,7 +89,7 @@ public sealed class MongoLogWriter
         }
         finally
         {
-            span?.End();
+            ApmTelemetry.EndSpan(span);
         }
     }
 

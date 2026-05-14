@@ -130,7 +130,7 @@ public sealed class OutboxPublisherBackgroundService : BackgroundService
                 }
                 finally
                 {
-                    span?.End();
+                    ApmTelemetry.EndSpan(span);
                 }
                 row.Status = OutboxStatuses.Sent;
                 row.SentAt = DateTimeOffset.UtcNow;

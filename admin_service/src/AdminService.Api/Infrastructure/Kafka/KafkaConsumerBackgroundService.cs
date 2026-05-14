@@ -122,7 +122,7 @@ public sealed class KafkaConsumerBackgroundService : BackgroundService
         }
         finally
         {
-            deserializeSpan?.End();
+            ApmTelemetry.EndSpan(deserializeSpan);
         }
 
         if (envelope is null || string.IsNullOrWhiteSpace(envelope.EventId) || string.IsNullOrWhiteSpace(envelope.EventType))

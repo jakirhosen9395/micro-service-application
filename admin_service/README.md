@@ -310,3 +310,27 @@ ADMIN_ELASTICSEARCH_PASSWORD='<elasticsearch-password>' \
 ```
 
 APM data is sent to `ADMIN_APM_SERVER_URL` and stored in Elasticsearch. Kibana is optional and external to the app; if no Kibana is deployed, the service still emits traces, spans, errors, and metrics to APM/Elasticsearch, but UI pages such as Overview, Transactions, Dependencies, Errors, Metrics, Infrastructure, Service map, Logs, Alerts, and Dashboards are not available until Kibana or another viewer is connected. Infrastructure metrics require Elastic Agent, Metricbeat, Docker metrics, Kubernetes metrics, or equivalent host/container metric collection.
+
+
+## APM dependency visibility
+
+The service emits Elastic APM transactions for HTTP requests, startup, outbox publishing, and Kafka consumption. Dependency visibility has been strengthened by emitting OpenTelemetry client activities alongside Elastic APM custom spans for PostgreSQL, Redis, Kafka, MongoDB, S3, APM Server, and Elasticsearch. This is required because Kibana's APM Dependencies page is built from dependency/exit spans, not from `/health` JSON keys.
+
+After starting the container, generate traffic that touches dependencies:
+
+```bash
+ADMIN_BASE_URL=http://192.168.56.50:1010 \
+ADMIN_TOKEN='<approved-admin-jwt>' \
+COUNT=30 \
+./observability/apm/generate_admin_dependency_traffic.sh
+```
+
+For local prod/stage HTTP ports with HTTPS enforcement enabled, add:
+
+```bash
+FORWARDED_PROTO=https
+```
+
+Then check Kibana: `APM > Service inventory > admin_service > Dependencies` using Last 15 or Last 30 minutes and the correct environment filter.
+
+Infrastructure, Logs, Alerts, and Dashboards are Kibana/Elastic-stack views. The app emits APM traces and structured logs, but host/container infrastructure metrics require Elastic Agent, Metricbeat, Docker metrics, Kubernetes metrics, or an equivalent collector. Logs require stdout or MongoDB logs to be shipped/indexed into Elasticsearch.

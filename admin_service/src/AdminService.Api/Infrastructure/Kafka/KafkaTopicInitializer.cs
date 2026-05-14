@@ -77,7 +77,7 @@ public sealed class KafkaTopicInitializer
         }
         finally
         {
-            span?.End();
+            ApmTelemetry.EndSpan(span);
         }
     }
 

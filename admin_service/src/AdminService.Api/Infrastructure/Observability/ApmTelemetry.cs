@@ -3,6 +3,8 @@ using AdminService.Api.Http;
 using Elastic.Apm;
 using Elastic.Apm.Api;
 using Microsoft.Extensions.Logging;
+using System.Collections.Concurrent;
+using System.Reflection;
 using System.Diagnostics;
 using System.Globalization;
 using System.Text;
@@ -12,6 +14,8 @@ namespace AdminService.Api.Infrastructure.Observability;
 public static class ApmTelemetry
 {
     private const string CaptureMarker = "elastic_apm_captured";
+    private static readonly ActivitySource DependencyActivitySource = new("admin_service.dependencies");
+    private static readonly ConcurrentDictionary<ISpan, Activity> SpanActivities = new();
 
     public static void ConfigureElasticEnvironment(AdminSettings settings)
     {
@@ -35,6 +39,7 @@ public static class ApmTelemetry
         Environment.SetEnvironmentVariable("ELASTIC_APM_STACK_TRACE_LIMIT", "50");
         Environment.SetEnvironmentVariable("ELASTIC_APM_SPAN_FRAMES_MIN_DURATION", "0ms");
         Environment.SetEnvironmentVariable("ELASTIC_APM_USE_ELASTIC_TRACEPARENT_HEADER", "true");
+        Environment.SetEnvironmentVariable("ELASTIC_APM_OPENTELEMETRY_BRIDGE_ENABLED", "true");
         Environment.SetEnvironmentVariable("ELASTIC_APM_LOG_LEVEL", ElasticLogLevel(settings.LogLevel));
         Environment.SetEnvironmentVariable("ELASTIC_APM_GLOBAL_LABELS", $"tenant={settings.Tenant},service={settings.ServiceName},environment={settings.EnvironmentName}");
     }
@@ -88,7 +93,26 @@ public static class ApmTelemetry
         var span = Agent.Tracer.CurrentSpan?.StartSpan(name, type, subtype, action)
             ?? Agent.Tracer.CurrentTransaction?.StartSpan(name, type, subtype, action);
         ApplyLabels(span, labels);
+        TryConfigureNativeDependencyContext(span, type, subtype, action, labels);
+
+        var activity = StartDependencyActivity(name, type, subtype, action, labels);
+        if (span is not null && activity is not null)
+        {
+            SpanActivities[span] = activity;
+        }
+
         return span;
+    }
+
+    public static void EndSpan(ISpan? span)
+    {
+        if (span is not null && SpanActivities.TryRemove(span, out var activity))
+        {
+            activity.Stop();
+            activity.Dispose();
+        }
+
+        span?.End();
     }
 
     public static async Task CaptureSpanAsync(string name, string type, string subtype, string action, Func<Task> operation, IDictionary<string, object?>? labels = null)
@@ -98,6 +122,7 @@ public static class ApmTelemetry
         {
             await operation();
             SetLabel(span, "outcome", "success");
+            SetActivityStatus(span, ActivityStatusCode.Ok);
         }
         catch (Exception ex)
         {
@@ -108,11 +133,12 @@ public static class ApmTelemetry
             }
             else CaptureException(ex);
             SetLabel(span, "outcome", "failure");
+            SetActivityStatus(span, ActivityStatusCode.Error, ex.Message);
             throw;
         }
         finally
         {
-            span?.End();
+            EndSpan(span);
         }
     }
 
@@ -123,6 +149,7 @@ public static class ApmTelemetry
         {
             var result = await operation();
             SetLabel(span, "outcome", "success");
+            SetActivityStatus(span, ActivityStatusCode.Ok);
             return result;
         }
         catch (Exception ex)
@@ -134,11 +161,12 @@ public static class ApmTelemetry
             }
             else CaptureException(ex);
             SetLabel(span, "outcome", "failure");
+            SetActivityStatus(span, ActivityStatusCode.Error, ex.Message);
             throw;
         }
         finally
         {
-            span?.End();
+            EndSpan(span);
         }
     }
 
@@ -149,6 +177,7 @@ public static class ApmTelemetry
         {
             operation();
             SetLabel(span, "outcome", "success");
+            SetActivityStatus(span, ActivityStatusCode.Ok);
         }
         catch (Exception ex)
         {
@@ -159,11 +188,12 @@ public static class ApmTelemetry
             }
             else CaptureException(ex);
             SetLabel(span, "outcome", "failure");
+            SetActivityStatus(span, ActivityStatusCode.Error, ex.Message);
             throw;
         }
         finally
         {
-            span?.End();
+            EndSpan(span);
         }
     }
 
@@ -201,27 +231,13 @@ public static class ApmTelemetry
         if (span is null || string.IsNullOrWhiteSpace(key) || value is null) return;
         switch (value)
         {
-            case string text when !string.IsNullOrWhiteSpace(text):
-                span.SetLabel(key, text);
-                break;
-            case bool boolean:
-                span.SetLabel(key, boolean);
-                break;
-            case int integer:
-                span.SetLabel(key, integer);
-                break;
-            case long integer:
-                span.SetLabel(key, integer);
-                break;
-            case float number:
-                span.SetLabel(key, number);
-                break;
-            case double number:
-                span.SetLabel(key, number);
-                break;
-            case decimal number:
-                span.SetLabel(key, decimal.ToDouble(number));
-                break;
+            case string text when !string.IsNullOrWhiteSpace(text): span.SetLabel(key, text); break;
+            case bool boolean: span.SetLabel(key, boolean); break;
+            case int integer: span.SetLabel(key, integer); break;
+            case long integer: span.SetLabel(key, integer); break;
+            case float number: span.SetLabel(key, number); break;
+            case double number: span.SetLabel(key, number); break;
+            case decimal number: span.SetLabel(key, decimal.ToDouble(number)); break;
             default:
                 var labelText = value.ToString();
                 if (!string.IsNullOrWhiteSpace(labelText)) span.SetLabel(key, labelText);
@@ -234,27 +250,13 @@ public static class ApmTelemetry
         if (transaction is null || string.IsNullOrWhiteSpace(key) || value is null) return;
         switch (value)
         {
-            case string text when !string.IsNullOrWhiteSpace(text):
-                transaction.SetLabel(key, text);
-                break;
-            case bool boolean:
-                transaction.SetLabel(key, boolean);
-                break;
-            case int integer:
-                transaction.SetLabel(key, integer);
-                break;
-            case long integer:
-                transaction.SetLabel(key, integer);
-                break;
-            case float number:
-                transaction.SetLabel(key, number);
-                break;
-            case double number:
-                transaction.SetLabel(key, number);
-                break;
-            case decimal number:
-                transaction.SetLabel(key, decimal.ToDouble(number));
-                break;
+            case string text when !string.IsNullOrWhiteSpace(text): transaction.SetLabel(key, text); break;
+            case bool boolean: transaction.SetLabel(key, boolean); break;
+            case int integer: transaction.SetLabel(key, integer); break;
+            case long integer: transaction.SetLabel(key, integer); break;
+            case float number: transaction.SetLabel(key, number); break;
+            case double number: transaction.SetLabel(key, number); break;
+            case decimal number: transaction.SetLabel(key, decimal.ToDouble(number)); break;
             default:
                 var labelText = value.ToString();
                 if (!string.IsNullOrWhiteSpace(labelText)) transaction.SetLabel(key, labelText);
@@ -273,6 +275,201 @@ public static class ApmTelemetry
         if (!string.IsNullOrWhiteSpace(activity?.TraceStateString))
         {
             headers.Add("tracestate", Encoding.UTF8.GetBytes(activity.TraceStateString));
+        }
+    }
+
+
+    private static void TryConfigureNativeDependencyContext(ISpan? span, string type, string subtype, string action, IDictionary<string, object?>? labels)
+    {
+        if (span is null || !IsDependencyType(type, subtype, labels)) return;
+
+        try
+        {
+            var resource = DependencyResource(type, subtype, labels);
+            SetNestedProperty(span, new[] { "Context", "Destination", "Service", "Resource" }, resource);
+            SetNestedProperty(span, new[] { "Context", "Destination", "Service", "Type" }, subtype);
+            SetNestedProperty(span, new[] { "Context", "Service", "Target", "Type" }, subtype);
+            SetNestedProperty(span, new[] { "Context", "Service", "Target", "Name" }, resource);
+
+            if (type == "db")
+            {
+                SetNestedProperty(span, new[] { "Context", "Db", "Type" }, NormalizeDbSystem(subtype));
+                SetNestedProperty(span, new[] { "Context", "Db", "Instance" }, GetLabel(labels, "db_name")?.ToString());
+                SetNestedProperty(span, new[] { "Context", "Db", "Statement" }, GetLabel(labels, "db_statement")?.ToString());
+                SetNestedProperty(span, new[] { "Context", "Db", "User" }, GetLabel(labels, "db_user")?.ToString());
+            }
+        }
+        catch
+        {
+            // Dependency context fields are best-effort because Elastic APM internal
+            // model shapes vary by agent version. Normal custom spans and OTel
+            // activities are still emitted even if reflection cannot set a field.
+        }
+    }
+
+    private static void SetNestedProperty(object root, IReadOnlyList<string> path, object? value)
+    {
+        if (value is null) return;
+
+        object? current = root;
+        for (var i = 0; i < path.Count - 1; i++)
+        {
+            current = GetPropertyValue(current, path[i]);
+            if (current is null) return;
+        }
+
+        if (current is null) return;
+        var propertyName = path[^1];
+        var property = current.GetType().GetProperty(propertyName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+        if (property is null || !property.CanWrite) return;
+
+        if (property.PropertyType == typeof(string))
+        {
+            property.SetValue(current, value.ToString());
+            return;
+        }
+
+        if (property.PropertyType.IsAssignableFrom(value.GetType()))
+        {
+            property.SetValue(current, value);
+        }
+    }
+
+    private static object? GetPropertyValue(object? instance, string propertyName)
+    {
+        if (instance is null) return null;
+        var property = instance.GetType().GetProperty(propertyName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+        return property?.GetValue(instance);
+    }
+
+    private static Activity? StartDependencyActivity(string name, string type, string subtype, string action, IDictionary<string, object?>? labels)
+    {
+        if (!IsDependencyType(type, subtype, labels)) return null;
+
+        var activity = DependencyActivitySource.StartActivity(name, ActivityKind.Client);
+        if (activity is null) return null;
+
+        activity.SetTag("elastic.apm.custom_dependency", true);
+        activity.SetTag("span.type", type);
+        activity.SetTag("span.subtype", subtype);
+        activity.SetTag("span.action", action);
+        activity.SetTag("dependency", GetLabel(labels, "dependency") ?? subtype);
+        activity.SetTag("peer.service", DependencyResource(type, subtype, labels));
+
+        switch (type)
+        {
+            case "db":
+                activity.SetTag("db.system", NormalizeDbSystem(subtype));
+                activity.SetTag("db.operation", GetLabel(labels, "db_operation") ?? action);
+                SetTagIfPresent(activity, "db.name", GetLabel(labels, "db_name"));
+                SetTagIfPresent(activity, "db.collection.name", GetLabel(labels, "db_collection"));
+                SetTagIfPresent(activity, "db.namespace", GetLabel(labels, "table"));
+                break;
+            case "cache":
+                activity.SetTag("db.system", subtype);
+                activity.SetTag("db.operation", GetLabel(labels, "redis_operation") ?? action);
+                activity.SetTag("cache.system", subtype);
+                SetTagIfPresent(activity, "db.redis.database_index", GetLabel(labels, "redis_database"));
+                break;
+            case "messaging":
+                activity.SetTag("messaging.system", subtype);
+                activity.SetTag("messaging.operation", GetLabel(labels, "messaging_operation") ?? action);
+                activity.SetTag("messaging.destination.kind", "topic");
+                SetTagIfPresent(activity, "messaging.destination.name", GetLabel(labels, "topic"));
+                SetTagIfPresent(activity, "messaging.kafka.consumer.group", GetLabel(labels, "consumer_group"));
+                SetTagIfPresent(activity, "messaging.kafka.partition", GetLabel(labels, "partition"));
+                SetTagIfPresent(activity, "messaging.kafka.message.offset", GetLabel(labels, "offset"));
+                break;
+            case "storage":
+                activity.SetTag("cloud.provider", "aws");
+                activity.SetTag("cloud.service.name", subtype);
+                activity.SetTag("rpc.system", "aws-api");
+                activity.SetTag("rpc.service", subtype);
+                activity.SetTag("rpc.method", action);
+                SetTagIfPresent(activity, "aws.s3.bucket", GetLabel(labels, "s3_bucket"));
+                break;
+            case "external":
+                activity.SetTag("http.request.method", "GET");
+                activity.SetTag("url.full", GetLabel(labels, "url") ?? subtype);
+                break;
+        }
+
+        if (labels is not null)
+        {
+            foreach (var (key, value) in labels)
+            {
+                SetTagIfPresent(activity, key, value);
+            }
+        }
+
+        return activity;
+    }
+
+    private static bool IsDependencyType(string type, string subtype, IDictionary<string, object?>? labels)
+    {
+        if (type is "db" or "cache" or "messaging" or "storage" or "external") return true;
+        var dependency = GetLabel(labels, "dependency")?.ToString();
+        return !string.IsNullOrWhiteSpace(dependency) && dependency is not "jwt";
+    }
+
+    private static string DependencyResource(string type, string subtype, IDictionary<string, object?>? labels)
+    {
+        var dependency = GetLabel(labels, "dependency")?.ToString();
+        var topic = GetLabel(labels, "topic")?.ToString();
+        var dbName = GetLabel(labels, "db_name")?.ToString();
+        return type switch
+        {
+            "messaging" when !string.IsNullOrWhiteSpace(topic) => $"kafka/{topic}",
+            "db" when !string.IsNullOrWhiteSpace(dbName) => $"{NormalizeDbSystem(subtype)}/{dbName}",
+            "cache" => "redis",
+            "storage" => "s3",
+            "external" => dependency ?? subtype,
+            _ => dependency ?? subtype
+        };
+    }
+
+    private static string NormalizeDbSystem(string subtype)
+    {
+        return subtype switch
+        {
+            "postgres" => "postgresql",
+            "postgresql" => "postgresql",
+            "mongodb" => "mongodb",
+            _ => subtype
+        };
+    }
+
+    private static object? GetLabel(IDictionary<string, object?>? labels, string key)
+    {
+        if (labels is null) return null;
+        return labels.TryGetValue(key, out var value) ? value : null;
+    }
+
+    private static void SetTagIfPresent(Activity activity, string key, object? value)
+    {
+        if (value is null || string.IsNullOrWhiteSpace(key)) return;
+        switch (value)
+        {
+            case string text when !string.IsNullOrWhiteSpace(text): activity.SetTag(key, text); break;
+            case bool boolean: activity.SetTag(key, boolean); break;
+            case int integer: activity.SetTag(key, integer); break;
+            case long integer: activity.SetTag(key, integer); break;
+            case float number: activity.SetTag(key, number); break;
+            case double number: activity.SetTag(key, number); break;
+            case decimal number: activity.SetTag(key, decimal.ToDouble(number)); break;
+            default:
+                var text = value.ToString();
+                if (!string.IsNullOrWhiteSpace(text)) activity.SetTag(key, text);
+                break;
+        }
+    }
+
+    private static void SetActivityStatus(ISpan? span, ActivityStatusCode status, string? description = null)
+    {
+        if (span is null) return;
+        if (SpanActivities.TryGetValue(span, out var activity))
+        {
+            activity.SetStatus(status, description);
         }
     }
 
