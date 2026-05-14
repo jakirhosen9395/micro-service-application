@@ -14,15 +14,15 @@ docker build --no-cache -t user_service:latest .
 
 # DEV
 docker build -t user_service:dev .
-docker run -d --name user_service_dev --env-file .env.dev -p 4040:8080 user_service:dev
+docker run -d --name user_service_dev --env-file .env.dev -p 4040:8080 --restart=always user_service:dev
 docker ps -a
 
 # STAGE
 docker build -t user_service:stage .
-docker run -d --name user_service_stage --env-file .env.stage -p 4041:8080 user_service:stage
+docker run -d --name user_service_stage --env-file .env.stage -p 4041:8080 --restart=always user_service:stage
 docker ps -a
 
 # PRODUCTION
 docker build -t user_service:prod .
-docker run -d --name user_service_prod --env-file .env.prod -p 4042:8080 user_service:prod
+docker run -d --name user_service_prod --env-file .env.prod -p 4042:8080 --restart=always user_service:prod
 docker ps -a

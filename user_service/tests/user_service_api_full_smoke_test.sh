@@ -4,7 +4,7 @@
 # Usage:
 #   chmod +x user_service_api_full_smoke_test.sh
 #   ./user_service_api_full_smoke_test.sh --user-host 192.168.56.100 --user-port 4040 --auth-host 192.168.56.100 --auth-port 6060
-#   ./user_service_api_full_smoke_test.sh --user-url http://192.168.56.100:4040 --auth-url http://192.168.56.100:6060
+#   ./user_service_api_full_smoke_test.sh --user-url http://52.66.223.53:4040 --auth-url http://52.66.223.53:6060
 #
 # Optional environment variables:
 #   USER_TEST_TIMEOUT=20

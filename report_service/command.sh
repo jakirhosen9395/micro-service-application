@@ -15,15 +15,15 @@ docker build --no-cache -t report_service:latest .
 
 # DEV
 docker build -t report_service:dev .
-docker run -d --name report_service_dev --env-file .env.dev -p 5050:8080 report_service:dev
+docker run -d --name report_service_dev --env-file .env.dev -p 5050:8080 --restart=always report_service:dev
 docker ps -a
 
 # STAGE
 docker build -t report_service:stage .
-docker run -d --name report_service_stage --env-file .env.stage -p 5051:8080 report_service:stage
+docker run -d --name report_service_stage --env-file .env.stage -p 5051:8080 --restart=always report_service:stage
 docker ps -a
 
 # PRODUCTION
 docker build -t report_service:prod .
-docker run -d --name report_service_prod --env-file .env.prod -p 5052:8080 report_service:prod
+docker run -d --name report_service_prod --env-file .env.prod -p 5052:8080 --restart=always report_service:prod
 docker ps -a

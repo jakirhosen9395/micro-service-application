@@ -17,11 +17,11 @@
 #
 # URL usage:
 #   ./report_service_api_full_smoke_test.sh \
-#     --report-url http://192.168.56.100:5050 \
-#     --auth-url http://192.168.56.100:6060 \
-#     --calculator-url http://192.168.56.100:2020 \
-#     --todo-url http://192.168.56.100:3030 \
-#     --admin-url http://192.168.56.100:1010
+#     --report-url http://52.66.223.53:5050 \
+#     --auth-url http://52.66.223.53:6060 \
+#     --calculator-url http://52.66.223.53:2020 \
+#     --todo-url http://52.66.223.53:3030 \
+#     --admin-url http://52.66.223.53:1010
 #
 # Environment variables:
 #   REPORT_TEST_ACCESS_TOKEN=<preissued-normal-user-jwt>
@@ -998,10 +998,10 @@ exit 0
 
 
 
-# ./report_service_api_full_smoke_test.sh --report-url http://192.168.56.100:5052 --auth-url http://192.168.56.100:6062 --calculator-url http://192.168.56.100:2022 --todo-url http://192.168.56.100:3032 --admin-url http://192.168.56.100:1012
+# ./report_service_api_full_smoke_test.sh --report-url http://52.66.223.53:5052 --auth-url http://52.66.223.53:6062 --calculator-url http://52.66.223.53:2022 --todo-url http://52.66.223.53:3032 --admin-url http://52.66.223.53:1012
 
 
-# ./report_service_api_full_smoke_test.sh --report-url http://192.168.56.100:5051 --auth-url http://192.168.56.100:6061 --calculator-url http://192.168.56.100:2021 --todo-url http://192.168.56.100:3031 --admin-url http://192.168.56.100:1011
+# ./report_service_api_full_smoke_test.sh --report-url http://52.66.223.53:5051 --auth-url http://52.66.223.53:6061 --calculator-url http://52.66.223.53:2021 --todo-url http://52.66.223.53:3031 --admin-url http://52.66.223.53:1011
 
 
-# ./report_service_api_full_smoke_test.sh --report-url http://192.168.56.100:5050 --auth-url http://192.168.56.100:6060 --calculator-url http://192.168.56.100:2020 --todo-url http://192.168.56.100:3030 --admin-url http://192.168.56.100:1010
+# ./report_service_api_full_smoke_test.sh --report-url http://52.66.223.53:5050 --auth-url http://52.66.223.53:6060 --calculator-url http://52.66.223.53:2020 --todo-url http://52.66.223.53:3030 --admin-url http://52.66.223.53:1010

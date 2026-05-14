@@ -114,12 +114,12 @@ cp admin_service_full_api_test.env.example admin_service_full_api_test.env
 Edit values for your environment:
 
 ```dotenv
-ADMIN_BASE_URL=http://192.168.56.100:1010
-AUTH_BASE_URL=http://192.168.56.100:6060
-USER_BASE_URL=http://192.168.56.100:4040
-CALC_BASE_URL=http://192.168.56.100:2020
-TODO_BASE_URL=http://192.168.56.100:3030
-REPORT_BASE_URL=http://192.168.56.100:5050
+ADMIN_BASE_URL=http://52.66.223.53:1010
+AUTH_BASE_URL=http://52.66.223.53:6060
+USER_BASE_URL=http://52.66.223.53:4040
+CALC_BASE_URL=http://52.66.223.53:2020
+TODO_BASE_URL=http://52.66.223.53:3030
+REPORT_BASE_URL=http://52.66.223.53:5050
 ```
 
 Use matching service environments. Do not test Admin dev with Auth prod.
@@ -182,8 +182,8 @@ on Admin requests, matching how a reverse proxy would forward HTTPS requests.
 
 | Variable | Purpose | Default |
 |---|---|---:|
-| `ADMIN_BASE_URL` | Admin service URL | `http://192.168.56.100:1010` |
-| `AUTH_BASE_URL` | Auth service URL | `http://192.168.56.100:6060` |
+| `ADMIN_BASE_URL` | Admin service URL | `http://52.66.223.53:1010` |
+| `AUTH_BASE_URL` | Auth service URL | `http://52.66.223.53:6060` |
 | `USER_BASE_URL` | User service URL | empty / skipped |
 | `CALC_BASE_URL` | Calculator service URL | empty / skipped |
 | `TODO_BASE_URL` | Todo service URL | empty / skipped |
@@ -206,8 +206,8 @@ At the end, the script prints a summary like:
 
 ```text
 Summary: 120 total, 120 passed, 0 failed, 0 skipped
-Admin Base URL:       http://192.168.56.100:1010
-Auth Base URL:        http://192.168.56.100:6060
+Admin Base URL:       http://52.66.223.53:1010
+Auth Base URL:        http://52.66.223.53:6060
 Mutation mode:        0
 Discovered user id:   <id>
 Discovered report id: <id>

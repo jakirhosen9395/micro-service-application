@@ -8,7 +8,7 @@
 #
 # Examples:
 #   ./admin_service_api_smoke_test.sh 192.168.56.100 1010 192.168.56.100 6060
-#   ./admin_service_api_smoke_test.sh http://192.168.56.100:1010 http://192.168.56.100:6060
+#   ./admin_service_api_smoke_test.sh http://52.66.223.53:1010 http://52.66.223.53:6060
 #
 # Optional environment variables:
 #   ADMIN_TEST_AUTH_USERNAME=admin
@@ -36,7 +36,7 @@ Usage:
 
 Examples:
   ./admin_service_api_smoke_test.sh 192.168.56.100 1010 192.168.56.100 6060
-  ./admin_service_api_smoke_test.sh http://192.168.56.100:1010 http://192.168.56.100:6060
+  ./admin_service_api_smoke_test.sh http://52.66.223.53:1010 http://52.66.223.53:6060
 
 Optional environment variables:
   ADMIN_TEST_AUTH_USERNAME=admin
@@ -649,7 +649,7 @@ exit 0
 
 # chmod +x admin_service_api_smoke_test.sh
 # ./admin_service_api_smoke_test.sh 192.168.56.100 1010 192.168.56.100 6060
-# ./admin_service_api_smoke_test.sh http://192.168.56.100:1010 http://192.168.56.100:6060
+# ./admin_service_api_smoke_test.sh http://52.66.223.53:1010 http://52.66.223.53:6060
 # ADMIN_TEST_MUTATE=1 ./admin_service_api_smoke_test.sh 192.168.56.100 1010 192.168.56.100 6060
 # ADMIN_TEST_VERBOSE=1 ./admin_service_api_smoke_test.sh 192.168.56.100 1010 192.168.56.100 6060 >> admin_service_api_smoke_test_verbose.log
 

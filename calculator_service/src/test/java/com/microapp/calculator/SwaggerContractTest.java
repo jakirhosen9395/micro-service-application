@@ -72,7 +72,7 @@ class SwaggerContractTest {
         assertFalse(html.contains("\"/v3/api-docs\""));
         assertFalse(html.contains("\"/swagger-ui"));
         assertFalse(html.contains("http://localhost:8080"));
-        assertFalse(html.contains("http://192.168.56.100:2020"));
+        assertFalse(html.contains("http://52.66.223.53:2020"));
     }
 
     @Test

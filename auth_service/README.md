@@ -112,20 +112,20 @@ No generated `__pycache__`, `.pytest_cache`, `*.pyc`, OpenAPI JSON file, generat
 The env files point to the shared VM host:
 
 ```text
-192.168.56.200
+172.31.19.122
 ```
 
 Required dependencies:
 
 ```text
-PostgreSQL:     192.168.56.200:5432
-Redis:          192.168.56.200:6379
-Kafka:          192.168.56.200:9092
-MinIO/S3:       http://192.168.56.200:9000
-MongoDB:        192.168.56.200:27017
-Elastic APM:    http://192.168.56.200:8200
-Elasticsearch:  http://192.168.56.200:9200
-Kibana:         http://192.168.56.200:5601
+PostgreSQL:     172.31.19.122:5432
+Redis:          172.31.19.122:6379
+Kafka:          172.31.19.122:9092
+MinIO/S3:       http://172.31.19.122:9000
+MongoDB:        172.31.19.122:27017
+Elastic APM:    http://172.31.19.122:8200
+Elasticsearch:  http://172.31.19.122:9200
+Kibana:         http://172.31.19.122:5601
 ```
 
 The real credentials are stored in the `.env.*` files. Do not paste credentials, JWTs, access tokens, refresh tokens, authorization headers, access keys, secret keys, or database passwords into logs, Kafka messages, S3 audit payloads, screenshots, tickets, or documentation examples.
@@ -214,10 +214,10 @@ docker run -d --name auth_service_dev --env-file .env.dev -p 6060:8080 auth_serv
 Smoke test:
 
 ```bash
-curl -i http://192.168.56.100:6060/hello
-curl -i http://192.168.56.100:6060/health
-curl -i http://192.168.56.100:6060/docs
-curl -i http://192.168.56.100:6060/openapi.json
+curl -i http://52.66.223.53:6060/hello
+curl -i http://52.66.223.53:6060/health
+curl -i http://52.66.223.53:6060/docs
+curl -i http://52.66.223.53:6060/openapi.json
 ```
 
 Expected: `/hello`, `/health`, and `/docs` are available; `/openapi.json` is `404`.
@@ -294,7 +294,7 @@ GET /openapi.json
 Normal signup:
 
 ```bash
-curl -X POST 'http://192.168.56.100:6060/v1/signup' \
+curl -X POST 'http://52.66.223.53:6060/v1/signup' \
   -H 'accept: application/json' \
   -H 'Content-Type: application/json' \
   -d '{
@@ -310,7 +310,7 @@ curl -X POST 'http://192.168.56.100:6060/v1/signup' \
 Admin signup request through `/v1/signup`:
 
 ```bash
-curl -X POST 'http://192.168.56.100:6060/v1/signup' \
+curl -X POST 'http://52.66.223.53:6060/v1/signup' \
   -H 'accept: application/json' \
   -H 'Content-Type: application/json' \
   -d '{
@@ -328,7 +328,7 @@ curl -X POST 'http://192.168.56.100:6060/v1/signup' \
 Canonical admin registration endpoint:
 
 ```bash
-curl -X POST 'http://192.168.56.100:6060/v1/admin/register' \
+curl -X POST 'http://52.66.223.53:6060/v1/admin/register' \
   -H 'accept: application/json' \
   -H 'Content-Type: application/json' \
   -d '{
@@ -351,7 +351,7 @@ Admin accounts are created as `role=admin` and `admin_status=pending`. They are 
 Signin:
 
 ```bash
-curl -X POST 'http://192.168.56.100:6060/v1/signin' \
+curl -X POST 'http://52.66.223.53:6060/v1/signin' \
   -H 'accept: application/json' \
   -H 'Content-Type: application/json' \
   -d '{
@@ -365,7 +365,7 @@ Use the access token:
 ```bash
 ACCESS_TOKEN='<copy data.tokens.access_token>'
 
-curl -i 'http://192.168.56.100:6060/v1/me' \
+curl -i 'http://52.66.223.53:6060/v1/me' \
   -H "Authorization: Bearer ${ACCESS_TOKEN}"
 ```
 
@@ -387,7 +387,7 @@ non-admin admin API  -> 403 ADMIN_ACCESS_REQUIRED
 Request reset:
 
 ```bash
-curl -X POST 'http://192.168.56.100:6060/v1/password/forgot' \
+curl -X POST 'http://52.66.223.53:6060/v1/password/forgot' \
   -H 'accept: application/json' \
   -H 'Content-Type: application/json' \
   -d '{"email":"jakir@example.com"}'
@@ -398,7 +398,7 @@ Important: `request_id` is tracing metadata and is **not** the reset token. In n
 Reset with either field name:
 
 ```bash
-curl -X POST 'http://192.168.56.100:6060/v1/password/reset' \
+curl -X POST 'http://52.66.223.53:6060/v1/password/reset' \
   -H 'accept: application/json' \
   -H 'Content-Type: application/json' \
   -d '{
@@ -427,14 +427,14 @@ The reset token state is stored in Redis, password hash is updated in PostgreSQL
 3. Approved admin lists requests:
 
 ```bash
-curl -i 'http://192.168.56.100:6060/v1/admin/requests' \
+curl -i 'http://52.66.223.53:6060/v1/admin/requests' \
   -H "Authorization: Bearer ${ADMIN_ACCESS_TOKEN}"
 ```
 
 4. Approved admin decides:
 
 ```bash
-curl -X POST 'http://192.168.56.100:6060/v1/admin/requests/<user_id>/decision' \
+curl -X POST 'http://52.66.223.53:6060/v1/admin/requests/<user_id>/decision' \
   -H "Authorization: Bearer ${ADMIN_ACCESS_TOKEN}" \
   -H 'Content-Type: application/json' \
   -d '{
@@ -640,7 +640,7 @@ Expected test result for this package:
 OpenAPI uses same-origin `/`. Rebuild and hard refresh `/docs`. The request URL should match the page origin, for example:
 
 ```text
-http://192.168.56.100:6060/hello
+http://52.66.223.53:6060/hello
 ```
 
 It should not call `http://localhost:8080/hello` from the browser.

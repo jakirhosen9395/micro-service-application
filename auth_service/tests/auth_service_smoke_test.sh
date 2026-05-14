@@ -4,7 +4,7 @@
 #   chmod +x auth_service_smoke_test.sh
 #   ./auth_service_smoke_test.sh 192.168.56.100
 #   ./auth_service_smoke_test.sh 192.168.56.100 6060
-#   ./auth_service_smoke_test.sh http://192.168.56.100:6060
+#   ./auth_service_smoke_test.sh http://52.66.223.53:6060
 #
 # Optional environment variables:
 #   AUTH_TEST_ADMIN_USERNAME=admin
@@ -19,7 +19,7 @@ if [ "${1:-}" = "" ]; then
   echo "Examples:"
   echo "  $0 192.168.56.100"
   echo "  $0 192.168.56.100 6060"
-  echo "  $0 http://192.168.56.100:6060"
+  echo "  $0 http://52.66.223.53:6060"
   exit 2
 fi
 

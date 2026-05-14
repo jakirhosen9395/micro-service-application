@@ -17,15 +17,15 @@ docker build --no-cache -t calculator_service:latest .
 
 # DEV
 docker build -t calculator_service:dev .
-docker run -d --name calculator_service_dev --env-file .env.dev -p 2020:8080 calculator_service:dev
+docker run -d --name calculator_service_dev --env-file .env.dev -p 2020:8080 --restart=always calculator_service:dev
 docker ps -a
 
 # STAGE
 docker build -t calculator_service:stage .
-docker run -d --name calculator_service_stage --env-file .env.stage -p 2021:8080 calculator_service:stage
+docker run -d --name calculator_service_stage --env-file .env.stage -p 2021:8080 --restart=always calculator_service:stage
 docker ps -a
 
 # PRODUCTION
 docker build -t calculator_service:prod .
-docker run -d --name calculator_service_prod --env-file .env.prod -p 2022:8080 calculator_service:prod
+docker run -d --name calculator_service_prod --env-file .env.prod -p 2022:8080 --restart=always calculator_service:prod
 docker ps -a

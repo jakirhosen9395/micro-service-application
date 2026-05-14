@@ -91,7 +91,7 @@
 2026-05-11 10:09:53,734 [Attach Listener] INFO  co.elastic.apm.agent.configuration.StartupInfo - capture_body: 'ERRORS' (source: Attachment configuration)
 2026-05-11 10:09:53,735 [Attach Listener] INFO  co.elastic.apm.agent.configuration.StartupInfo - activation_method: 'PROGRAMMATIC_SELF_ATTACH' (source: Attachment configuration)
 2026-05-11 10:09:53,735 [Attach Listener] INFO  co.elastic.apm.agent.configuration.StartupInfo - secret_token: 'XXXX' (source: Attachment configuration)
-2026-05-11 10:09:53,735 [Attach Listener] INFO  co.elastic.apm.agent.configuration.StartupInfo - server_url: 'http://192.168.56.200:8200' (source: Attachment configuration)
+2026-05-11 10:09:53,735 [Attach Listener] INFO  co.elastic.apm.agent.configuration.StartupInfo - server_url: 'http://172.31.19.122:8200' (source: Attachment configuration)
 2026-05-11 10:09:53,735 [Attach Listener] INFO  co.elastic.apm.agent.configuration.StartupInfo - application_packages: 'com.microapp.calculator' (source: Attachment configuration)
 2026-05-11 10:09:58,152 [Attach Listener] INFO  co.elastic.apm.agent.impl.ElasticApmTracer - Tracer switched to RUNNING state
 2026-05-11 10:09:58,168 [elastic-apm-server-healthcheck] INFO  co.elastic.apm.agent.report.ApmServerHealthChecker - Elastic APM server is available: {  "build_date": "2025-10-21T13:28:10Z",  "build_sha": "63481641e92782089e88bcc596636a775df7a4a0",  "publish_ready": true,  "version": "9.2.0"}
@@ -2176,7 +2176,7 @@
 2026-05-11 10:09:50,431 [Attach Listener] INFO  co.elastic.apm.agent.configuration.StartupInfo - capture_body: 'ERRORS' (source: Attachment configuration)
 2026-05-11 10:09:50,432 [Attach Listener] INFO  co.elastic.apm.agent.configuration.StartupInfo - activation_method: 'PROGRAMMATIC_SELF_ATTACH' (source: Attachment configuration)
 2026-05-11 10:09:50,432 [Attach Listener] INFO  co.elastic.apm.agent.configuration.StartupInfo - secret_token: 'XXXX' (source: Attachment configuration)
-2026-05-11 10:09:50,432 [Attach Listener] INFO  co.elastic.apm.agent.configuration.StartupInfo - server_url: 'http://192.168.56.200:8200' (source: Attachment configuration)
+2026-05-11 10:09:50,432 [Attach Listener] INFO  co.elastic.apm.agent.configuration.StartupInfo - server_url: 'http://172.31.19.122:8200' (source: Attachment configuration)
 2026-05-11 10:09:50,432 [Attach Listener] INFO  co.elastic.apm.agent.configuration.StartupInfo - application_packages: 'com.microapp.calculator' (source: Attachment configuration)
 2026-05-11 10:09:55,716 [Attach Listener] INFO  co.elastic.apm.agent.impl.ElasticApmTracer - Tracer switched to RUNNING state
 2026-05-11 10:09:55,745 [elastic-apm-server-healthcheck] INFO  co.elastic.apm.agent.report.ApmServerHealthChecker - Elastic APM server is available: {  "build_date": "2025-10-21T13:28:10Z",  "build_sha": "63481641e92782089e88bcc596636a775df7a4a0",  "publish_ready": true,  "version": "9.2.0"}
@@ -4261,7 +4261,7 @@
 2026-05-11 10:09:45,973 [Attach Listener] INFO  co.elastic.apm.agent.configuration.StartupInfo - capture_body: 'ERRORS' (source: Attachment configuration)
 2026-05-11 10:09:45,973 [Attach Listener] INFO  co.elastic.apm.agent.configuration.StartupInfo - activation_method: 'PROGRAMMATIC_SELF_ATTACH' (source: Attachment configuration)
 2026-05-11 10:09:45,973 [Attach Listener] INFO  co.elastic.apm.agent.configuration.StartupInfo - secret_token: 'XXXX' (source: Attachment configuration)
-2026-05-11 10:09:45,974 [Attach Listener] INFO  co.elastic.apm.agent.configuration.StartupInfo - server_url: 'http://192.168.56.200:8200' (source: Attachment configuration)
+2026-05-11 10:09:45,974 [Attach Listener] INFO  co.elastic.apm.agent.configuration.StartupInfo - server_url: 'http://172.31.19.122:8200' (source: Attachment configuration)
 2026-05-11 10:09:45,974 [Attach Listener] INFO  co.elastic.apm.agent.configuration.StartupInfo - application_packages: 'com.microapp.calculator' (source: Attachment configuration)
 2026-05-11 10:09:52,675 [Attach Listener] INFO  co.elastic.apm.agent.impl.ElasticApmTracer - Tracer switched to RUNNING state
 2026-05-11 10:09:52,737 [elastic-apm-server-healthcheck] INFO  co.elastic.apm.agent.report.ApmServerHealthChecker - Elastic APM server is available: {  "build_date": "2025-10-21T13:28:10Z",  "build_sha": "63481641e92782089e88bcc596636a775df7a4a0",  "publish_ready": true,  "version": "9.2.0"}
