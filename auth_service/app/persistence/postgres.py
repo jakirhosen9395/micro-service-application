@@ -329,6 +329,75 @@ class PostgresRepository:
                 error,
             )
 
+    async def apply_admin_decision_event(self, envelope: dict[str, Any]) -> bool:
+        """Apply admin registration decisions emitted by admin_service.
+
+        admin_service owns the approval UI/workflow, but auth_service owns the
+        login user row and the JWT claims. Without this projection, a newly
+        approved admin remains admin_status='pending' in auth.auth_users and
+        continues to receive 403 from admin_service after signin.
+        """
+        event_type = str(envelope.get("event_type") or "").lower()
+        if not event_type.startswith("admin.registration.") and not event_type.startswith("auth.admin.registration_"):
+            return False
+
+        payload = envelope.get("payload") or {}
+        if not isinstance(payload, dict):
+            return False
+
+        decision = str(payload.get("decision") or payload.get("status") or "").lower()
+        if not decision:
+            if event_type.endswith("approved") or event_type.endswith(".approved"):
+                decision = "approved"
+            elif event_type.endswith("rejected") or event_type.endswith(".rejected"):
+                decision = "rejected"
+
+        if decision in {"approve", "approved"}:
+            admin_status = "approved"
+        elif decision in {"reject", "rejected"}:
+            admin_status = "rejected"
+        else:
+            return False
+
+        tenant = envelope.get("tenant") or self.settings.tenant
+        if tenant != self.settings.tenant:
+            return False
+
+        user_id = (
+            payload.get("user_id")
+            or payload.get("target_user_id")
+            or envelope.get("user_id")
+            or envelope.get("aggregate_id")
+        )
+        if not user_id:
+            return False
+
+        reviewer_id = payload.get("reviewed_by") or payload.get("actor_id") or envelope.get("actor_id")
+        reason = payload.get("reason") or payload.get("decision_reason") or ""
+
+        async with self.pool.acquire() as conn:
+            result = await conn.execute(
+                """
+                update auth.auth_users
+                set admin_status=$3,
+                    admin_reviewed_at=now(),
+                    admin_reviewed_by=$4,
+                    admin_decision_reason=$5,
+                    status='active',
+                    updated_at=now()
+                where tenant=$1
+                  and id=$2
+                  and role='admin'
+                  and deleted_at is null
+                """,
+                tenant,
+                str(user_id),
+                admin_status,
+                str(reviewer_id) if reviewer_id else None,
+                str(reason),
+            )
+        return result.endswith("1")
+
     async def _insert_user(self, conn, user: dict[str, Any]) -> None:
         await conn.execute(
             """
@@ -471,6 +540,7 @@ def _instrument_postgres_methods() -> None:
         "mark_outbox_failed",
         "insert_inbox_event",
         "mark_inbox_processed",
+        "apply_admin_decision_event",
     ]
 
     for method_name in method_names:

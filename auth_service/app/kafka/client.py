@@ -192,6 +192,7 @@ class InboxConsumer:
                         # the same Kafka topics and PostgreSQL schema. Commit and move on.
                         await consumer.commit()
                         continue
+                    await self.repository.apply_admin_decision_event(payload)
                     await self.repository.mark_inbox_processed(event_id, status="PROCESSED")
                     await consumer.commit()
             except Exception as exc:

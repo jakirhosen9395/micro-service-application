@@ -546,7 +546,15 @@ public static class AdminEndpoints
     {
         var tenant = Actor(http, settings).Tenant;
         await using var db = await dbFactory.CreateDbContextAsync(http.RequestAborted);
-        var query = db.AdminCalculationProjections.AsNoTracking().Where(x => x.Tenant == tenant && (x.Status.Contains("cleared") || x.Payload.Contains("history.cleared"))).OrderByDescending(x => x.OccurredAt);
+
+        // Payload is mapped as PostgreSQL jsonb, so do not use string Contains()
+        // against Payload inside EF queries. The calculation projection status is
+        // already derived from the event name, e.g. calculation.history.cleared -> cleared.
+        var query = db.AdminCalculationProjections
+            .AsNoTracking()
+            .Where(x => x.Tenant == tenant && x.DeletedAt == null && x.Status.ToLower().Contains("cleared"))
+            .OrderByDescending(x => x.OccurredAt);
+
         return ApiEnvelope.Ok(await PageAsync(query, http), "history-cleared calculation projections loaded", http);
     }
 
@@ -631,8 +639,18 @@ public static class AdminEndpoints
     {
         var tenant = Actor(http, settings).Tenant;
         await using var db = await dbFactory.CreateDbContextAsync(http.RequestAborted);
-        var query = db.AdminTodoProjections.AsNoTracking().Where(x => x.Tenant == tenant && x.DeletedAt == null && !new[] { "completed", "archived", "cancelled" }.Contains(x.Status.ToLower()) && x.Payload.Contains("due_date")).OrderByDescending(x => x.OccurredAt);
-        return ApiEnvelope.Ok(await PageAsync(query, http), "overdue todo projections loaded", http);
+
+        // Payload is jsonb. Fetch active tenant rows with normal indexed columns,
+        // then parse due_date safely in application code.
+        var now = DateTimeOffset.UtcNow;
+        var candidates = await db.AdminTodoProjections
+            .AsNoTracking()
+            .Where(x => x.Tenant == tenant && x.DeletedAt == null)
+            .OrderByDescending(x => x.OccurredAt)
+            .ToListAsync(http.RequestAborted);
+
+        var overdue = candidates.Where(x => IsOverdueTodoProjection(x, now)).ToList();
+        return ApiEnvelope.Ok(PageList(overdue, http), "overdue todo projections loaded", http);
     }
 
     private static async Task<IResult> ListTodayTodosAsync(HttpContext http, IDbContextFactory<AdminDbContext> dbFactory, AdminSettings settings)
@@ -701,8 +719,18 @@ public static class AdminEndpoints
     {
         var tenant = Actor(http, settings).Tenant;
         await using var db = await dbFactory.CreateDbContextAsync(http.RequestAborted);
-        var query = db.AdminTodoProjections.AsNoTracking().Where(x => x.Tenant == tenant && x.UserId == userId && x.DeletedAt == null && !new[] { "completed", "archived", "cancelled" }.Contains(x.Status.ToLower()) && x.Payload.Contains("due_date")).OrderByDescending(x => x.OccurredAt);
-        return ApiEnvelope.Ok(await PageAsync(query, http), "user overdue todo projections loaded", http);
+
+        // Payload is jsonb. Fetch this user's active rows with normal indexed columns,
+        // then parse due_date safely in application code.
+        var now = DateTimeOffset.UtcNow;
+        var candidates = await db.AdminTodoProjections
+            .AsNoTracking()
+            .Where(x => x.Tenant == tenant && x.UserId == userId && x.DeletedAt == null)
+            .OrderByDescending(x => x.OccurredAt)
+            .ToListAsync(http.RequestAborted);
+
+        var overdue = candidates.Where(x => IsOverdueTodoProjection(x, now)).ToList();
+        return ApiEnvelope.Ok(PageList(overdue, http), "user overdue todo projections loaded", http);
     }
 
     private static async Task<IResult> GetUserTodayTodosAsync(string userId, HttpContext http, IDbContextFactory<AdminDbContext> dbFactory, AdminSettings settings)
@@ -1027,6 +1055,96 @@ public static class AdminEndpoints
         var total = await query.CountAsync(http.RequestAborted);
         var items = await query.Skip((page - 1) * limit).Take(limit).ToListAsync(http.RequestAborted);
         return new { page, limit, total, items };
+    }
+
+    private static object PageList<T>(IReadOnlyList<T> source, HttpContext http)
+    {
+        var page = Page(http);
+        var limit = Limit(http);
+        var total = source.Count;
+        var items = source.Skip((page - 1) * limit).Take(limit).ToList();
+        return new { page, limit, total, items };
+    }
+
+    private static bool IsOverdueTodoProjection(AdminTodoProjection todo, DateTimeOffset now)
+    {
+        var status = (todo.Status ?? string.Empty).Trim().ToLowerInvariant();
+        if (status is "completed" or "archived" or "cancelled" or "deleted" or "hard_deleted")
+        {
+            return false;
+        }
+
+        var dueAt = PayloadDate(todo.Payload, "due_date", "dueDate", "due_at", "dueAt");
+        return dueAt.HasValue && dueAt.Value < now;
+    }
+
+    private static DateTimeOffset? PayloadDate(string payload, params string[] names)
+    {
+        try
+        {
+            using var document = JsonDocument.Parse(string.IsNullOrWhiteSpace(payload) ? "{}" : payload);
+            return FindDate(document.RootElement, names);
+        }
+        catch (JsonException)
+        {
+            return null;
+        }
+    }
+
+    private static DateTimeOffset? FindDate(JsonElement element, params string[] names)
+    {
+        if (element.ValueKind == JsonValueKind.Object)
+        {
+            foreach (var name in names)
+            {
+                if (element.TryGetProperty(name, out var direct))
+                {
+                    var parsed = CoerceDate(direct);
+                    if (parsed.HasValue) return parsed;
+                }
+            }
+
+            foreach (var property in element.EnumerateObject())
+            {
+                if (property.Value.ValueKind is JsonValueKind.Object or JsonValueKind.Array)
+                {
+                    var parsed = FindDate(property.Value, names);
+                    if (parsed.HasValue) return parsed;
+                }
+            }
+        }
+        else if (element.ValueKind == JsonValueKind.Array)
+        {
+            foreach (var item in element.EnumerateArray())
+            {
+                var parsed = FindDate(item, names);
+                if (parsed.HasValue) return parsed;
+            }
+        }
+
+        return null;
+    }
+
+    private static DateTimeOffset? CoerceDate(JsonElement value)
+    {
+        if (value.ValueKind == JsonValueKind.String && DateTimeOffset.TryParse(value.GetString(), out var parsed))
+        {
+            return parsed;
+        }
+
+        if (value.ValueKind == JsonValueKind.Number && value.TryGetInt64(out var unixSeconds))
+        {
+            try
+            {
+                return DateTimeOffset.FromUnixTimeSeconds(unixSeconds);
+            }
+            catch (ArgumentOutOfRangeException)
+            {
+                return null;
+            }
+        }
+
+        return null;
     }
 
     private static async Task<AdminUserProjection?> LoadUserAsync(string userId, HttpContext http, IDbContextFactory<AdminDbContext> dbFactory, AdminSettings settings)
