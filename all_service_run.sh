@@ -34,7 +34,7 @@ docker ps -a
 ##############################################################################################################################################
 # CALCULATOR SERVICE
 ###############################################################################################################################################
-cd ./calculator_service
+cd ../calculator_service
 docker rm -f calculator_service_dev 2>/dev/null || true
 docker rm -f calculator_service_stage 2>/dev/null || true
 docker rm -f calculator_service_prod 2>/dev/null || true
@@ -64,7 +64,7 @@ docker ps -a
 ###############################################################################################################################################
 # TODO LIST SERVICE
 ###############################################################################################################################################
-cd ./todo_list_service
+cd ../todo_list_service
 docker rm -f todo_list_service_dev 2>/dev/null || true
 docker rm -f todo_list_service_stage 2>/dev/null || true
 docker rm -f todo_list_service_prod 2>/dev/null || true
@@ -97,7 +97,7 @@ docker ps -a
 ###############################################################################################################################################
 # USER SERVICE
 ###############################################################################################################################################
-cd ./user_service
+cd ../user_service
 docker rm -f user_service_dev 2>/dev/null || true
 docker rm -f user_service_stage 2>/dev/null || true
 docker rm -f user_service_prod 2>/dev/null || true
@@ -127,7 +127,7 @@ docker ps -a
 ###############################################################################################################################################
 # REPORT SERVICE
 ###############################################################################################################################################
-cd ./report_service
+cd ../report_service
 # Idempotent cleanup. Missing containers/images must not fail the whole script.
 docker rm -f report_service_dev 2>/dev/null || true
 docker rm -f report_service_stage 2>/dev/null || true
@@ -158,7 +158,7 @@ docker ps -a
 #############################################################################################################################################
 #  AUTH SERVICE 
 #############################################################################################################################################
-cd ./auth_service
+cd ../auth_service
 docker rm -f auth_service_dev
 docker rm -f auth_service_stage
 docker rm -f auth_service_prod  
@@ -186,5 +186,5 @@ docker ps -a
 # PRODUCTION
 docker build -t auth_service:prod .
 docker run -d --name auth_service_prod --env-file .env.prod -p 6062:8080  --restart=always auth_service:prod
-docker ps -a
+watch docker ps -a
 
