@@ -186,14 +186,18 @@ class InboxConsumer:
                         source_service=payload.get("service"),
                         payload=payload,
                     )
-                    if not inserted:
-                        # Duplicate event_id or duplicate topic/partition/offset. This is a normal
-                        # idempotency path, especially when multiple local environments point at
-                        # the same Kafka topics and PostgreSQL schema. Commit and move on.
-                        await consumer.commit()
-                        continue
-                    await self.repository.apply_admin_decision_event(payload)
-                    await self.repository.mark_inbox_processed(event_id, status="PROCESSED")
+                    try:
+                        # Apply admin registration approval/rejection even if the inbox row
+                        # already exists. This makes duplicate delivery and older RECEIVED /
+                        # PROCESSED rows safe and idempotent, and it prevents approved admins
+                        # from staying pending in auth.auth_users.
+                        await self.repository.apply_admin_decision_event(payload)
+                        if inserted:
+                            await self.repository.mark_inbox_processed(event_id, status="PROCESSED")
+                    except Exception as exc:
+                        if inserted:
+                            await self.repository.mark_inbox_processed(event_id, status="FAILED", error=str(exc)[:2000])
+                        raise
                     await consumer.commit()
             except Exception as exc:
                 capture_apm_exception(exc)

@@ -329,6 +329,115 @@ class PostgresRepository:
                 error,
             )
 
+    def _find_first_value(self, obj: Any, keys: set[str]) -> Any:
+        """Return the first non-empty value for any key in a nested JSON object."""
+        if isinstance(obj, dict):
+            for key, value in obj.items():
+                if key.lower() in keys and value not in (None, ""):
+                    return value
+            for value in obj.values():
+                found = self._find_first_value(value, keys)
+                if found not in (None, ""):
+                    return found
+        elif isinstance(obj, list):
+            for value in obj:
+                found = self._find_first_value(value, keys)
+                if found not in (None, ""):
+                    return found
+        return None
+
+    def _event_looks_like_admin_decision(self, event_type: str, envelope: dict[str, Any]) -> bool:
+        event_type_l = event_type.lower()
+        payload = envelope.get("payload") if isinstance(envelope, dict) else None
+        if not isinstance(payload, dict):
+            payload = {}
+        payload_text = json.dumps(payload, default=str).lower()
+
+        has_admin_registration_context = (
+            ("admin" in event_type_l and "registration" in event_type_l)
+            or "admin.registration" in event_type_l
+            or "admin_registration" in event_type_l
+            or "admin_status" in payload_text
+        )
+        has_decision_context = any(token in event_type_l for token in ("approved", "approve", "rejected", "reject", "decision")) or any(
+            token in payload_text for token in ('"decision"', '"approved"', '"approve"', '"rejected"', '"reject"')
+        )
+        return has_admin_registration_context and has_decision_context
+
+    def _parse_admin_decision_event(self, envelope: dict[str, Any]) -> tuple[str, str, str | None, str, str] | None:
+        """Extract (tenant, user_id, reviewer_id, decision, reason) from an admin decision event.
+
+        Admin approval events are produced by more than one service/version in this
+        project. Some versions use target_user_id, some use user_id, some store the
+        candidate in aggregate_id, and admin_service events can use registration_id.
+        This parser is intentionally tolerant while still requiring an explicit
+        approve/reject decision before mutating auth.auth_users.
+        """
+        if not isinstance(envelope, dict):
+            return None
+
+        event_type = str(envelope.get("event_type") or envelope.get("type") or "").lower()
+        payload = envelope.get("payload") or envelope.get("data") or {}
+        if not isinstance(payload, dict):
+            payload = {}
+
+        if not self._event_looks_like_admin_decision(event_type, envelope):
+            return None
+
+        decision = str(
+            payload.get("decision")
+            or payload.get("status")
+            or payload.get("admin_status")
+            or envelope.get("decision")
+            or envelope.get("status")
+            or ""
+        ).lower()
+        if not decision:
+            if any(token in event_type for token in ("approved", "approve")):
+                decision = "approved"
+            elif any(token in event_type for token in ("rejected", "reject")):
+                decision = "rejected"
+
+        if decision in {"approve", "approved", "accept", "accepted"}:
+            admin_status = "approved"
+        elif decision in {"reject", "rejected", "deny", "denied"}:
+            admin_status = "rejected"
+        else:
+            return None
+
+        tenant = str(envelope.get("tenant") or payload.get("tenant") or self.settings.tenant)
+        if tenant != self.settings.tenant:
+            return None
+
+        # Prefer explicit target/candidate user identifiers over actor/reviewer ids.
+        user_id = (
+            payload.get("target_user_id")
+            or payload.get("candidate_user_id")
+            or payload.get("admin_user_id")
+            or payload.get("user_id")
+            or payload.get("registration_user_id")
+            or self._find_first_value(payload.get("user"), {"id", "user_id"})
+            or self._find_first_value(payload.get("target_user"), {"id", "user_id"})
+            or self._find_first_value(payload.get("candidate"), {"id", "user_id"})
+            or envelope.get("target_user_id")
+            or envelope.get("user_id")
+            or envelope.get("aggregate_id")
+            or payload.get("registration_id")
+            or payload.get("request_id")
+        )
+        if not user_id:
+            return None
+
+        reviewer_id = (
+            payload.get("reviewed_by")
+            or payload.get("reviewer_id")
+            or payload.get("approved_by")
+            or payload.get("actor_id")
+            or envelope.get("actor_id")
+        )
+        reason = str(payload.get("reason") or payload.get("decision_reason") or payload.get("message") or "")
+        return tenant, str(user_id), str(reviewer_id) if reviewer_id else None, admin_status, reason
+
     async def apply_admin_decision_event(self, envelope: dict[str, Any]) -> bool:
         """Apply admin registration decisions emitted by admin_service.
 
@@ -337,66 +446,104 @@ class PostgresRepository:
         approved admin remains admin_status='pending' in auth.auth_users and
         continues to receive 403 from admin_service after signin.
         """
-        event_type = str(envelope.get("event_type") or "").lower()
-        if not event_type.startswith("admin.registration.") and not event_type.startswith("auth.admin.registration_"):
+        parsed = self._parse_admin_decision_event(envelope)
+        if parsed is None:
             return False
-
-        payload = envelope.get("payload") or {}
-        if not isinstance(payload, dict):
-            return False
-
-        decision = str(payload.get("decision") or payload.get("status") or "").lower()
-        if not decision:
-            if event_type.endswith("approved") or event_type.endswith(".approved"):
-                decision = "approved"
-            elif event_type.endswith("rejected") or event_type.endswith(".rejected"):
-                decision = "rejected"
-
-        if decision in {"approve", "approved"}:
-            admin_status = "approved"
-        elif decision in {"reject", "rejected"}:
-            admin_status = "rejected"
-        else:
-            return False
-
-        tenant = envelope.get("tenant") or self.settings.tenant
-        if tenant != self.settings.tenant:
-            return False
-
-        user_id = (
-            payload.get("user_id")
-            or payload.get("target_user_id")
-            or envelope.get("user_id")
-            or envelope.get("aggregate_id")
-        )
-        if not user_id:
-            return False
-
-        reviewer_id = payload.get("reviewed_by") or payload.get("actor_id") or envelope.get("actor_id")
-        reason = payload.get("reason") or payload.get("decision_reason") or ""
+        tenant, user_id, reviewer_id, admin_status, reason = parsed
 
         async with self.pool.acquire() as conn:
             result = await conn.execute(
                 """
                 update auth.auth_users
                 set admin_status=$3,
-                    admin_reviewed_at=now(),
-                    admin_reviewed_by=$4,
-                    admin_decision_reason=$5,
+                    admin_reviewed_at=coalesce(admin_reviewed_at, now()),
+                    admin_reviewed_by=coalesce(admin_reviewed_by, $4),
+                    admin_decision_reason=case
+                        when nullif(admin_decision_reason, '') is null then $5
+                        else admin_decision_reason
+                    end,
                     status='active',
                     updated_at=now()
                 where tenant=$1
                   and id=$2
                   and role='admin'
                   and deleted_at is null
+                  and admin_status is distinct from $3
                 """,
                 tenant,
-                str(user_id),
+                user_id,
                 admin_status,
-                str(reviewer_id) if reviewer_id else None,
-                str(reason),
+                reviewer_id,
+                reason,
             )
-        return result.endswith("1")
+        applied = result.endswith("1")
+        if applied:
+            logger.info(
+                "admin decision event applied to auth user",
+                extra={
+                    "event": "admin.decision.applied",
+                    "user_id": user_id,
+                    "extra": {"admin_status": admin_status, "tenant": tenant},
+                },
+            )
+        return applied
+
+    async def reconcile_admin_decision_events(self, limit: int = 500) -> int:
+        """Backfill admin decisions already stored in kafka_inbox_events.
+
+        This is intentionally run on startup because older deployments stored the
+        event in the inbox but marked it processed before updating auth_users.
+        Reprocessing is idempotent because apply_admin_decision_event updates only
+        matching admin users and skips rows already in the target status.
+        """
+        sql = """
+        select event_id, payload
+        from auth.kafka_inbox_events
+        where coalesce(tenant, $1) = $1
+          and (
+            lower(event_type) like '%admin%registration%'
+            or lower(event_type) like '%admin.registration%'
+            or lower(payload::text) like '%admin_status%'
+            or lower(payload::text) like '%target_user_id%'
+          )
+          and (
+            lower(event_type) like '%approve%'
+            or lower(event_type) like '%approved%'
+            or lower(event_type) like '%reject%'
+            or lower(event_type) like '%rejected%'
+            or lower(event_type) like '%decision%'
+            or lower(payload::text) like '%"decision"%'
+            or lower(payload::text) like '%"approved"%'
+            or lower(payload::text) like '%"rejected"%'
+          )
+        order by created_at desc
+        limit $2
+        """
+        async with self.pool.acquire() as conn:
+            rows = await conn.fetch(sql, self.settings.tenant, limit)
+
+        applied_count = 0
+        for row in rows:
+            payload = row["payload"]
+            if isinstance(payload, str):
+                payload = json.loads(payload)
+            try:
+                applied = await self.apply_admin_decision_event(payload)
+                if applied:
+                    applied_count += 1
+                await self.mark_inbox_processed(str(row["event_id"]), status="PROCESSED")
+            except Exception as exc:
+                await self.mark_inbox_processed(str(row["event_id"]), status="FAILED", error=str(exc)[:2000])
+                raise
+        if rows:
+            logger.info(
+                "admin decision inbox reconciliation completed",
+                extra={
+                    "event": "admin.decision.reconciled",
+                    "extra": {"scanned": len(rows), "applied": applied_count, "tenant": self.settings.tenant},
+                },
+            )
+        return applied_count
 
     async def _insert_user(self, conn, user: dict[str, Any]) -> None:
         await conn.execute(
@@ -541,6 +688,7 @@ def _instrument_postgres_methods() -> None:
         "insert_inbox_event",
         "mark_inbox_processed",
         "apply_admin_decision_event",
+        "reconcile_admin_decision_events",
     ]
 
     for method_name in method_names:

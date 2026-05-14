@@ -62,6 +62,18 @@ async def lifespan(app: FastAPI):
         await mongo_logger.connect()
         await elasticsearch.connect()
         await bootstrap_default_admin(postgres, settings)
+        try:
+            applied_admin_decisions = await postgres.reconcile_admin_decision_events(limit=500)
+            if applied_admin_decisions:
+                logger.info(
+                    "admin decision inbox backfill applied",
+                    extra={"event": "admin.decision.backfill_applied", "extra": {"applied": applied_admin_decisions}},
+                )
+        except Exception:
+            logger.exception(
+                "admin decision inbox backfill failed",
+                extra={"event": "admin.decision.backfill_failed", "error_code": "ADMIN_DECISION_BACKFILL_FAILED"},
+            )
 
         app.state.postgres = postgres
         app.state.redis = redis_client
