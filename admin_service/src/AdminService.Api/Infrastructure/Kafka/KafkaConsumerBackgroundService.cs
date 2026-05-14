@@ -571,6 +571,57 @@ public sealed class KafkaConsumerBackgroundService : BackgroundService
     private static DateTimeOffset? NullableTime(JsonElement? element, params string[] names)
         => element.HasValue ? NullableTime(element.Value, names) : null;
 
+    private static DateTimeOffset? CoerceDate(JsonElement property)
+    {
+        try
+        {
+            if (property.ValueKind == JsonValueKind.String)
+            {
+                var text = property.GetString();
+                if (string.IsNullOrWhiteSpace(text)) return null;
+
+                if (DateTimeOffset.TryParse(text, System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.AssumeUniversal | System.Globalization.DateTimeStyles.AdjustToUniversal, out var parsed))
+                {
+                    return parsed.ToUniversalTime();
+                }
+
+                if (long.TryParse(text, System.Globalization.NumberStyles.Integer, System.Globalization.CultureInfo.InvariantCulture, out var numeric))
+                {
+                    return FromUnixValue(numeric);
+                }
+            }
+
+            if (property.ValueKind == JsonValueKind.Number)
+            {
+                if (property.TryGetInt64(out var integer)) return FromUnixValue(integer);
+                if (property.TryGetDouble(out var number)) return FromUnixValue((long)number);
+            }
+        }
+        catch
+        {
+            return null;
+        }
+
+        return null;
+    }
+
+    private static DateTimeOffset? FromUnixValue(long value)
+    {
+        try
+        {
+            if (Math.Abs(value) >= 1_000_000_000_000L)
+            {
+                return DateTimeOffset.FromUnixTimeMilliseconds(value).ToUniversalTime();
+            }
+
+            return DateTimeOffset.FromUnixTimeSeconds(value).ToUniversalTime();
+        }
+        catch (ArgumentOutOfRangeException)
+        {
+            return null;
+        }
+    }
+
     private static DateOnly? Date(JsonElement element, string name)
     {
         if (element.ValueKind == JsonValueKind.Object && element.TryGetProperty(name, out var property))

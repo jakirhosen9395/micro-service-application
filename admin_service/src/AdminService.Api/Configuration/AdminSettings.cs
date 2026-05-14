@@ -65,9 +65,6 @@ public sealed class AdminSettings
     public string ElasticsearchUrl { get; init; } = string.Empty;
     public string ElasticsearchUsername { get; init; } = "elastic";
     public string ElasticsearchPassword { get; init; } = string.Empty;
-    public string KibanaUrl { get; init; } = string.Empty;
-    public string KibanaUsername { get; init; } = "elastic";
-    public string KibanaPassword { get; init; } = string.Empty;
 
     public string LogLevel { get; init; } = "info";
     public string LogFormat { get; init; } = "pretty-json";
@@ -101,7 +98,7 @@ public sealed class AdminSettings
         "ADMIN_KAFKA_BOOTSTRAP_SERVERS", "ADMIN_KAFKA_EVENTS_TOPIC", "ADMIN_KAFKA_DEAD_LETTER_TOPIC", "ADMIN_KAFKA_CONSUMER_GROUP", "ADMIN_KAFKA_CONSUME_TOPICS", "ADMIN_KAFKA_AUTO_CREATE_TOPICS",
         "ADMIN_S3_ENDPOINT", "ADMIN_S3_ACCESS_KEY", "ADMIN_S3_SECRET_KEY", "ADMIN_S3_REGION", "ADMIN_S3_FORCE_PATH_STYLE", "ADMIN_S3_BUCKET", "ADMIN_S3_AUDIT_PREFIX", "ADMIN_S3_REPORT_PREFIX",
         "ADMIN_MONGO_HOST", "ADMIN_MONGO_PORT", "ADMIN_MONGO_USERNAME", "ADMIN_MONGO_PASSWORD", "ADMIN_MONGO_DATABASE", "ADMIN_MONGO_AUTH_SOURCE", "ADMIN_MONGO_LOG_COLLECTION",
-        "ADMIN_APM_SERVER_URL", "ADMIN_APM_SECRET_TOKEN", "ADMIN_APM_TRANSACTION_SAMPLE_RATE", "ADMIN_APM_CAPTURE_BODY", "ADMIN_ELASTICSEARCH_URL", "ADMIN_ELASTICSEARCH_USERNAME", "ADMIN_ELASTICSEARCH_PASSWORD", "ADMIN_KIBANA_URL", "ADMIN_KIBANA_USERNAME", "ADMIN_KIBANA_PASSWORD",
+        "ADMIN_APM_SERVER_URL", "ADMIN_APM_SECRET_TOKEN", "ADMIN_APM_TRANSACTION_SAMPLE_RATE", "ADMIN_APM_CAPTURE_BODY", "ADMIN_ELASTICSEARCH_URL", "ADMIN_ELASTICSEARCH_USERNAME", "ADMIN_ELASTICSEARCH_PASSWORD",
         "ADMIN_LOG_LEVEL", "ADMIN_LOG_FORMAT", "ADMIN_LOGSTASH_ENABLED", "ADMIN_LOGSTASH_HOST", "ADMIN_LOGSTASH_PORT",
         "ADMIN_CORS_ALLOWED_ORIGINS", "ADMIN_CORS_ALLOWED_METHODS", "ADMIN_CORS_ALLOWED_HEADERS", "ADMIN_CORS_ALLOW_CREDENTIALS", "ADMIN_CORS_MAX_AGE_SECONDS",
         "ADMIN_SECURITY_REQUIRE_HTTPS", "ADMIN_SECURITY_SECURE_COOKIES", "ADMIN_SECURITY_REQUIRE_TENANT_MATCH",
@@ -166,9 +163,6 @@ public sealed class AdminSettings
             ElasticsearchUrl = Get("ADMIN_ELASTICSEARCH_URL"),
             ElasticsearchUsername = Get("ADMIN_ELASTICSEARCH_USERNAME"),
             ElasticsearchPassword = Get("ADMIN_ELASTICSEARCH_PASSWORD"),
-            KibanaUrl = Get("ADMIN_KIBANA_URL"),
-            KibanaUsername = Get("ADMIN_KIBANA_USERNAME"),
-            KibanaPassword = Get("ADMIN_KIBANA_PASSWORD"),
             LogLevel = Get("ADMIN_LOG_LEVEL"),
             LogFormat = Get("ADMIN_LOG_FORMAT"),
             LogstashEnabled = GetBool("ADMIN_LOGSTASH_ENABLED"),

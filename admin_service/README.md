@@ -21,7 +21,7 @@ The service sends 100% sampled APM telemetry to `ADMIN_APM_SERVER_URL` using Ela
 
 Dependency visibility is emitted with named spans for PostgreSQL/EF, Redis, Kafka, S3/MinIO, MongoDB, APM Server, and Elasticsearch health checks. Errors are captured into APM and written as structured ECS-style JSON logs with `trace.id`, `transaction.id`, `span.id`, `error.*`, request metadata, user metadata, and redacted custom fields.
 
-`ADMIN_APM_CAPTURE_BODY=all` is enabled in the environment files so transaction request bodies are available in APM. Elastic Agent or another log shipper should collect container stdout for the Kibana Logs, Infrastructure, Alerts, and Dashboard views.
+`ADMIN_APM_CAPTURE_BODY=all` is enabled in the environment files so transaction request bodies are available in APM. Elastic Agent, Filebeat, or another log shipper can collect container stdout into Elasticsearch. If Kibana is not installed, Elasticsearch still stores the telemetry, but Kibana UI pages are not available.
 
 ## Public routes
 
@@ -274,7 +274,7 @@ admin_service_<environment>_logs
 
 ## 2026-05 Admin observability and runtime error fixes
 
-This package includes fixes for the Kibana/APM error groups observed in admin_service:
+This package includes fixes for the APM/Elasticsearch error groups observed in admin_service:
 
 - Kafka topic creation now treats `TopicAlreadyExists` as an expected startup condition. It is logged as `kafka.topics.already_exists` and is not captured as an APM error.
 - PostgreSQL migration now self-heals the canonical `admin.outbox_events` and `admin.kafka_inbox_events` tables before and after SQL migrations. The outbox publisher also verifies/repairs those tables before polling.
@@ -282,9 +282,9 @@ This package includes fixes for the Kibana/APM error groups observed in admin_se
 - Invalid Kafka envelopes are stored/ignored for idempotency without creating false APM error groups.
 - MongoDB log write connection resets no longer create unhandled application errors or break request processing. `/health` still reports MongoDB status.
 - HTTP 500 request logging no longer creates synthetic APM errors without stack traces. Real request failures are captured by `ExceptionHandlingMiddleware` with stack trace and `INTERNAL_SERVER_ERROR`.
-- Kibana helper assets were added under `observability/kibana/`.
+- Elasticsearch verification helper assets were added under `observability/elasticsearch/`.
 
-### Kibana/APM verification
+### Elasticsearch/APM verification
 
 Run the service, then generate traffic:
 
@@ -300,13 +300,13 @@ For stage/prod over local HTTP ports, include:
 -H "X-Forwarded-Proto: https"
 ```
 
-Import basic Kibana data views:
+Verify Elasticsearch/APM ingestion:
 
 ```bash
-ADMIN_KIBANA_URL=http://192.168.56.100:5601 \
-ADMIN_KIBANA_USERNAME=elastic \
-ADMIN_KIBANA_PASSWORD='<kibana-password>' \
-./observability/kibana/setup_admin_service_kibana.sh
+ADMIN_ELASTICSEARCH_URL=http://192.168.56.100:9200 \
+ADMIN_ELASTICSEARCH_USERNAME=elastic \
+ADMIN_ELASTICSEARCH_PASSWORD='<elasticsearch-password>' \
+./observability/elasticsearch/setup_admin_service_elasticsearch.sh
 ```
 
-Kibana APM will show Overview, Transactions, Dependencies, Errors, Metrics, and Service map for `admin_service` after the service emits traffic. Infrastructure metrics require Elastic Agent, Metricbeat, Docker metrics, Kubernetes metrics, or equivalent host/container metric collection.
+APM data is sent to `ADMIN_APM_SERVER_URL` and stored in Elasticsearch. Kibana is optional and external to the app; if no Kibana is deployed, the service still emits traces, spans, errors, and metrics to APM/Elasticsearch, but UI pages such as Overview, Transactions, Dependencies, Errors, Metrics, Infrastructure, Service map, Logs, Alerts, and Dashboards are not available until Kibana or another viewer is connected. Infrastructure metrics require Elastic Agent, Metricbeat, Docker metrics, Kubernetes metrics, or equivalent host/container metric collection.
