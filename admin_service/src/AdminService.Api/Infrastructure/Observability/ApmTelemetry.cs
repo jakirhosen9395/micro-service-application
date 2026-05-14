@@ -223,8 +223,8 @@ public static class ApmTelemetry
                 span.SetLabel(key, decimal.ToDouble(number));
                 break;
             default:
-                var text = value.ToString();
-                if (!string.IsNullOrWhiteSpace(text)) span.SetLabel(key, text);
+                var labelText = value.ToString();
+                if (!string.IsNullOrWhiteSpace(labelText)) span.SetLabel(key, labelText);
                 break;
         }
     }
@@ -256,8 +256,8 @@ public static class ApmTelemetry
                 transaction.SetLabel(key, decimal.ToDouble(number));
                 break;
             default:
-                var text = value.ToString();
-                if (!string.IsNullOrWhiteSpace(text)) transaction.SetLabel(key, text);
+                var labelText = value.ToString();
+                if (!string.IsNullOrWhiteSpace(labelText)) transaction.SetLabel(key, labelText);
                 break;
         }
     }
