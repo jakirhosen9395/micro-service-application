@@ -92,27 +92,37 @@ public sealed class KafkaConsumerBackgroundService : BackgroundService
     private async Task ProcessMessageAsync(ConsumeResult<string, string> result, CancellationToken cancellationToken)
     {
         EventEnvelope? envelope;
+        var deserializeSpan = ApmTelemetry.StartSpan(
+            "Kafka deserialize envelope",
+            "app",
+            "json",
+            "deserialize",
+            new Dictionary<string, object?>
+            {
+                ["dependency"] = "kafka",
+                ["topic"] = result.Topic,
+                ["partition"] = result.Partition.Value,
+                ["offset"] = result.Offset.Value,
+                ["payload_bytes"] = result.Message.Value.Length
+            });
         try
         {
-            envelope = await ApmTelemetry.CaptureSpanAsync(
-                "Kafka deserialize envelope",
-                "app",
-                "json",
-                "deserialize",
-                () => Task.FromResult(JsonSerializer.Deserialize<EventEnvelope>(result.Message.Value, JsonOptionsFactory.Options)),
-                new Dictionary<string, object?>
-                {
-                    ["dependency"] = "kafka",
-                    ["topic"] = result.Topic,
-                    ["partition"] = result.Partition.Value,
-                    ["offset"] = result.Offset.Value,
-                    ["payload_bytes"] = result.Message.Value.Length
-                });
+            envelope = JsonSerializer.Deserialize<EventEnvelope>(result.Message.Value, JsonOptionsFactory.Options);
+            ApmTelemetry.SetLabel(deserializeSpan, "outcome", "success");
         }
-        catch (JsonException)
+        catch (JsonException ex)
         {
+            // Malformed/legacy events are data quality issues, not admin_service crashes.
+            // Store the inbox marker and commit the offset without creating an APM error group.
+            ApmTelemetry.SetLabel(deserializeSpan, "outcome", "ignored");
+            ApmTelemetry.SetLabel(deserializeSpan, "invalid_reason", "invalid-envelope");
+            ApmTelemetry.SetLabel(deserializeSpan, "json_error", SecretRedactor.SafeExceptionMessage(ex));
             await StoreInvalidMessageAsync(result, "invalid-envelope", cancellationToken);
             return;
+        }
+        finally
+        {
+            deserializeSpan?.End();
         }
 
         if (envelope is null || string.IsNullOrWhiteSpace(envelope.EventId) || string.IsNullOrWhiteSpace(envelope.EventType))
@@ -551,7 +561,8 @@ public sealed class KafkaConsumerBackgroundService : BackgroundService
         {
             if (element.ValueKind == JsonValueKind.Object && element.TryGetProperty(name, out var property))
             {
-                if (property.ValueKind == JsonValueKind.String && DateTimeOffset.TryParse(property.GetString(), out var value)) return value.ToUniversalTime();
+                var parsed = CoerceDate(property);
+                if (parsed.HasValue) return parsed.Value.ToUniversalTime();
             }
         }
         return null;

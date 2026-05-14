@@ -6,6 +6,7 @@ using AdminService.Api.Persistence;
 using Confluent.Kafka;
 using Elastic.Apm;
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
 using System.Text;
 using System.Text.Json;
 
@@ -18,17 +19,28 @@ public sealed class OutboxPublisherBackgroundService : BackgroundService
     private readonly IProducer<string, string> _producer;
     private readonly AppLogger _logger;
     private readonly AdminSettings _settings;
+    private readonly DatabaseMigrator _migrator;
 
-    public OutboxPublisherBackgroundService(IDbContextFactory<AdminDbContext> dbFactory, IProducer<string, string> producer, AppLogger logger, AdminSettings settings)
+    public OutboxPublisherBackgroundService(IDbContextFactory<AdminDbContext> dbFactory, IProducer<string, string> producer, AppLogger logger, AdminSettings settings, DatabaseMigrator migrator)
     {
         _dbFactory = dbFactory;
         _producer = producer;
         _logger = logger;
         _settings = settings;
+        _migrator = migrator;
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
+        try
+        {
+            await _migrator.EnsureCanonicalInfrastructureSchemaAsync(stoppingToken);
+        }
+        catch (Exception ex)
+        {
+            await _logger.ErrorAsync("outbox.schema.ensure_failed", "Kafka outbox schema verification failed", ex, errorCode: "OUTBOX_SCHEMA_UNAVAILABLE", cancellationToken: CancellationToken.None);
+        }
+
         await _logger.InfoAsync("outbox.publisher.started", "Kafka outbox publisher started", cancellationToken: stoppingToken);
         while (!stoppingToken.IsCancellationRequested)
         {
@@ -44,6 +56,18 @@ public sealed class OutboxPublisherBackgroundService : BackgroundService
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
             {
                 break;
+            }
+            catch (PostgresException ex) when (ex.SqlState == PostgresErrorCodes.UndefinedTable)
+            {
+                await _logger.WarnAsync("outbox.schema.missing", "Kafka outbox table is missing; attempting schema repair", errorCode: "OUTBOX_SCHEMA_MISSING", cancellationToken: CancellationToken.None);
+                try
+                {
+                    await _migrator.EnsureCanonicalInfrastructureSchemaAsync(CancellationToken.None);
+                }
+                catch (Exception repairException)
+                {
+                    await _logger.ErrorAsync("outbox.schema.repair_failed", "Kafka outbox schema repair failed", repairException, errorCode: "OUTBOX_SCHEMA_REPAIR_FAILED", cancellationToken: CancellationToken.None);
+                }
             }
             catch (Exception ex)
             {

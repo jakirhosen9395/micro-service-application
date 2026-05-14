@@ -28,6 +28,7 @@ public sealed class MongoLogWriter
             new CreateIndexModel<BsonDocument>(keys.Ascending("event").Descending("timestamp")),
             new CreateIndexModel<BsonDocument>(keys.Ascending("request_id")),
             new CreateIndexModel<BsonDocument>(keys.Ascending("trace_id")),
+            new CreateIndexModel<BsonDocument>(keys.Ascending("elastic_trace_id")),
             new CreateIndexModel<BsonDocument>(keys.Ascending("user_id").Descending("timestamp")),
             new CreateIndexModel<BsonDocument>(keys.Ascending("path").Ascending("status_code").Descending("timestamp")),
             new CreateIndexModel<BsonDocument>(keys.Ascending("error_code").Descending("timestamp"))
@@ -51,21 +52,45 @@ public sealed class MongoLogWriter
     {
         var json = JsonSerializer.Serialize(document, JsonOptionsFactory.Options);
         var bson = BsonDocument.Parse(json);
-        await ApmTelemetry.CaptureSpanAsync(
+        var span = ApmTelemetry.StartSpan(
             "MongoDB insert log",
             "db",
             "mongodb",
             "insert",
-            async () =>
-            {
-                await _collection.InsertOneAsync(bson, cancellationToken: cancellationToken);
-            },
             MongoLabels("insert", new Dictionary<string, object?>
             {
                 ["payload_bytes"] = json.Length,
                 ["log_event"] = document.TryGetValue("event", out var evt) ? evt : null,
                 ["log_level"] = document.TryGetValue("level", out var level) ? level : null
             }));
+
+        try
+        {
+            await _collection.InsertOneAsync(bson, cancellationToken: cancellationToken);
+            ApmTelemetry.SetLabel(span, "outcome", "success");
+        }
+        catch (Exception ex)
+        {
+            // MongoDB log writes must not create application error storms or make request
+            // processing fail. The /health endpoint still reports MongoDB availability.
+            ApmTelemetry.SetLabel(span, "outcome", "failure");
+            ApmTelemetry.SetLabel(span, "mongo_log_write_failed", true);
+            ApmTelemetry.SetLabel(span, "exception_class", ex.GetType().Name);
+            Console.Error.WriteLine(JsonSerializer.Serialize(new Dictionary<string, object?>
+            {
+                ["timestamp"] = DateTimeOffset.UtcNow,
+                ["level"] = "WARN",
+                ["service"] = _settings.ServiceName,
+                ["environment"] = _settings.EnvironmentName,
+                ["tenant"] = _settings.Tenant,
+                ["event"] = "mongodb.log_write_failed",
+                ["message"] = SecretRedactor.SafeExceptionMessage(ex)
+            }, JsonOptionsFactory.Options));
+        }
+        finally
+        {
+            span?.End();
+        }
     }
 
     private Dictionary<string, object?> MongoLabels(string operation, IDictionary<string, object?>? extra = null)

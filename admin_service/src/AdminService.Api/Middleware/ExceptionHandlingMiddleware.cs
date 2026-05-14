@@ -26,6 +26,11 @@ public sealed class ExceptionHandlingMiddleware
         }
         catch (Exception ex)
         {
+            if (!http.Response.HasStarted)
+            {
+                http.Response.StatusCode = StatusCodes.Status500InternalServerError;
+            }
+
             await _logger.ErrorAsync("http.request.failed", "unhandled request failure", ex, http, "INTERNAL_SERVER_ERROR", cancellationToken: CancellationToken.None);
             if (!http.Response.HasStarted)
             {

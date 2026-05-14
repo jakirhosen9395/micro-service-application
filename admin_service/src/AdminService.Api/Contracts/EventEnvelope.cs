@@ -24,6 +24,7 @@ public sealed class EventEnvelope
     public string Tenant { get; set; } = string.Empty;
 
     [JsonPropertyName("timestamp")]
+    [JsonConverter(typeof(FlexibleDateTimeOffsetJsonConverter))]
     public DateTimeOffset Timestamp { get; set; } = DateTimeOffset.UtcNow;
 
     [JsonPropertyName("request_id")]

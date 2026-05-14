@@ -38,8 +38,11 @@ public sealed class AppLogger
         {
             ApmTelemetry.CaptureException(exception);
         }
-        else if (level == "ERROR")
+        else if (level == "ERROR" && !string.Equals(evt, "http.request.completed", StringComparison.Ordinal))
         {
+            // Errors without an exception are still written to stdout/Mongo. Do not create
+            // synthetic APM error groups for request-completed 5xx logs; the real exception
+            // is captured by ExceptionHandlingMiddleware with stack trace and error_code.
             ApmTelemetry.CaptureError(message, evt);
         }
 

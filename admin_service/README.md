@@ -271,3 +271,42 @@ MongoDB log collection:
 ```text
 admin_service_<environment>_logs
 ```
+
+## 2026-05 Admin observability and runtime error fixes
+
+This package includes fixes for the Kibana/APM error groups observed in admin_service:
+
+- Kafka topic creation now treats `TopicAlreadyExists` as an expected startup condition. It is logged as `kafka.topics.already_exists` and is not captured as an APM error.
+- PostgreSQL migration now self-heals the canonical `admin.outbox_events` and `admin.kafka_inbox_events` tables before and after SQL migrations. The outbox publisher also verifies/repairs those tables before polling.
+- Kafka event deserialization now accepts both ISO-8601 string timestamps and numeric Unix epoch timestamps from other services, preventing `DateTimeOffset` conversion errors on `todo.events` and other legacy events.
+- Invalid Kafka envelopes are stored/ignored for idempotency without creating false APM error groups.
+- MongoDB log write connection resets no longer create unhandled application errors or break request processing. `/health` still reports MongoDB status.
+- HTTP 500 request logging no longer creates synthetic APM errors without stack traces. Real request failures are captured by `ExceptionHandlingMiddleware` with stack trace and `INTERNAL_SERVER_ERROR`.
+- Kibana helper assets were added under `observability/kibana/`.
+
+### Kibana/APM verification
+
+Run the service, then generate traffic:
+
+```bash
+curl -i http://localhost:1010/hello
+curl -i http://localhost:1010/health
+curl -i -H "Authorization: Bearer <approved-admin-jwt>" http://localhost:1010/v1/admin/dashboard
+```
+
+For stage/prod over local HTTP ports, include:
+
+```bash
+-H "X-Forwarded-Proto: https"
+```
+
+Import basic Kibana data views:
+
+```bash
+ADMIN_KIBANA_URL=http://192.168.56.100:5601 \
+ADMIN_KIBANA_USERNAME=elastic \
+ADMIN_KIBANA_PASSWORD='<kibana-password>' \
+./observability/kibana/setup_admin_service_kibana.sh
+```
+
+Kibana APM will show Overview, Transactions, Dependencies, Errors, Metrics, and Service map for `admin_service` after the service emits traffic. Infrastructure metrics require Elastic Agent, Metricbeat, Docker metrics, Kubernetes metrics, or equivalent host/container metric collection.
