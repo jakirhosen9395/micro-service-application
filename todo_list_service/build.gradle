@@ -20,7 +20,9 @@ ext {
     jjwtVersion = '0.12.6'
     swaggerAnnotationsVersion = '2.2.36'
     springdocVersion = '3.0.3'
+    mongodbDriverVersion = '5.5.1'
 }
+
 
 tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8'
@@ -50,7 +52,12 @@ dependencies {
 
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
-    implementation 'org.springframework.boot:spring-boot-starter-data-mongodb'
+    implementation('org.springframework.boot:spring-boot-starter-data-mongodb') {
+        exclude group: 'org.mongodb'
+    }
+    implementation "org.mongodb:mongodb-driver-sync:${mongodbDriverVersion}"
+    implementation "org.mongodb:mongodb-driver-core:${mongodbDriverVersion}"
+    implementation "org.mongodb:bson:${mongodbDriverVersion}"
 
     implementation 'org.springframework.kafka:spring-kafka'
 

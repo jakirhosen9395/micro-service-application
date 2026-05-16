@@ -361,3 +361,14 @@ This validates env key order, forbidden toggles, Java/Spring/Gradle target versi
 - Todo does not issue JWTs, hash passwords, or synchronously call Auth/Admin/Calculator/User/Report.
 - Cross-service state is consumed through Kafka and stored in local projections.
 - The OpenAPI document is embedded in `/docs`; generated OpenAPI JSON files are not committed or publicly exposed.
+
+## Runtime fixes in this package
+
+This package includes MongoDB/APM stability fixes for the observed Kibana/APM errors:
+
+- Pins the MongoDB Java driver modules to the same version so `mongodb-driver-sync`, `mongodb-driver-core`, and `bson` are packaged consistently in the executable Spring Boot jar. This fixes `NoClassDefFoundError: com/mongodb/internal/connection/InternalStreamConnection` caused by mixed or incomplete MongoDB driver classes at runtime.
+- Wraps MongoDB index creation and MongoDB log writes so transient `Connection reset` failures do not crash scheduled initialization or create noisy false APM error groups.
+- Adds manual APM dependency spans around health checks for PostgreSQL, Redis, Kafka, S3, MongoDB, APM Server, and Elasticsearch. Calling `/health` and `/v1/todos` now generates dependency data that Kibana can aggregate in the APM Dependencies view.
+- Adds `observability/apm/generate_todo_dependency_traffic.sh` to generate traffic for APM transaction/dependency visibility.
+
+Important: application code can emit APM transactions, traces, dependency spans, JVM metrics, errors, and logs. Kibana pages such as Infrastructure inventory, Hosts, Synthetics, TLS Certificates, Alerts, SLOs, Cases, Logs Anomalies, and custom Dashboards require Kibana plus Elastic Agent/Metricbeat/Filebeat/Synthetics or equivalent external collectors.

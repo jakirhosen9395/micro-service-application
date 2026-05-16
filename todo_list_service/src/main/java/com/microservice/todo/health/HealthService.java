@@ -3,6 +3,7 @@ package com.microservice.todo.health;
 import com.microservice.todo.config.TodoProperties;
 import com.microservice.todo.dto.DependencyStatus;
 import com.microservice.todo.dto.HealthResponse;
+import com.microservice.todo.observability.DependencyTelemetry;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -38,6 +39,7 @@ public class HealthService {
     private final TodoProperties properties;
     private final HttpClient httpClient;
     private final com.microservice.todo.service.DatabaseSchemaGuard schemaGuard;
+    private final DependencyTelemetry dependencyTelemetry;
 
     public HealthService(
             JdbcTemplate jdbcTemplate,
@@ -45,13 +47,15 @@ public class HealthService {
             MongoTemplate mongoTemplate,
             S3Client s3Client,
             TodoProperties properties,
-            com.microservice.todo.service.DatabaseSchemaGuard schemaGuard) {
+            com.microservice.todo.service.DatabaseSchemaGuard schemaGuard,
+            DependencyTelemetry dependencyTelemetry) {
         this.jdbcTemplate = jdbcTemplate;
         this.redisTemplate = redisTemplate;
         this.mongoTemplate = mongoTemplate;
         this.s3Client = s3Client;
         this.properties = properties;
         this.schemaGuard = schemaGuard;
+        this.dependencyTelemetry = dependencyTelemetry;
         this.httpClient = HttpClient.newBuilder()
                 .connectTimeout(Duration.ofSeconds(properties.getHealth().getTimeoutSeconds()))
                 .build();
@@ -72,13 +76,13 @@ public class HealthService {
     public Map<String, DependencyStatus> dependencies() {
         Map<String, DependencyStatus> dependencies = new LinkedHashMap<>();
         dependencies.put("jwt", checkJwt());
-        dependencies.put("postgres", checkPostgres());
-        dependencies.put("redis", checkRedis());
-        dependencies.put("kafka", checkKafka());
-        dependencies.put("s3", checkS3());
-        dependencies.put("mongodb", checkMongo());
-        dependencies.put("apm", checkApm());
-        dependencies.put("elasticsearch", checkHttp(properties.getElasticsearch(), "ELASTICSEARCH_UNAVAILABLE"));
+        dependencies.put("postgres", dependencyTelemetry.capture("PostgreSQL health check", "db", "postgresql", "query", this::checkPostgres));
+        dependencies.put("redis", dependencyTelemetry.capture("Redis health check", "cache", "redis", "ping", this::checkRedis));
+        dependencies.put("kafka", dependencyTelemetry.capture("Kafka health check", "messaging", "kafka", "admin", this::checkKafka));
+        dependencies.put("s3", dependencyTelemetry.capture("S3 health check", "storage", "s3", "head_bucket", this::checkS3));
+        dependencies.put("mongodb", dependencyTelemetry.capture("MongoDB health check", "db", "mongodb", "command", this::checkMongo));
+        dependencies.put("apm", dependencyTelemetry.capture("APM server health check", "external", "http", "request", this::checkApm));
+        dependencies.put("elasticsearch", dependencyTelemetry.capture("Elasticsearch health check", "external", "elasticsearch", "request", () -> checkHttp(properties.getElasticsearch(), "ELASTICSEARCH_UNAVAILABLE")));
         return dependencies;
     }
 
@@ -156,7 +160,7 @@ public class HealthService {
         try {
             mongoTemplate.executeCommand("{ ping: 1 }");
             return ok(start);
-        } catch (Exception ex) {
+        } catch (Throwable ex) {
             return down(start, "MONGODB_UNAVAILABLE");
         }
     }

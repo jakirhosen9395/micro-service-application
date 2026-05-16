@@ -42,8 +42,8 @@ public class MongoLogbackAppender extends AppenderBase<ILoggingEvent> {
             mongoClient = MongoClients.create(new ConnectionString(uri));
             mongoCollection = mongoClient.getDatabase(database).getCollection(collection);
             super.start();
-        } catch (Exception ex) {
-            addWarn("MongoLogbackAppender disabled: " + ex.getMessage());
+        } catch (Throwable ex) {
+            addWarn("MongoLogbackAppender disabled: " + safeMessage(ex));
             enabled = false;
             super.start();
         }
@@ -87,7 +87,7 @@ public class MongoLogbackAppender extends AppenderBase<ILoggingEvent> {
                     .append("host", System.getenv().getOrDefault("HOSTNAME", "local"))
                     .append("extra", SecretRedactor.redactMap(mdcExtra(mdc)));
             mongoCollection.insertOne(document);
-        } catch (Exception ignored) {
+        } catch (Throwable ignored) {
             // Never let Mongo logging break application logging or request processing.
         }
     }
@@ -105,6 +105,11 @@ public class MongoLogbackAppender extends AppenderBase<ILoggingEvent> {
 
     private String encode(String value) {
         return value == null ? "" : value.replace("@", "%40").replace(":", "%3A").replace("/", "%2F");
+    }
+
+    private String safeMessage(Throwable ex) {
+        String message = ex.getMessage();
+        return (message == null || message.isBlank() ? ex.getClass().getSimpleName() : message).replaceAll("[\r\n]+", " ");
     }
 
     private Map<String, Object> mdcExtra(Map<String, String> mdc) {

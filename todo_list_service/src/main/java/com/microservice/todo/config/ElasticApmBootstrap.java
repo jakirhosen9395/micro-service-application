@@ -65,6 +65,12 @@ public final class ElasticApmBootstrap {
         config.put("breakdown_metrics", "true");
         config.put("metrics_interval", "30s");
         config.put("span_min_duration", "0ms");
+        config.put("trace_methods", "com.microservice.todo.*");
+        config.put("instrument", "true");
+        config.put("enabled", "true");
+        config.put("recording", "true");
+        config.put("transaction_max_spans", "1000");
+        config.put("span_stack_trace_min_duration", "0ms");
         config.put("log_level", "ERROR");
         config.put("global_labels", "tenant=" + safeLabel(tenant) + ",service=" + safeLabel(serviceName));
         config.put("sanitize_field_names", "password,passwd,pwd,*secret*,*token*,*key*,authorization,cookie,set-cookie,jwt,session,credit,card");

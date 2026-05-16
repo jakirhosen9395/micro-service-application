@@ -2,6 +2,7 @@ package com.microservice.todo.service;
 
 import com.microservice.todo.config.TodoProperties;
 import com.microservice.todo.observability.ApmTraceContext;
+import com.microservice.todo.observability.DependencyTelemetry;
 import com.microservice.todo.util.RequestContext;
 import com.microservice.todo.util.SecretRedactor;
 import java.time.Instant;
@@ -18,10 +19,12 @@ public class MongoLogService {
     private static final Logger log = LoggerFactory.getLogger(MongoLogService.class);
     private final MongoTemplate mongoTemplate;
     private final TodoProperties properties;
+    private final DependencyTelemetry dependencyTelemetry;
 
-    public MongoLogService(MongoTemplate mongoTemplate, TodoProperties properties) {
+    public MongoLogService(MongoTemplate mongoTemplate, TodoProperties properties, DependencyTelemetry dependencyTelemetry) {
         this.mongoTemplate = mongoTemplate;
         this.properties = properties;
+        this.dependencyTelemetry = dependencyTelemetry;
     }
 
     public void log(String event, String todoId, String userId, Map<String, Object> data) {
@@ -59,14 +62,23 @@ public class MongoLogService {
                     .append("stack_trace", null)
                     .append("host", System.getenv().getOrDefault("HOSTNAME", "local"))
                     .append("extra", new Document("todo_id", todoId).append("data", SecretRedactor.redactMap(data == null ? Map.of() : data)));
-            mongoTemplate.getCollection(properties.getMongo().getLogCollection()).insertOne(document);
-        } catch (Exception ex) {
-            log.debug("event=mongodb.log_write.failed detail={}", ex.getMessage());
+            dependencyTelemetry.captureVoid("MongoDB structured log write", "db", "mongodb", "insert", () ->
+                    mongoTemplate.getCollection(properties.getMongo().getLogCollection()).insertOne(document));
+        } catch (Throwable ex) {
+            log.debug("event=mongodb.log_write.failed detail={}", safeMessage(ex));
         }
     }
 
     private String safeValue(String value, String fallback) {
         return value == null || value.isBlank() ? fallback : value;
+    }
+
+    private String safeMessage(Throwable ex) {
+        String message = ex.getMessage();
+        if (message == null || message.isBlank()) {
+            message = ex.getClass().getSimpleName();
+        }
+        return message.replaceAll("[\r\n]+", " ");
     }
 
     private String displayEnvironment(String env) {
