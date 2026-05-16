@@ -134,7 +134,7 @@ calc:
     consume-topics: ${CALC_KAFKA_CONSUME_TOPICS:auth.events,auth.admin.requests,auth.admin.decisions,admin.events,user.events,calculator.events,todo.events,report.events,access.events}
     auto-create-topics: ${CALC_KAFKA_AUTO_CREATE_TOPICS:true}
   s3:
-    endpoint: ${CALC_S3_ENDPOINT:http://52.66.223.53:9000}
+    endpoint: ${CALC_S3_ENDPOINT:http://3.108.225.164:9000}
     access-key: ${CALC_S3_ACCESS_KEY:}
     secret-key: ${CALC_S3_SECRET_KEY:}
     region: ${CALC_S3_REGION:us-east-1}
@@ -151,16 +151,16 @@ calc:
     auth-source: ${CALC_MONGO_AUTH_SOURCE:admin}
     log-collection: ${CALC_MONGO_LOG_COLLECTION:calculator_service_development_logs}
   apm:
-    server-url: ${CALC_APM_SERVER_URL:http://52.66.223.53:8200}
+    server-url: ${CALC_APM_SERVER_URL:http://3.108.225.164:8200}
     secret-token: ${CALC_APM_SECRET_TOKEN:}
     transaction-sample-rate: ${CALC_APM_TRANSACTION_SAMPLE_RATE:1.0}
     capture-body: ${CALC_APM_CAPTURE_BODY:errors}
   elasticsearch:
-    url: ${CALC_ELASTICSEARCH_URL:http://52.66.223.53:9200}
+    url: ${CALC_ELASTICSEARCH_URL:http://3.108.225.164:9200}
     username: ${CALC_ELASTICSEARCH_USERNAME:elastic}
     password: ${CALC_ELASTICSEARCH_PASSWORD:}
   kibana:
-    url: ${CALC_KIBANA_URL:http://52.66.223.53:5601}
+    url: ${CALC_KIBANA_URL:http://3.108.225.164:5601}
     username: ${CALC_KIBANA_USERNAME:elastic}
     password: ${CALC_KIBANA_PASSWORD:}
   cors:

@@ -535,7 +535,7 @@ docker rmi report_service:dev report_service:latest 2>/dev/null || true
 docker build --no-cache -t report_service:dev .
 docker run -d --name report_service_dev --env-file .env.dev -p 5050:8080 report_service:dev
 
-curl -i -X POST http://52.66.223.53:5050/v1/reports \
+curl -i -X POST http://3.108.225.164:5050/v1/reports \
   -H 'Authorization: Bearer <access_token>' \
   -H 'Content-Type: application/json' \
   -d '{"report_type":'

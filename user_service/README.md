@@ -68,18 +68,18 @@ user_service/
 
 ## Runtime dependencies
 
-The service expects these infrastructure components at `172.31.19.122` by default:
+The service expects these infrastructure components at `172.31.24.45` by default:
 
-| Dependency    | Default endpoint            |
-| ------------- | --------------------------- |
-| PostgreSQL    | `172.31.19.122:5432`        |
-| Redis         | `172.31.19.122:6379`        |
-| Kafka         | `172.31.19.122:9092`        |
-| MinIO/S3      | `http://172.31.19.122:9000` |
-| MongoDB       | `172.31.19.122:27017`       |
-| Elastic APM   | `http://172.31.19.122:8200` |
-| Elasticsearch | `http://172.31.19.122:9200` |
-| Kibana        | `http://172.31.19.122:5601` |
+| Dependency    | Default endpoint           |
+| ------------- | -------------------------- |
+| PostgreSQL    | `172.31.24.45:5432`        |
+| Redis         | `172.31.24.45:6379`        |
+| Kafka         | `172.31.24.45:9092`        |
+| MinIO/S3      | `http://172.31.24.45:9000` |
+| MongoDB       | `172.31.24.45:27017`       |
+| Elastic APM   | `http://172.31.24.45:8200` |
+| Elasticsearch | `http://172.31.24.45:9200` |
+| Kibana        | `http://172.31.24.45:5601` |
 
 The generated `.env.dev`, `.env.stage`, and `.env.prod` files use the values supplied for that host. The README does not repeat secrets; inspect or rotate the env files directly in your private environment.
 
@@ -105,7 +105,7 @@ USER_POSTGRES_SCHEMA=user_service
 USER_KAFKA_EVENTS_TOPIC=user.events
 USER_KAFKA_DEAD_LETTER_TOPIC=user_service.dead-letter
 USER_S3_BUCKET=microservice
-USER_MONGO_DATABASE=mongo_db_micro_services
+USER_MONGO_DATABASE=mongo_db_micro_services_logs
 USER_LOG_FORMAT=pretty-json
 USER_LOGSTASH_ENABLED=false
 USER_REPORT_ALLOWED_FORMATS=pdf,csv,json,html,xlsx
@@ -572,8 +572,8 @@ URL form:
 
 ```bash
 ./user_service_api_full_smoke_test.sh \
-  --user-url http://52.66.223.53:4040 \
-  --auth-url http://52.66.223.53:6060
+  --user-url http://3.108.225.164:4040 \
+  --auth-url http://3.108.225.164:6060
 ```
 
 The script intentionally tests both valid and invalid requests:

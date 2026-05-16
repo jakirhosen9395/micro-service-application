@@ -35,11 +35,11 @@ chmod +x todo_service_full_api_test.sh
 For development, use matching service environments:
 
 ```dotenv
-TODO_BASE_URL=http://52.66.223.53:3030
-AUTH_BASE_URL=http://52.66.223.53:6060
-ADMIN_BASE_URL=http://52.66.223.53:1010
-USER_BASE_URL=http://52.66.223.53:4040
-REPORT_BASE_URL=http://52.66.223.53:5050
+TODO_BASE_URL=http://3.108.225.164:3030
+AUTH_BASE_URL=http://3.108.225.164:6060
+ADMIN_BASE_URL=http://3.108.225.164:1010
+USER_BASE_URL=http://3.108.225.164:4040
+REPORT_BASE_URL=http://3.108.225.164:5050
 TODO_TEST_TENANT=dev
 ```
 

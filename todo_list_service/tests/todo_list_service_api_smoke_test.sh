@@ -16,9 +16,9 @@
 #
 # URL usage:
 #   ./todo_list_service_api_full_retry_test.sh \
-#     --todo-url http://52.66.223.53:3030 \
-#     --auth-url http://52.66.223.53:6060 \
-#     --admin-url http://52.66.223.53:1010
+#     --todo-url http://3.108.225.164:3030 \
+#     --auth-url http://3.108.225.164:6060 \
+#     --admin-url http://3.108.225.164:1010
 #
 # Environment variable input is also supported:
 #   TODO_SERVICE_HOST=192.168.56.100 TODO_SERVICE_PORT=3030 \
