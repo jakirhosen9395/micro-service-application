@@ -18,11 +18,13 @@ public class OutboxRepository {
 
     private final JdbcTemplate jdbc;
     private final ObjectMapper mapper;
+    private final CalculatorSchemaInitializer schemaInitializer;
     private final String outboxTable;
 
-    public OutboxRepository(JdbcTemplate jdbc, ObjectMapper mapper, AppProperties props) {
+    public OutboxRepository(JdbcTemplate jdbc, ObjectMapper mapper, AppProperties props, CalculatorSchemaInitializer schemaInitializer) {
         this.jdbc = jdbc;
         this.mapper = mapper;
+        this.schemaInitializer = schemaInitializer;
         this.outboxTable = qualifiedTable(props, "outbox_events");
     }
 
@@ -39,6 +41,7 @@ public class OutboxRepository {
             String traceId,
             String correlationId
     ) {
+        schemaInitializer.ensure();
         String payload;
 
         try {
@@ -82,6 +85,7 @@ public class OutboxRepository {
 
     @Transactional
     public List<OutboxEventRow> claimPending(int limit) {
+        schemaInitializer.ensure();
         int safeLimit = Math.max(1, Math.min(limit, 100));
 
         List<OutboxEventRow> rows = jdbc.query("""
@@ -121,6 +125,7 @@ public class OutboxRepository {
     }
 
     public void markSent(UUID id) {
+        schemaInitializer.ensure();
         jdbc.update("""
                 UPDATE %s
                 SET status = 'SENT',
@@ -135,6 +140,7 @@ public class OutboxRepository {
     }
 
     public void markRetry(UUID id, String errorMessage) {
+        schemaInitializer.ensure();
         jdbc.update("""
                 UPDATE %s
                 SET status = 'FAILED',
@@ -151,6 +157,7 @@ public class OutboxRepository {
     }
 
     public void markDeadLettered(UUID id, String errorMessage) {
+        schemaInitializer.ensure();
         jdbc.update("""
                 UPDATE %s
                 SET status = 'DEAD_LETTERED',

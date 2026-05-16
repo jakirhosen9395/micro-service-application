@@ -168,3 +168,18 @@ and a requestInterceptor that adds X-Request-ID, X-Trace-ID, and X-Correlation-I
 ## Tests
 
 The test suite covers calculator engine behavior, env contracts, Docker/command contracts, route exposure, JWT/security contracts, authorization rules, canonical event envelopes, S3 audit key format, Redis namespace expectations, MongoDB redaction, outbox/inbox schema and idempotency contracts, health dependency keys, and Swagger UI embedding.
+
+## Runtime fix notes: outbox schema and APM visibility
+
+This build includes a defensive `CalculatorSchemaInitializer` that creates the canonical `calculator` schema objects at startup and before outbox access. This fixes old/baselined deployments where Flyway history existed but `calculator.outbox_events` or `calculator.kafka_inbox_events` was missing.
+
+The `/health` endpoint now emits explicit Elastic APM dependency spans for PostgreSQL, Redis, Kafka, S3, MongoDB, APM Server, and Elasticsearch. To populate Kibana quickly, run:
+
+```bash
+CALCULATOR_BASE_URL=http://192.168.56.50:2020 \
+CALCULATOR_TOKEN='<valid-user-jwt>' \
+COUNT=30 \
+./observability/apm/generate_calculator_dependency_traffic.sh
+```
+
+Kibana views such as Overview, Transactions, Dependencies, Errors, Metrics, Logs, and Service map are populated from APM/log data. Infrastructure inventory, hosts, synthetics, TLS certificates, alerts, SLOs, cases, anomaly detection, streams, and custom dashboards require Kibana plus Elastic Agent/Metricbeat/Filebeat/Synthetics or saved-object setup outside this service container.

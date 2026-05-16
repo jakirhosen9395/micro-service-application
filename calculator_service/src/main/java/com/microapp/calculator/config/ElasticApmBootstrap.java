@@ -65,6 +65,12 @@ public final class ElasticApmBootstrap {
         config.put("breakdown_metrics", "true");
         config.put("metrics_interval", "30s");
         config.put("span_min_duration", "0ms");
+        config.put("span_stack_trace_min_duration", "50ms");
+        config.put("enable_log_correlation", "true");
+        config.put("use_elastic_traceparent_header", "true");
+        config.put("enable_experimental_instrumentations", "true");
+        config.put("profiling_inferred_spans_enabled", "true");
+        config.put("trace_methods", "com.microapp.calculator.*");
         config.put("log_level", "ERROR");
         config.put("global_labels", "tenant=" + safeLabel(tenant) + ",service=" + safeLabel(serviceName));
         config.put("sanitize_field_names", "password,passwd,pwd,*secret*,*token*,*key*,authorization,cookie,set-cookie,jwt,session,credit,card");

@@ -1,172 +1,52 @@
-package com.microapp.calculator.config;
+package com.microapp.calculator.persistence;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.microapp.calculator.persistence.CalculatorSchemaInitializer;
-import com.fasterxml.jackson.databind.PropertyNamingStrategies;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.databind.json.JsonMapper;
-import com.mongodb.ConnectionString;
-import com.mongodb.MongoClientSettings;
-import com.mongodb.client.MongoClient;
-import com.mongodb.client.MongoClients;
-import org.apache.kafka.clients.admin.NewTopic;
-import org.apache.kafka.clients.producer.ProducerConfig;
-import org.apache.kafka.common.serialization.StringSerializer;
-import org.springframework.boot.ApplicationRunner;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
-import org.springframework.core.annotation.Order;
+import com.microapp.calculator.config.AppProperties;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.kafka.config.TopicBuilder;
-import org.springframework.kafka.core.DefaultKafkaProducerFactory;
-import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.kafka.core.ProducerFactory;
-import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.support.TransactionTemplate;
-import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
-import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
-import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.S3Configuration;
+import org.springframework.stereotype.Component;
 
-import java.net.URI;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 
-@Configuration
-public class InfrastructureConfig {
+/**
+ * Idempotent schema repair for deployments where Flyway was baselined before
+ * all calculator tables existed, or where an older image did not create the
+ * canonical outbox/inbox tables. This is intentionally conservative: it only
+ * creates missing schema objects and never drops or rewrites user data.
+ */
+@Component
+public class CalculatorSchemaInitializer {
+    private static final Logger log = LoggerFactory.getLogger(CalculatorSchemaInitializer.class);
 
-    @Bean("calculatorObjectMapper")
-    @Primary
-    public ObjectMapper objectMapper() {
-        return JsonMapper.builder()
-                .findAndAddModules()
-                .propertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE)
-                .enable(SerializationFeature.INDENT_OUTPUT)
-                .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
-                .build();
+    private final JdbcTemplate jdbc;
+    private final AppProperties props;
+    private final AtomicBoolean initialized = new AtomicBoolean(false);
+
+    public CalculatorSchemaInitializer(JdbcTemplate jdbc, AppProperties props) {
+        this.jdbc = jdbc;
+        this.props = props;
     }
 
-    /**
-     * Runtime schema guard for local/dev rebuilds where Flyway V1 was previously baselined
-     * or applied before the calculator tables existed. Flyway remains the canonical migration
-     * mechanism; this guard is intentionally idempotent and only creates missing objects.
-     */
-    @Bean
-    @Order(0)
-    public ApplicationRunner calculatorSchemaGuard(CalculatorSchemaInitializer schemaInitializer) {
-        return args -> schemaInitializer.ensure();
+    public void ensure() {
+        if (initialized.get()) {
+            return;
+        }
+        synchronized (initialized) {
+            if (initialized.get()) {
+                return;
+            }
+            forceEnsure();
+            initialized.set(true);
+        }
     }
 
-    @Bean
-    public S3Client s3Client(AppProperties props) {
-        AppProperties.S3 s3 = props.getS3();
-        return S3Client.builder()
-                .endpointOverride(URI.create(s3.getEndpoint()))
-                .region(Region.of(s3.getRegion()))
-                .credentialsProvider(
-                        StaticCredentialsProvider.create(
-                                AwsBasicCredentials.create(s3.getAccessKey(), s3.getSecretKey())
-                        )
-                )
-                .serviceConfiguration(
-                        S3Configuration.builder()
-                                .pathStyleAccessEnabled(s3.isForcePathStyle())
-                                .build()
-                )
-                .build();
-    }
-
-    @Bean
-    public MongoClient mongoClient(AppProperties props) {
-        AppProperties.Mongo mongo = props.getMongo();
-
-        String username = encode(mongo.getUsername());
-        String password = encode(mongo.getPassword());
-        String authSource = encode(mongo.getAuthSource());
-
-        String uri = "mongodb://"
-                + username
-                + ":"
-                + password
-                + "@"
-                + mongo.getHost()
-                + ":"
-                + mongo.getPort()
-                + "/?authSource="
-                + authSource;
-
-        return MongoClients.create(
-                MongoClientSettings.builder()
-                        .applyConnectionString(new ConnectionString(uri))
-                        .build()
-        );
-    }
-
-    @Bean
-    public ProducerFactory<String, String> producerFactory(AppProperties props) {
-        Map<String, Object> config = new HashMap<>();
-
-        config.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, props.getKafka().getBootstrapServers());
-        config.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
-        config.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
-        config.put(ProducerConfig.ACKS_CONFIG, "all");
-        config.put(ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG, true);
-        config.put(ProducerConfig.RETRIES_CONFIG, 5);
-        config.put(ProducerConfig.LINGER_MS_CONFIG, 10);
-        config.put(ProducerConfig.DELIVERY_TIMEOUT_MS_CONFIG, 30000);
-        config.put(ProducerConfig.REQUEST_TIMEOUT_MS_CONFIG, 10000);
-        config.put(ProducerConfig.MAX_BLOCK_MS_CONFIG, 5000);
-
-        return new DefaultKafkaProducerFactory<>(config);
-    }
-
-    @Bean
-    public KafkaTemplate<String, String> kafkaTemplate(ProducerFactory<String, String> producerFactory) {
-        return new KafkaTemplate<>(producerFactory);
-    }
-
-    @Bean
-    public NewTopic calculatorEventsTopic(AppProperties props) {
-        return TopicBuilder.name(props.getKafka().getEventsTopic())
-                .partitions(3)
-                .replicas(1)
-                .build();
-    }
-
-    @Bean
-    public NewTopic calculatorDeadLetterTopic(AppProperties props) {
-        return TopicBuilder.name(props.getKafka().getDeadLetterTopic())
-                .partitions(3)
-                .replicas(1)
-                .build();
-    }
-
-    @Bean
-    public String[] kafkaConsumeTopics(AppProperties props) {
-        return props.getKafka().consumeTopicList().toArray(String[]::new);
-    }
-
-    @Bean
-    public TransactionTemplate transactionTemplate(PlatformTransactionManager transactionManager) {
-        return new TransactionTemplate(transactionManager);
-    }
-
-    @Bean
-    public ApplicationRunner elasticApmAttacher(AppProperties props) {
-        return args -> {
-            ElasticApmBootstrap.attach(props);
-        };
-    }
-
-    private static void ensureCalculatorSchema(JdbcTemplate jdbc, AppProperties props) {
-        String schema = schemaName(props);
+    public void forceEnsure() {
+        String schema = schemaName();
         String prefix = schema + ".";
 
         jdbc.execute("CREATE SCHEMA IF NOT EXISTS " + schema);
+        jdbc.execute("SET search_path TO " + schema + ", public");
+
         jdbc.execute("""
                 CREATE TABLE IF NOT EXISTS %scalculations (
                     id text PRIMARY KEY,
@@ -276,19 +156,15 @@ public class InfrastructureConfig {
         jdbc.execute("CREATE INDEX IF NOT EXISTS idx_access_grants_lookup ON %saccess_grant_projections(tenant, target_user_id, grantee_user_id, scope, status, expires_at)".formatted(prefix));
         jdbc.execute("CREATE INDEX IF NOT EXISTS idx_access_grants_source_event ON %saccess_grant_projections(source_event_id)".formatted(prefix));
         jdbc.execute("CREATE INDEX IF NOT EXISTS idx_access_grants_grantee ON %saccess_grant_projections(tenant, grantee_user_id, status, expires_at)".formatted(prefix));
+
+        log.info("event=calculator.schema.ready schema={}", schema);
     }
 
-    private static String schemaName(AppProperties props) {
+    private String schemaName() {
         String schema = props.getPostgres().getSchema();
-
         if (schema == null || !schema.matches("[A-Za-z_][A-Za-z0-9_]*")) {
             throw new IllegalStateException("Invalid PostgreSQL schema name for calculator service");
         }
-
         return schema;
-    }
-
-    private static String encode(String value) {
-        return URLEncoder.encode(value == null ? "" : value, StandardCharsets.UTF_8);
     }
 }
