@@ -1,7 +1,7 @@
 ###############################################################################################################################################
 # ADMIN SERVICE
 ###############################################################################################################################################
-cd ./admin_service
+cd admin_service
 docker rm -f admin_service_dev 2>/dev/null || true
 docker rm -f admin_service_stage 2>/dev/null || true
 docker rm -f admin_service_prod 2>/dev/null || true
@@ -31,10 +31,13 @@ docker build -t admin_service:prod .
 docker run -d --name admin_service_prod --env-file .env.prod -p 1012:8080  --restart=always admin_service:prod
 docker ps -a
 
+cd ..
+
+
 ##############################################################################################################################################
 # CALCULATOR SERVICE
 ###############################################################################################################################################
-cd ../calculator_service
+cd calculator_service
 docker rm -f calculator_service_dev 2>/dev/null || true
 docker rm -f calculator_service_stage 2>/dev/null || true
 docker rm -f calculator_service_prod 2>/dev/null || true
@@ -60,11 +63,13 @@ docker ps -a
 docker build -t calculator_service:prod .
 docker run -d --name calculator_service_prod --env-file .env.prod -p 2022:8080  --restart=always calculator_service:prod
 docker ps -a
+cd ..
+
 
 ###############################################################################################################################################
 # TODO LIST SERVICE
 ###############################################################################################################################################
-cd ../todo_list_service
+cd todo_list_service
 docker rm -f todo_list_service_dev 2>/dev/null || true
 docker rm -f todo_list_service_stage 2>/dev/null || true
 docker rm -f todo_list_service_prod 2>/dev/null || true
@@ -93,11 +98,13 @@ docker ps -a
 docker build -t todo_list_service:prod .
 docker run -d --name todo_list_service_prod --env-file .env.prod -p 3032:8080  --restart=always todo_list_service:prod
 docker ps -a
+cd ..
+
 
 ###############################################################################################################################################
 # USER SERVICE
 ###############################################################################################################################################
-cd ../user_service
+cd user_service
 docker rm -f user_service_dev 2>/dev/null || true
 docker rm -f user_service_stage 2>/dev/null || true
 docker rm -f user_service_prod 2>/dev/null || true
@@ -123,11 +130,12 @@ docker ps -a
 docker build -t user_service:prod .
 docker run -d --name user_service_prod --env-file .env.prod -p 4042:8080  --restart=always user_service:prod
 docker ps -a
+cd ..
 
 ###############################################################################################################################################
 # REPORT SERVICE
 ###############################################################################################################################################
-cd ../report_service
+cd report_service
 # Idempotent cleanup. Missing containers/images must not fail the whole script.
 docker rm -f report_service_dev 2>/dev/null || true
 docker rm -f report_service_stage 2>/dev/null || true
@@ -154,11 +162,13 @@ docker ps -a
 docker build -t report_service:prod .
 docker run -d --name report_service_prod --env-file .env.prod -p 5052:8080  --restart=always report_service:prod
 docker ps -a
+cd ..
+
 
 #############################################################################################################################################
 #  AUTH SERVICE 
 #############################################################################################################################################
-cd ../auth_service
+cd auth_service
 docker rm -f auth_service_dev
 docker rm -f auth_service_stage
 docker rm -f auth_service_prod  
@@ -186,5 +196,8 @@ docker ps -a
 # PRODUCTION
 docker build -t auth_service:prod .
 docker run -d --name auth_service_prod --env-file .env.prod -p 6062:8080  --restart=always auth_service:prod
-watch docker ps -a
+docker ps -a
+cd ..
 
+
+watch docker ps -a
