@@ -183,3 +183,24 @@ COUNT=30 \
 ```
 
 Kibana views such as Overview, Transactions, Dependencies, Errors, Metrics, Logs, and Service map are populated from APM/log data. Infrastructure inventory, hosts, synthetics, TLS certificates, alerts, SLOs, cases, anomaly detection, streams, and custom dashboards require Kibana plus Elastic Agent/Metricbeat/Filebeat/Synthetics or saved-object setup outside this service container.
+
+## Latest runtime/APM fixes
+
+This build includes these runtime hardening changes:
+
+- Explicit MongoDB Java driver runtime modules in `pom.xml` so Spring Boot's executable JAR contains matching `mongodb-driver-sync`, `mongodb-driver-core`, and `bson` classes.
+- Early MongoDB driver class preloading to prevent background Mongo monitor threads from surfacing `NoClassDefFoundError: com/mongodb/internal/connection/InternalStreamConnection` with `ZipFile closed` / `Stream closed` in APM.
+- MongoDB log writes catch `Throwable`, not only `Exception`, so log transport failures never crash request or scheduler code.
+- Health checks catch `Throwable` and return dependency `down` instead of creating unhandled APM error groups.
+- Elastic APM ignores expected business/client exceptions such as `ApiException` so `400`, `401`, `403`, and `404` test cases do not pollute the APM Errors page.
+- Real unexpected failures are still captured by `GlobalExceptionHandler` and the Elastic Java agent.
+- Manual dependency spans are emitted for PostgreSQL, Redis, Kafka, S3, MongoDB, APM Server, and Elasticsearch from `/health` and dependency traffic scripts.
+
+Run dependency traffic after deployment:
+
+```bash
+CALCULATOR_BASE_URL=http://192.168.56.50:2020 \
+CALCULATOR_TOKEN='<valid-user-jwt>' \
+COUNT=30 \
+./observability/apm/generate_calculator_dependency_traffic.sh
+```

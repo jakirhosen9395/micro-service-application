@@ -1,6 +1,7 @@
 package com.microapp.calculator.exception;
 
 import com.microapp.calculator.http.ErrorEnvelope;
+import co.elastic.apm.api.ElasticApm;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -148,6 +149,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorEnvelope> unhandled(Exception ex, HttpServletRequest request) {
+        ElasticApm.currentTransaction().captureException(ex);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(ErrorEnvelope.of("Internal server error", "INTERNAL_ERROR", Map.of(), request.getRequestURI()));
     }

@@ -23,11 +23,14 @@ public class DependencyTelemetry {
             span.setLabel("dependency.subtype", subtype);
             span.setLabel("dependency.action", action);
             return supplier.get();
-        } catch (Exception ex) {
+        } catch (Throwable ex) {
             if (span != null) {
                 span.captureException(ex);
             }
-            throw ex;
+            if (ex instanceof Exception exception) {
+                throw exception;
+            }
+            throw new IllegalStateException(ex);
         } finally {
             if (span != null) {
                 span.end();

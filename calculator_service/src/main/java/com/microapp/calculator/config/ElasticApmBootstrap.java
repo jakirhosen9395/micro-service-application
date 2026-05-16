@@ -71,6 +71,11 @@ public final class ElasticApmBootstrap {
         config.put("enable_experimental_instrumentations", "true");
         config.put("profiling_inferred_spans_enabled", "true");
         config.put("trace_methods", "com.microapp.calculator.*");
+        config.put("ignore_exceptions", "com.microapp.calculator.exception.ApiException,org.springframework.web.HttpRequestMethodNotSupportedException,org.springframework.web.servlet.NoHandlerFoundException,org.springframework.web.method.annotation.MethodArgumentTypeMismatchException,org.springframework.http.converter.HttpMessageNotReadableException,jakarta.validation.ValidationException");
+        String disabledInstrumentations = env("CALC_APM_DISABLE_INSTRUMENTATIONS", "ELASTIC_APM_DISABLE_INSTRUMENTATIONS", "");
+        if (disabledInstrumentations != null && !disabledInstrumentations.isBlank()) {
+            config.put("disable_instrumentations", disabledInstrumentations);
+        }
         config.put("log_level", "ERROR");
         config.put("global_labels", "tenant=" + safeLabel(tenant) + ",service=" + safeLabel(serviceName));
         config.put("sanitize_field_names", "password,passwd,pwd,*secret*,*token*,*key*,authorization,cookie,set-cookie,jwt,session,credit,card");

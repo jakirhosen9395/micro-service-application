@@ -81,7 +81,7 @@ public class HealthService {
         try {
             action.get();
             return DependencyResult.ok(elapsed(start));
-        } catch (Exception ex) {
+        } catch (Throwable ex) {
             return DependencyResult.down(elapsed(start), errorCode);
         }
     }
@@ -93,7 +93,7 @@ public class HealthService {
             builder.header("Authorization", "Basic " + token);
         }
         HttpResponse<Void> response = httpClient.send(builder.build(), HttpResponse.BodyHandlers.discarding());
-        if (response.statusCode() >= 500) {
+        if (response.statusCode() < 200 || response.statusCode() >= 400) {
             throw new IllegalStateException("HTTP " + response.statusCode());
         }
         return response;

@@ -43,6 +43,11 @@ public class KafkaInboxConsumer {
                 ack.acknowledge();
                 return;
             }
+            if (tenant != null && !tenant.isBlank() && !props.getTenant().equals(tenant)) {
+                log.debug("event=kafka.inbox.ignored_tenant topic={} event_id={} event_tenant={} service_tenant={}", record.topic(), eventId, tenant, props.getTenant());
+                ack.acknowledge();
+                return;
+            }
             boolean inserted = inboxRepository.insertReceived(eventId, tenant, record.topic(), record.partition(), record.offset(), eventType, sourceService, record.value());
             if (!inserted) {
                 ack.acknowledge();
@@ -56,11 +61,15 @@ public class KafkaInboxConsumer {
             handleEvent(eventId, eventType, tenant, root.path("payload"));
             inboxRepository.markProcessed(eventId);
             ack.acknowledge();
-        } catch (Exception ex) {
+        } catch (Throwable ex) {
             if (eventId != null) {
-                inboxRepository.markFailed(eventId, SecretRedactor.redact(ex.getMessage()));
+                try {
+                    inboxRepository.markFailed(eventId, SecretRedactor.redact(ex.getMessage()));
+                } catch (Throwable markFailure) {
+                    log.debug("event=kafka.inbox.mark_failed.failed event_id={} exception={} message={}", eventId, markFailure.getClass().getName(), SecretRedactor.redact(markFailure.getMessage()));
+                }
             }
-            log.warn("event=kafka.inbox.consume.failed topic={} partition={} offset={} message={}", record.topic(), record.partition(), record.offset(), SecretRedactor.redact(ex.getMessage()));
+            log.warn("event=kafka.inbox.consume.failed topic={} partition={} offset={} exception={} message={}", record.topic(), record.partition(), record.offset(), ex.getClass().getName(), SecretRedactor.redact(ex.getMessage()));
             ack.acknowledge();
         }
     }

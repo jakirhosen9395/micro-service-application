@@ -42,8 +42,8 @@ public class MongoStructuredLogger {
             collection.createIndex(Indexes.compoundIndex(Indexes.ascending("path"), Indexes.ascending("status_code"), Indexes.descending("timestamp")));
             collection.createIndex(Indexes.compoundIndex(Indexes.ascending("error_code"), Indexes.descending("timestamp")));
             info("mongodb.indexes.ready", "MongoDB log indexes ready", Map.of("collection", props.getMongo().getLogCollection()));
-        } catch (Exception ex) {
-            log.warn("event=mongodb.indexes.failed message={}", SecretRedactor.redact(ex.getMessage()));
+        } catch (Throwable ex) {
+            log.warn("event=mongodb.indexes.failed exception={} message={}", ex.getClass().getName(), SecretRedactor.redact(ex.getMessage()));
         }
     }
 
@@ -114,8 +114,8 @@ public class MongoStructuredLogger {
     private void insert(Document doc) {
         try {
             collection().insertOne(doc);
-        } catch (Exception ex) {
-            log.warn("event=mongodb.log.write.failed message={}", SecretRedactor.redact(ex.getMessage()));
+        } catch (Throwable ex) {
+            log.warn("event=mongodb.log.write.failed exception={} message={}", ex.getClass().getName(), SecretRedactor.redact(ex.getMessage()));
         }
     }
 

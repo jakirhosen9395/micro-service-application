@@ -2,6 +2,7 @@ package com.microapp.calculator.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microapp.calculator.persistence.CalculatorSchemaInitializer;
+import com.microapp.calculator.observability.MongoDriverClassPreloader;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.json.JsonMapper;
@@ -82,6 +83,7 @@ public class InfrastructureConfig {
 
     @Bean
     public MongoClient mongoClient(AppProperties props) {
+        MongoDriverClassPreloader.preload();
         AppProperties.Mongo mongo = props.getMongo();
 
         String username = encode(mongo.getUsername());
@@ -102,6 +104,10 @@ public class InfrastructureConfig {
         return MongoClients.create(
                 MongoClientSettings.builder()
                         .applyConnectionString(new ConnectionString(uri))
+                        .applyToSocketSettings(builder -> builder
+                                .connectTimeout(3, java.util.concurrent.TimeUnit.SECONDS)
+                                .readTimeout(5, java.util.concurrent.TimeUnit.SECONDS))
+                        .applyToClusterSettings(builder -> builder.serverSelectionTimeout(3, java.util.concurrent.TimeUnit.SECONDS))
                         .build()
         );
     }

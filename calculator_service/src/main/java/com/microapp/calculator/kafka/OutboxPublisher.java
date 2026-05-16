@@ -228,10 +228,11 @@ public class OutboxPublisher {
     ) {
         try {
             mongoLogger.error(eventName, message, errorCode, ex, metadata);
-        } catch (Exception mongoFailure) {
+        } catch (Throwable mongoFailure) {
             log.warn(
-                    "event=mongodb.structured_log.failed source_event={} message={}",
+                    "event=mongodb.structured_log.failed source_event={} exception={} message={}",
                     eventName,
+                    mongoFailure.getClass().getName(),
                     safeMessage(mongoFailure)
             );
         }
@@ -245,10 +246,11 @@ public class OutboxPublisher {
     ) {
         try {
             mongoLogger.warn(eventName, message, errorCode, metadata);
-        } catch (Exception mongoFailure) {
+        } catch (Throwable mongoFailure) {
             log.warn(
-                    "event=mongodb.structured_log.failed source_event={} message={}",
+                    "event=mongodb.structured_log.failed source_event={} exception={} message={}",
                     eventName,
+                    mongoFailure.getClass().getName(),
                     safeMessage(mongoFailure)
             );
         }

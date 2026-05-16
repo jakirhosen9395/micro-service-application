@@ -77,9 +77,20 @@
             <artifactId>postgresql</artifactId>
             <scope>runtime</scope>
         </dependency>
+        <!-- Keep all MongoDB Java driver runtime modules explicit so the Spring Boot
+             executable JAR always contains the matching driver classes used by
+             MongoClient background monitor threads. -->
         <dependency>
             <groupId>org.mongodb</groupId>
             <artifactId>mongodb-driver-sync</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.mongodb</groupId>
+            <artifactId>mongodb-driver-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.mongodb</groupId>
+            <artifactId>bson</artifactId>
         </dependency>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
