@@ -231,7 +231,7 @@ public static class ApmTelemetry
         if (span is null || string.IsNullOrWhiteSpace(key) || value is null) return;
         switch (value)
         {
-            case string text when !string.IsNullOrWhiteSpace(text): span.SetLabel(key, text); break;
+            case string labelString when !string.IsNullOrWhiteSpace(labelString): span.SetLabel(key, labelString); break;
             case bool boolean: span.SetLabel(key, boolean); break;
             case int integer: span.SetLabel(key, integer); break;
             case long integer: span.SetLabel(key, integer); break;
@@ -250,7 +250,7 @@ public static class ApmTelemetry
         if (transaction is null || string.IsNullOrWhiteSpace(key) || value is null) return;
         switch (value)
         {
-            case string text when !string.IsNullOrWhiteSpace(text): transaction.SetLabel(key, text); break;
+            case string labelString when !string.IsNullOrWhiteSpace(labelString): transaction.SetLabel(key, labelString); break;
             case bool boolean: transaction.SetLabel(key, boolean); break;
             case int integer: transaction.SetLabel(key, integer); break;
             case long integer: transaction.SetLabel(key, integer); break;
@@ -450,7 +450,7 @@ public static class ApmTelemetry
         if (value is null || string.IsNullOrWhiteSpace(key)) return;
         switch (value)
         {
-            case string text when !string.IsNullOrWhiteSpace(text): activity.SetTag(key, text); break;
+            case string tagString when !string.IsNullOrWhiteSpace(tagString): activity.SetTag(key, tagString); break;
             case bool boolean: activity.SetTag(key, boolean); break;
             case int integer: activity.SetTag(key, integer); break;
             case long integer: activity.SetTag(key, integer); break;
@@ -458,8 +458,8 @@ public static class ApmTelemetry
             case double number: activity.SetTag(key, number); break;
             case decimal number: activity.SetTag(key, decimal.ToDouble(number)); break;
             default:
-                var text = value.ToString();
-                if (!string.IsNullOrWhiteSpace(text)) activity.SetTag(key, text);
+                var tagText = value.ToString();
+                if (!string.IsNullOrWhiteSpace(tagText)) activity.SetTag(key, tagText);
                 break;
         }
     }
