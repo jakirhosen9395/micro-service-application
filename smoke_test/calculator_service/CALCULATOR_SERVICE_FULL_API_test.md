@@ -117,11 +117,11 @@ chmod +x calculator_service_full_api_test.sh
 Edit the env file like this for your usual local VM dev ports:
 
 ```dotenv
-CALCULATOR_BASE_URL=http://3.108.225.164:2020
-AUTH_BASE_URL=http://3.108.225.164:6060
-ADMIN_BASE_URL=http://3.108.225.164:1010
-USER_BASE_URL=http://3.108.225.164:4040
-REPORT_BASE_URL=http://3.108.225.164:5050
+CALCULATOR_BASE_URL=http://52.66.197.225:2020
+AUTH_BASE_URL=http://52.66.197.225:6060
+ADMIN_BASE_URL=http://52.66.197.225:1010
+USER_BASE_URL=http://52.66.197.225:4040
+REPORT_BASE_URL=http://52.66.197.225:5050
 CALCULATOR_TEST_TENANT=dev
 ```
 

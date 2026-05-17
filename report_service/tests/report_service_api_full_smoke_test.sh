@@ -17,11 +17,11 @@
 #
 # URL usage:
 #   ./report_service_api_full_smoke_test.sh \
-#     --report-url http://3.108.225.164:5050 \
-#     --auth-url http://3.108.225.164:6060 \
-#     --calculator-url http://3.108.225.164:2020 \
-#     --todo-url http://3.108.225.164:3030 \
-#     --admin-url http://3.108.225.164:1010
+#     --report-url http://52.66.197.225:5050 \
+#     --auth-url http://52.66.197.225:6060 \
+#     --calculator-url http://52.66.197.225:2020 \
+#     --todo-url http://52.66.197.225:3030 \
+#     --admin-url http://52.66.197.225:1010
 #
 # Environment variables:
 #   REPORT_TEST_ACCESS_TOKEN=<preissued-normal-user-jwt>
@@ -998,10 +998,10 @@ exit 0
 
 
 
-# ./report_service_api_full_smoke_test.sh --report-url http://3.108.225.164:5052 --auth-url http://3.108.225.164:6062 --calculator-url http://3.108.225.164:2022 --todo-url http://3.108.225.164:3032 --admin-url http://3.108.225.164:1012
+# ./report_service_api_full_smoke_test.sh --report-url http://52.66.197.225:5052 --auth-url http://52.66.197.225:6062 --calculator-url http://52.66.197.225:2022 --todo-url http://52.66.197.225:3032 --admin-url http://52.66.197.225:1012
 
 
-# ./report_service_api_full_smoke_test.sh --report-url http://3.108.225.164:5051 --auth-url http://3.108.225.164:6061 --calculator-url http://3.108.225.164:2021 --todo-url http://3.108.225.164:3031 --admin-url http://3.108.225.164:1011
+# ./report_service_api_full_smoke_test.sh --report-url http://52.66.197.225:5051 --auth-url http://52.66.197.225:6061 --calculator-url http://52.66.197.225:2021 --todo-url http://52.66.197.225:3031 --admin-url http://52.66.197.225:1011
 
 
-# ./report_service_api_full_smoke_test.sh --report-url http://3.108.225.164:5050 --auth-url http://3.108.225.164:6060 --calculator-url http://3.108.225.164:2020 --todo-url http://3.108.225.164:3030 --admin-url http://3.108.225.164:1010
+# ./report_service_api_full_smoke_test.sh --report-url http://52.66.197.225:5050 --auth-url http://52.66.197.225:6060 --calculator-url http://52.66.197.225:2020 --todo-url http://52.66.197.225:3030 --admin-url http://52.66.197.225:1010

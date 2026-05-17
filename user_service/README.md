@@ -68,18 +68,18 @@ user_service/
 
 ## Runtime dependencies
 
-The service expects these infrastructure components at `172.31.24.45` by default:
+The service expects these infrastructure components at `172.31.40.64` by default:
 
 | Dependency    | Default endpoint           |
 | ------------- | -------------------------- |
-| PostgreSQL    | `172.31.24.45:5432`        |
-| Redis         | `172.31.24.45:6379`        |
-| Kafka         | `172.31.24.45:9092`        |
-| MinIO/S3      | `http://172.31.24.45:9000` |
-| MongoDB       | `172.31.24.45:27017`       |
-| Elastic APM   | `http://172.31.24.45:8200` |
-| Elasticsearch | `http://172.31.24.45:9200` |
-| Kibana        | `http://172.31.24.45:5601` |
+| PostgreSQL    | `172.31.40.64:5432`        |
+| Redis         | `172.31.40.64:6379`        |
+| Kafka         | `172.31.40.64:9092`        |
+| MinIO/S3      | `http://172.31.40.64:9000` |
+| MongoDB       | `172.31.40.64:27017`       |
+| Elastic APM   | `http://172.31.40.64:8200` |
+| Elasticsearch | `http://172.31.40.64:9200` |
+| Kibana        | `http://172.31.40.64:5601` |
 
 The generated `.env.dev`, `.env.stage`, and `.env.prod` files use the values supplied for that host. The README does not repeat secrets; inspect or rotate the env files directly in your private environment.
 
@@ -572,8 +572,8 @@ URL form:
 
 ```bash
 ./user_service_api_full_smoke_test.sh \
-  --user-url http://3.108.225.164:4040 \
-  --auth-url http://3.108.225.164:6060
+  --user-url http://52.66.197.225:4040 \
+  --auth-url http://52.66.197.225:6060
 ```
 
 The script intentionally tests both valid and invalid requests:
