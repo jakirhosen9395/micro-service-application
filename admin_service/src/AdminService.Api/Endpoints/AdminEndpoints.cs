@@ -1,4 +1,3 @@
-src/AdminService.Api/Endpoints/AdminEndpoints.cs
 using AdminService.Api.Configuration;
 using AdminService.Api.Contracts;
 using AdminService.Api.Domain;
