@@ -68,11 +68,23 @@ public class CalculatorEngine {
         if (operationName == null || operationName.isBlank()) {
             throw bad("CALC_OPERATION_REQUIRED", "operation is required for operation mode");
         }
-        try {
-            return Operation.valueOf(operationName.trim().toUpperCase(Locale.ROOT));
-        } catch (IllegalArgumentException ex) {
-            throw bad("CALC_INVALID_OPERATION", "Unsupported operation: " + operationName);
+
+        String normalizedOperation = operationName.trim().toUpperCase(Locale.ROOT);
+        for (Operation operation : Operation.values()) {
+            if (operation.name().equals(normalizedOperation)) {
+                return operation;
+            }
         }
+
+        throw new ApiException(
+                HttpStatus.BAD_REQUEST,
+                "CALC_INVALID_OPERATION",
+                "Unsupported operation: " + operationName,
+                java.util.Map.of(
+                        "operation", operationName,
+                        "supported_operations", Operation.names()
+                )
+        );
     }
 
     private BigDecimal subtract(List<BigDecimal> operands) {

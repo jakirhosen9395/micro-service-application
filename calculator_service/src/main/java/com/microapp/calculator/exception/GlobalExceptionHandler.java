@@ -147,6 +147,17 @@ public class GlobalExceptionHandler {
                 .body(ErrorEnvelope.of("Method not allowed", "METHOD_NOT_ALLOWED", Map.of(), request.getRequestURI()));
     }
 
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ErrorEnvelope> illegalArgument(IllegalArgumentException ex, HttpServletRequest request) {
+        return ResponseEntity.badRequest()
+                .body(ErrorEnvelope.of(
+                        "Invalid request value",
+                        "VALIDATION_ERROR",
+                        Map.of("reason", sanitize(ex.getMessage() == null ? "Invalid value" : ex.getMessage())),
+                        request.getRequestURI()
+                ));
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorEnvelope> unhandled(Exception ex, HttpServletRequest request) {
         ElasticApm.currentTransaction().captureException(ex);

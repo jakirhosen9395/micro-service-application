@@ -48,7 +48,7 @@ func (c *Client) GetJSON(ctx context.Context, key string, dest any) (bool, error
 		return false, redis.Nil
 	}
 	var b []byte
-	err := observability.CaptureDependency(ctx, "Redis GET", observability.SpanTypeRedis, func(spanCtx context.Context) error {
+	err := observability.CaptureDependencyNoError(ctx, "Redis GET", observability.SpanTypeRedis, func(spanCtx context.Context) error {
 		var getErr error
 		b, getErr = c.rdb.Get(spanCtx, key).Bytes()
 		return getErr
@@ -60,7 +60,10 @@ func (c *Client) GetJSON(ctx context.Context, key string, dest any) (bool, error
 		return false, err
 	}
 	if err := json.Unmarshal(b, dest); err != nil {
-		return false, err
+		_ = observability.CaptureDependencyNoError(ctx, "Redis DEL stale JSON", observability.SpanTypeRedis, func(spanCtx context.Context) error {
+			return c.rdb.Del(spanCtx, key).Err()
+		})
+		return false, nil
 	}
 	return true, nil
 }

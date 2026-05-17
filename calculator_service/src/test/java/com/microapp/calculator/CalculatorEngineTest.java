@@ -54,6 +54,7 @@ class CalculatorEngineTest {
         assertError("CALC_INVALID_LOGARITHM", () -> engine.evaluateOperation("LOG", List.of(BigDecimal.ZERO)));
         assertError("CALC_INVALID_FACTORIAL", () -> engine.evaluateOperation("FACTORIAL", List.of(new BigDecimal("2.5"))));
         assertError("CALC_INVALID_OPERATION", () -> engine.evaluateOperation("NOPE", List.of(BigDecimal.ONE)));
+        assertError("CALC_INVALID_OPERATION", () -> engine.evaluateExpression("unknown(1)"));
         assertError("CALC_INVALID_OPERAND_COUNT", () -> engine.evaluateOperation("ADD", List.of(BigDecimal.ONE)));
         assertError("CALC_INVALID_EXPRESSION", () -> engine.evaluateExpression("sqrt(16)+"));
     }

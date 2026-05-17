@@ -2,6 +2,9 @@ package domain
 
 import (
 	"encoding/json"
+	"math"
+	"strconv"
+	"strings"
 	"time"
 )
 
@@ -261,6 +264,54 @@ type EventEnvelope struct {
 	AggregateType string          `json:"aggregate_type"`
 	AggregateID   string          `json:"aggregate_id"`
 	Payload       json.RawMessage `json:"payload"`
+}
+
+func (e *EventEnvelope) UnmarshalJSON(data []byte) error {
+	type Alias EventEnvelope
+	aux := &struct {
+		Timestamp json.RawMessage `json:"timestamp"`
+		*Alias
+	}{
+		Alias: (*Alias)(e),
+	}
+	if err := json.Unmarshal(data, aux); err != nil {
+		return err
+	}
+	if len(aux.Timestamp) == 0 || string(aux.Timestamp) == "null" {
+		e.Timestamp = ""
+		return nil
+	}
+	normalized, err := normalizeEnvelopeTimestamp(aux.Timestamp)
+	if err != nil {
+		return err
+	}
+	e.Timestamp = normalized
+	return nil
+}
+
+func normalizeEnvelopeTimestamp(raw json.RawMessage) (string, error) {
+	value := strings.TrimSpace(string(raw))
+	if value == "" || value == "null" {
+		return "", nil
+	}
+	if strings.HasPrefix(value, "\"") {
+		var ts string
+		if err := json.Unmarshal(raw, &ts); err != nil {
+			return "", err
+		}
+		return ts, nil
+	}
+
+	f, err := strconv.ParseFloat(value, 64)
+	if err != nil {
+		return "", err
+	}
+	if f > 1_000_000_000_000 {
+		return time.UnixMilli(int64(f)).UTC().Format(time.RFC3339Nano), nil
+	}
+	seconds, fraction := math.Modf(f)
+	nanos := int64(fraction * 1_000_000_000)
+	return time.Unix(int64(seconds), nanos).UTC().Format(time.RFC3339Nano), nil
 }
 
 type OutboxEvent struct {

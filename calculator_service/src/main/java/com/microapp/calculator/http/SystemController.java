@@ -40,8 +40,10 @@ public class SystemController {
         return ResponseEntity.status("ok".equals(response.status()) ? HttpStatus.OK : HttpStatus.SERVICE_UNAVAILABLE).body(response);
     }
 
-    @GetMapping(value = "/docs", produces = MediaType.TEXT_HTML_VALUE)
-    public String docs() {
-        return DocsHtml.html(props);
+    @GetMapping(value = "/docs")
+    public ResponseEntity<String> docs() {
+        return ResponseEntity.ok()
+                .contentType(MediaType.TEXT_HTML)
+                .body(DocsHtml.html(props));
     }
 }

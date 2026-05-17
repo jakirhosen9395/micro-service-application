@@ -48,6 +48,25 @@ func CaptureDependency(ctx context.Context, name, spanType string, fn func(conte
 	return err
 }
 
+// CaptureDependencyNoError wraps a non-critical dependency call in an APM span
+// without sending the returned error as an exception. Use this for optional
+// cache paths where the caller can safely degrade to the source of truth.
+func CaptureDependencyNoError(ctx context.Context, name, spanType string, fn func(context.Context) error) error {
+	span, spanCtx := StartDependencySpan(ctx, name, spanType)
+	if span != nil {
+		defer span.End()
+	}
+	err := fn(spanCtx)
+	if span != nil {
+		if err != nil {
+			span.Outcome = "failure"
+		} else {
+			span.Outcome = "success"
+		}
+	}
+	return err
+}
+
 func CaptureTransaction(ctx context.Context, name, transactionType string, fn func(context.Context) error) error {
 	tx := apm.DefaultTracer().StartTransaction(name, transactionType)
 	tx.Context.SetLabel("component", transactionType)

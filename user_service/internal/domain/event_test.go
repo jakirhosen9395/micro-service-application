@@ -21,3 +21,14 @@ func TestCanonicalEventEnvelopeCarriesAggregateFields(t *testing.T) {
 		}
 	}
 }
+
+func TestEventEnvelopeAcceptsNumericTimestamp(t *testing.T) {
+	payload := []byte(`{"event_id":"evt-1","event_type":"todo.created","event_version":"1.0","service":"todo_list_service","environment":"development","tenant":"dev","timestamp":1763212345.123,"payload":{}}`)
+	var event EventEnvelope
+	if err := json.Unmarshal(payload, &event); err != nil {
+		t.Fatalf("expected numeric timestamp to unmarshal, got %v", err)
+	}
+	if event.Timestamp == "" {
+		t.Fatal("expected timestamp to be normalized")
+	}
+}
