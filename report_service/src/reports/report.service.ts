@@ -227,11 +227,13 @@ export class ReportService {
   }
 
   public async metadata(user: AuthenticatedUser, reportId: string): Promise<Record<string, unknown>> {
+    const report = await this.getAuthorizedReport(user, reportId, ["report:read", "report:*", "*"]);
+    if (report.status !== "COMPLETED") throw Errors.conflict("Report is not completed", { report_id: reportId, status: report.status });
+
     const cacheKey = this.cache.key(["report", reportId, "metadata"]);
     const cached = await this.cache.getJson<Record<string, unknown>>(cacheKey);
     if (cached) return cached;
-    const report = await this.getAuthorizedReport(user, reportId, ["report:read", "report:*", "*"]);
-    if (report.status !== "COMPLETED") throw Errors.conflict("Report is not completed", { report_id: reportId, status: report.status });
+
     const file = await this.repository.getFile(reportId, user.tenant);
     if (!file) throw Errors.notFound("Report file not found", { report_id: reportId });
     const metadata = { report: publicReport(report), file };
@@ -253,10 +255,12 @@ export class ReportService {
   }
 
   public async preview(user: AuthenticatedUser, reportId: string, request?: FastifyRequest): Promise<Record<string, unknown>> {
+    const report = await this.getAuthorizedReport(user, reportId, ["report:preview", "report:*", "*"]);
+
     const cacheKey = this.cache.key(["report", reportId, "preview"]);
     const cached = await this.cache.getJson<Record<string, unknown>>(cacheKey);
     if (cached) return cached;
-    const report = await this.getAuthorizedReport(user, reportId, ["report:preview", "report:*", "*"]);
+
     const file = await this.repository.getFile(reportId, user.tenant);
     if (!file) throw Errors.notFound("Report file not found", { report_id: reportId });
     let preview: Record<string, unknown>;
