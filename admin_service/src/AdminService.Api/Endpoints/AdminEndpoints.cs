@@ -1,3 +1,4 @@
+src/AdminService.Api/Endpoints/AdminEndpoints.cs
 using AdminService.Api.Configuration;
 using AdminService.Api.Contracts;
 using AdminService.Api.Domain;
@@ -754,7 +755,21 @@ public static class AdminEndpoints
     {
         var tenant = Actor(http, settings).Tenant;
         await using var db = await dbFactory.CreateDbContextAsync(http.RequestAborted);
-        var query = db.AdminTodoProjections.AsNoTracking().Where(x => x.Tenant == tenant && x.TodoId == todoId).OrderByDescending(x => x.OccurredAt);
+
+        var exists = await db.AdminTodoProjections
+            .AsNoTracking()
+            .AnyAsync(x => x.Tenant == tenant && x.TodoId == todoId, http.RequestAborted);
+
+        if (!exists)
+        {
+            return ApiEnvelope.NotFound("todo projection not found", http);
+        }
+
+        var query = db.AdminTodoProjections
+            .AsNoTracking()
+            .Where(x => x.Tenant == tenant && x.TodoId == todoId)
+            .OrderByDescending(x => x.OccurredAt);
+
         return ApiEnvelope.Ok(await PageAsync(query, http), "todo history loaded", http);
     }
 

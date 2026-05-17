@@ -308,7 +308,7 @@ public sealed class KafkaConsumerBackgroundService : BackgroundService
 
     private static async Task ApplyProjectionAsync(AdminDbContext db, EventEnvelope envelope, string topic, CancellationToken cancellationToken)
     {
-        var eventType = envelope.EventType.ToLowerInvariant();
+        var eventType = NormalizeEventName(envelope.EventType);
         if (topic == "auth.admin.requests" || eventType is "auth.admin.requested" or "admin.registration.requested" or "admin.registration.created")
         {
             await UpsertRegistrationAsync(db, envelope, cancellationToken);
@@ -321,13 +321,13 @@ public sealed class KafkaConsumerBackgroundService : BackgroundService
             return;
         }
 
-        if (eventType.StartsWith("access.request.", StringComparison.Ordinal))
+        if (IsAccessRequestEvent(envelope, topic))
         {
             await UpsertAccessRequestAsync(db, envelope, cancellationToken);
             return;
         }
 
-        if (eventType.StartsWith("access.grant.", StringComparison.Ordinal))
+        if (IsAccessGrantEvent(envelope, topic))
         {
             await UpsertAccessGrantAsync(db, envelope, cancellationToken);
             return;
@@ -397,7 +397,7 @@ public sealed class KafkaConsumerBackgroundService : BackgroundService
     private static async Task UpsertAccessRequestAsync(AdminDbContext db, EventEnvelope envelope, CancellationToken ct)
     {
         var p = envelope.Payload;
-        var requestId = Text(p, "request_id") ?? envelope.AggregateId;
+        var requestId = Text(p, "request_id", "access_request_id", "id") ?? envelope.AggregateId;
         var tenant = envelope.Tenant;
         var entity = await db.AdminAccessRequests.FirstOrDefaultAsync(x => x.Tenant == tenant && x.RequestId == requestId, ct);
         if (entity is null)
@@ -405,21 +405,44 @@ public sealed class KafkaConsumerBackgroundService : BackgroundService
             entity = new AdminAccessRequest { Tenant = tenant, RequestId = requestId };
             db.AdminAccessRequests.Add(entity);
         }
-        entity.RequesterUserId = Text(p, "requester_user_id", "requester_id", "user_id") ?? entity.RequesterUserId;
-        entity.TargetUserId = Text(p, "target_user_id") ?? envelope.UserId ?? entity.TargetUserId;
-        entity.ResourceType = Text(p, "resource_type") ?? entity.ResourceType;
-        entity.Scope = Text(p, "scope") ?? entity.Scope;
-        entity.Reason = Text(p, "reason") ?? entity.Reason;
-        entity.Status = Text(p, "status") ?? StatusFromEvent(envelope.EventType);
-        entity.RequestedAt = Time(p, "requested_at", envelope.Timestamp);
-        entity.RequestedBy = Text(p, "requested_by") ?? entity.RequestedBy;
-        entity.ExpiresAt = NullableTime(p, "expires_at") ?? entity.ExpiresAt;
+
+        entity.RequesterUserId =
+            Text(p, "requester_user_id", "requester_id", "user_id", "created_by", "owner_user_id")
+            ?? envelope.UserId
+            ?? entity.RequesterUserId;
+
+        entity.TargetUserId =
+            Text(p, "target_user_id", "target_id", "subject_user_id")
+            ?? entity.TargetUserId;
+
+        entity.ResourceType = Text(p, "resource_type", "resource", "service") ?? entity.ResourceType;
+        entity.Scope = Text(p, "scope", "permission", "permissions") ?? entity.Scope;
+        entity.Reason = Text(p, "reason", "message") ?? entity.Reason;
+
+        var rawStatus = Text(p, "status", "state", "decision") ?? StatusFromEvent(envelope.EventType);
+        entity.Status = NormalizeAccessRequestStatus(rawStatus);
+
+        entity.RequestedAt = NullableTime(p, "requested_at", "created_at", "submitted_at") ?? entity.RequestedAt;
+        if (entity.RequestedAt == default)
+        {
+            entity.RequestedAt = envelope.Timestamp;
+        }
+
+        entity.RequestedBy = Text(p, "requested_by", "created_by", "actor_id") ?? envelope.ActorId ?? entity.RequestedBy;
+        entity.ExpiresAt = NullableTime(p, "expires_at", "expires_on") ?? entity.ExpiresAt;
+
+        if (entity.Status is DecisionStatuses.Approved or DecisionStatuses.Rejected)
+        {
+            entity.ReviewedAt = NullableTime(p, "reviewed_at", "approved_at", "rejected_at", "decided_at") ?? envelope.Timestamp;
+            entity.ReviewedBy = Text(p, "reviewed_by", "approved_by", "rejected_by", "decided_by", "actor_id") ?? envelope.ActorId ?? entity.ReviewedBy;
+            entity.DecisionReason = Text(p, "decision_reason", "review_reason", "reason") ?? entity.DecisionReason;
+        }
     }
 
     private static async Task UpsertAccessGrantAsync(AdminDbContext db, EventEnvelope envelope, CancellationToken ct)
     {
         var p = envelope.Payload;
-        var grantId = Text(p, "grant_id") ?? envelope.AggregateId;
+        var grantId = Text(p, "grant_id", "access_grant_id", "id") ?? envelope.AggregateId;
         var tenant = envelope.Tenant;
         var entity = await db.AdminAccessGrants.FirstOrDefaultAsync(x => x.Tenant == tenant && x.GrantId == grantId, ct);
         if (entity is null)
@@ -427,19 +450,29 @@ public sealed class KafkaConsumerBackgroundService : BackgroundService
             entity = new AdminAccessGrant { Tenant = tenant, GrantId = grantId };
             db.AdminAccessGrants.Add(entity);
         }
-        entity.RequestId = Text(p, "request_id") ?? entity.RequestId;
-        entity.RequesterUserId = Text(p, "requester_user_id", "requester_id") ?? entity.RequesterUserId;
-        entity.TargetUserId = Text(p, "target_user_id") ?? envelope.UserId ?? entity.TargetUserId;
-        entity.ResourceType = Text(p, "resource_type") ?? entity.ResourceType;
-        entity.Scope = Text(p, "scope") ?? entity.Scope;
-        entity.Status = envelope.EventType.EndsWith("revoked", StringComparison.OrdinalIgnoreCase) ? GrantStatuses.Revoked : Text(p, "status") ?? GrantStatuses.Active;
+
+        entity.RequestId = Text(p, "request_id", "access_request_id") ?? entity.RequestId;
+        entity.RequesterUserId = Text(p, "requester_user_id", "requester_id", "user_id") ?? entity.RequesterUserId;
+        entity.TargetUserId = Text(p, "target_user_id", "target_id", "subject_user_id") ?? envelope.UserId ?? entity.TargetUserId;
+        entity.ResourceType = Text(p, "resource_type", "resource", "service") ?? entity.ResourceType;
+        entity.Scope = Text(p, "scope", "permission", "permissions") ?? entity.Scope;
+        entity.Status = NormalizeAccessGrantStatus(Text(p, "status", "state") ?? StatusFromEvent(envelope.EventType));
         entity.ApprovedBy = Text(p, "approved_by", "actor_id") ?? envelope.ActorId ?? entity.ApprovedBy;
-        entity.ApprovedAt = Time(p, "approved_at", envelope.Timestamp);
-        entity.ExpiresAt = NullableTime(p, "expires_at") ?? DateTimeOffset.UtcNow.AddDays(30);
+        entity.ApprovedAt = NullableTime(p, "approved_at", "created_at") ?? entity.ApprovedAt;
+        if (entity.ApprovedAt == default)
+        {
+            entity.ApprovedAt = envelope.Timestamp;
+        }
+        entity.ExpiresAt = NullableTime(p, "expires_at", "expires_on") ?? entity.ExpiresAt;
+        if (entity.ExpiresAt == default)
+        {
+            entity.ExpiresAt = DateTimeOffset.UtcNow.AddDays(30);
+        }
+
         if (entity.Status == GrantStatuses.Revoked)
         {
             entity.RevokedBy = Text(p, "revoked_by", "actor_id") ?? envelope.ActorId;
-            entity.RevokedAt = envelope.Timestamp;
+            entity.RevokedAt = NullableTime(p, "revoked_at", "updated_at") ?? envelope.Timestamp;
             entity.RevokeReason = Text(p, "reason", "revoke_reason");
         }
     }
@@ -522,9 +555,59 @@ public sealed class KafkaConsumerBackgroundService : BackgroundService
         entity.Payload = envelope.Payload.GetRawText();
     }
 
+    private static bool IsAccessRequestEvent(EventEnvelope envelope, string topic)
+    {
+        var eventType = NormalizeEventName(envelope.EventType);
+        var aggregateType = NormalizeAggregateName(envelope.AggregateType);
+
+        return topic.Contains("access", StringComparison.OrdinalIgnoreCase) && topic.Contains("request", StringComparison.OrdinalIgnoreCase)
+            || aggregateType == "access_request"
+            || eventType.StartsWith("access.request.", StringComparison.Ordinal)
+            || eventType.StartsWith("user.access.request.", StringComparison.Ordinal)
+            || eventType.StartsWith("user.accessrequest.", StringComparison.Ordinal)
+            || eventType.StartsWith("accessrequest.", StringComparison.Ordinal);
+    }
+
+    private static bool IsAccessGrantEvent(EventEnvelope envelope, string topic)
+    {
+        var eventType = NormalizeEventName(envelope.EventType);
+        var aggregateType = NormalizeAggregateName(envelope.AggregateType);
+
+        return topic.Contains("access", StringComparison.OrdinalIgnoreCase) && topic.Contains("grant", StringComparison.OrdinalIgnoreCase)
+            || aggregateType == "access_grant"
+            || eventType.StartsWith("access.grant.", StringComparison.Ordinal)
+            || eventType.StartsWith("user.access.grant.", StringComparison.Ordinal)
+            || eventType.StartsWith("user.accessgrant.", StringComparison.Ordinal)
+            || eventType.StartsWith("accessgrant.", StringComparison.Ordinal);
+    }
+
+    private static string NormalizeEventName(string eventType)
+        => eventType.Replace('-', '.').Replace('_', '.').ToLowerInvariant();
+
+    private static string NormalizeAggregateName(string? aggregateType)
+        => (aggregateType ?? string.Empty).Replace('-', '_').Replace('.', '_').ToLowerInvariant();
+
+    private static string NormalizeAccessRequestStatus(string status)
+        => status.Replace('-', '_').ToLowerInvariant() switch
+        {
+            "created" or "requested" or "submitted" or "open" or "pending" => DecisionStatuses.Pending,
+            "approved" or "accepted" => DecisionStatuses.Approved,
+            "rejected" or "denied" or "declined" => DecisionStatuses.Rejected,
+            var value => value
+        };
+
+    private static string NormalizeAccessGrantStatus(string status)
+        => status.Replace('-', '_').ToLowerInvariant() switch
+        {
+            "created" or "approved" or "active" or "granted" => GrantStatuses.Active,
+            "revoked" or "revoke_requested" => GrantStatuses.Revoked,
+            var value => value
+        };
+
     private static string StatusFromEvent(string eventType)
     {
-        var last = eventType.Split('.', StringSplitOptions.RemoveEmptyEntries).LastOrDefault() ?? "received";
+        var normalized = NormalizeEventName(eventType);
+        var last = normalized.Split('.', StringSplitOptions.RemoveEmptyEntries).LastOrDefault() ?? "received";
         return last.Replace('-', '_').ToLowerInvariant();
     }
 
